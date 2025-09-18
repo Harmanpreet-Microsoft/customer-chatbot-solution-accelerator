@@ -4,7 +4,7 @@ import asyncio
 import os
 import json
 
-from azure.identity import AzureCliCredential, DefaultAzureCredential
+from azure.identity import AzureCliCredential, DefaultAzureCredential, get_bearer_token_provider
 
 from semantic_kernel.agents import Agent, ChatCompletionAgent, HandoffOrchestration, OrchestrationHandoffs
 from semantic_kernel.agents.runtime import InProcessRuntime
@@ -150,6 +150,11 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
     Feel free to add or remove agents and handoff connections.
     """
     credential = DefaultAzureCredential()
+    token_provider = get_bearer_token_provider(
+        credential, "https://cognitiveservices.azure.com/.default"
+    )
+    print("Using Azure token provider with credential:", credential)  # pragma: no cover
+    
 
     # Support either AZURE_OPENAI_API_KEY or legacy AZURE_OPENAI_KEY
     api_key = os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("AZURE_OPENAI_KEY")
@@ -165,6 +170,7 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
             deployment_name=deployment,
             base_url=endpoint,
             api_key=api_key,
+            azure_token_provider=token_provider,
         ),
     )
 
@@ -177,6 +183,7 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
             deployment_name=deployment,
             base_url=endpoint,
             api_key=api_key,
+            azure_token_provider=token_provider,
         ),
         plugins=[OrderRefundPlugin()],
     )
@@ -190,6 +197,7 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
             deployment_name=deployment,
             base_url=endpoint,
             api_key=api_key,
+            azure_token_provider=token_provider,
         ),
         plugins=[OrderStatusPlugin()],
     )
@@ -203,6 +211,7 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
             deployment_name=deployment,
             base_url=endpoint,
             api_key=api_key,
+            azure_token_provider=token_provider,
         ),
         plugins=[OrderReturnPlugin()],
     )
@@ -220,6 +229,7 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
             deployment_name=deployment,
             base_url=endpoint,
             api_key=api_key,
+            azure_token_provider=token_provider,
         ),
         plugins=[ProductLookupPlugin()],
     )

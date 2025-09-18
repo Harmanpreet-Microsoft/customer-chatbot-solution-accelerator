@@ -39,17 +39,25 @@ def find_product_by_sku(sku: str):
         return _normalize(dict(zip(cols, row)))
 
 def search_products(query: str, limit: int = 10):
-    q = f"%{query}%"
+    words = [w.strip() for w in query.split() if w.strip()]
+    if not words:
+        return []
+    like_clauses = []
+    params = [limit]
+    for w in words:
+        like_clauses.append("name LIKE ?")
+        like_clauses.append("description LIKE ?")
+        params.append(f"%{w}%")
+        params.append(f"%{w}%")
+    where_sql = " OR ".join(like_clauses)
+    sql = f'''
+        SELECT TOP (?) id, sku, name, description, price, image_url, inventory
+        FROM dbo.products
+        WHERE {where_sql}
+        ORDER BY name
+    '''
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(
-            '''
-            SELECT TOP (?) id, sku, name, description, price, image_url, inventory
-            FROM dbo.products
-            WHERE name LIKE ? OR description LIKE ?
-            ORDER BY name
-            ''',
-            limit, q, q
-        )
+        cur.execute(sql, params)
         cols = [c[0] for c in cur.description]
         return [_normalize(dict(zip(cols, row))) for row in cur.fetchall()]
