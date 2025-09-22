@@ -32,34 +32,84 @@ a handoff orchestration, invoking the orchestration, and finally waiting for the
 
 class OrderStatusPlugin:
     @kernel_function
+    def search_orders(self, order_id: str = None, product_id: str = None, description: str = None, top: int = 5) -> str:
+        """Search orders by order ID, product ID, or description (JSON array as string)."""
+        try:
+            from .services import cosmos
+        except Exception as ex:
+            return json.dumps({"error": f"Order search unavailable (import error: {ex})"})
+        try:
+            items = cosmos.search_orders(order_id=order_id, product_id=product_id, description=description, top=top)
+        except Exception as ex:
+            return json.dumps({"error": f"Failed to search orders: {ex}"})
+        def _map(doc: dict) -> dict:
+            order_obj = doc.get("order") or {}
+            return {
+                "id": doc.get("id"),
+                "customerId": doc.get("customerId") or order_obj.get("customerId"),
+                "productId": doc.get("productId") or doc.get("productid") or order_obj.get("productId"),
+                "price": doc.get("price") or order_obj.get("price") or doc.get("total") or order_obj.get("total"),
+                "quantity": doc.get("quantity") or order_obj.get("quantity"),
+                "status": doc.get("status") or doc.get("state") or order_obj.get("status"),
+                "description": doc.get("description") or order_obj.get("description"),
+                "createdAt": doc.get("createdAt") or doc.get("timestamp") or order_obj.get("createdAt"),
+            }
+        mapped = [_map(d) for d in items]
+        if not mapped:
+            return "No matching orders found.\n[]"
+        lines = []
+        for m in mapped:
+            bits = [f"status={m.get('status')}"]
+            if m.get('productId') is not None:
+                bits.append(f"product={m.get('productId')}")
+            if m.get('quantity') is not None:
+                bits.append(f"qty={m.get('quantity')}")
+            if m.get('price') is not None:
+                bits.append(f"price={m.get('price')}")
+            lines.append(f"Order {m.get('id')}: " + ", ".join(bits))
+        return "\n".join(lines) + "\n" + json.dumps(mapped)
+    @kernel_function
     def check_order_status(self, order_id: str) -> str:
-        """Look up an order by id in Cosmos DB and summarize its status.
-
-        Falls back with a helpful message if Cosmos is not configured or order not found.
-        """
+        """Look up an order by id in Cosmos DB and return plain text summary PLUS JSON.
+        Format:
+        Order <id>: status=<status>, product=<productId>, qty=<quantity>, price=<price>
+        <JSON object>
+        If not found returns a JSON object with message only."""
         try:
             from .services import cosmos  # local import
-        except Exception as ex:  # pragma: no cover
-            return f"Order lookup unavailable (import error: {ex})."
+        except Exception as ex:
+            return json.dumps({"error": f"Order lookup unavailable (import error: {ex})"})
 
         try:
             doc = cosmos.get_order_by_id(order_id)
         except Exception as ex:
-            return f"Failed to query order {order_id}: {ex}"
+            return json.dumps({"error": f"Failed to query order {order_id}: {ex}"})
 
         if not doc:
-            return f"No order found with id {order_id}."
+            return json.dumps({"message": f"No order found for id {order_id}"})
 
-        status = doc.get("status") or doc.get("state") or "(unknown status)"
-        total = doc.get("total") or doc.get("amount")
-        created = doc.get("createdAt") or doc.get("timestamp")
-        summary_bits = [f"status={status}"]
-        if total is not None:
-            summary_bits.append(f"total={total}")
-        if created:
-            summary_bits.append(f"created={created}")
-        return f"Order {order_id}: " + ", ".join(summary_bits)
-
+        order_obj = doc.get("order") or {}
+        mapped = {
+            "id": doc.get("id"),
+            "customerId": doc.get("customerId") or order_obj.get("customerId"),
+            "productId": doc.get("productId") or doc.get("productid") or order_obj.get("productId"),
+            "price": doc.get("price") or order_obj.get("price") or doc.get("total") or order_obj.get("total"),
+            "quantity": doc.get("quantity") or order_obj.get("quantity"),
+            "status": doc.get("status") or doc.get("state") or order_obj.get("status"),
+            "description": doc.get("description") or order_obj.get("description"),
+            "createdAt": doc.get("createdAt") or doc.get("timestamp") or order_obj.get("createdAt"),
+        }
+        summary_bits = [
+            f"status={mapped.get('status')}",
+        ]
+        if mapped.get('productId') is not None:
+            summary_bits.append(f"product={mapped.get('productId')}")
+        if mapped.get('quantity') is not None:
+            summary_bits.append(f"qty={mapped.get('quantity')}")
+        if mapped.get('price') is not None:
+            summary_bits.append(f"price={mapped.get('price')}")
+        summary_line = f"Order {mapped.get('id')}: " + ", ".join(summary_bits)
+        return summary_line + "\n" + json.dumps(mapped)
     @kernel_function
     def list_recent_orders(self, customer_id: str, top: int = 5) -> str:
         """List recent orders for a customer (JSON array as string)."""
@@ -71,16 +121,32 @@ class OrderStatusPlugin:
             items = cosmos.list_orders_for_customer(customer_id, top=top)
         except Exception as ex:
             return json.dumps({"error": f"Failed to list orders: {ex}"})
-        # Trim large docs
-        trimmed = []
-        for d in items:
-            trimmed.append({
-                "id": d.get("id"),
-                "status": d.get("status") or d.get("state"),
-                "total": d.get("total") or d.get("amount"),
-                "createdAt": d.get("createdAt") or d.get("timestamp"),
-            })
-        return json.dumps(trimmed)
+        def _map(doc: dict) -> dict:
+            order_obj = doc.get("order") or {}
+            return {
+                "id": doc.get("id"),
+                "customerId": doc.get("customerId") or order_obj.get("customerId"),
+                "productId": doc.get("productId") or doc.get("productid") or order_obj.get("productId"),
+                "price": doc.get("price") or order_obj.get("price") or doc.get("total") or order_obj.get("total"),
+                "quantity": doc.get("quantity") or order_obj.get("quantity"),
+                "status": doc.get("status") or doc.get("state") or order_obj.get("status"),
+                "description": doc.get("description") or order_obj.get("description"),
+                "createdAt": doc.get("createdAt") or doc.get("timestamp") or order_obj.get("createdAt"),
+            }
+        mapped = [_map(d) for d in items]
+        if not mapped:
+            return f"No recent orders found for customer {customer_id}.\n[]"
+        lines = []
+        for m in mapped:
+            bits = [f"status={m.get('status')}"]
+            if m.get('productId') is not None:
+                bits.append(f"product={m.get('productId')}")
+            if m.get('quantity') is not None:
+                bits.append(f"qty={m.get('quantity')}")
+            if m.get('price') is not None:
+                bits.append(f"price={m.get('price')}")
+            lines.append(f"Order {m.get('id')}: " + ", ".join(bits))
+        return "\n".join(lines) + "\n" + json.dumps(mapped)
 
 
 class OrderRefundPlugin:
@@ -211,7 +277,13 @@ def get_agents() -> tuple[list[Agent], OrchestrationHandoffs]:
     order_status_agent = ChatCompletionAgent(
         name="OrderStatusAgent",
         description="A customer support agent that checks order status.",
-        instructions="Handle order status requests.",
+        instructions=(
+            "Handle order status and tracking requests. If the user supplies an order id (numeric or simple token) call check_order_status immediately. "
+            "Return BOTH a concise plain text summary line and then a newline and the JSON object from the tool. "
+            "For partial info (product id, description keywords) call search_orders and return one summary line per order followed by a newline and the JSON array. "
+            "For recent orders scenarios call list_recent_orders and use the same pattern (summary lines, newline, JSON array). "
+            "Do NOT wrap or explain beyond that dual-format output."
+        ),
         service=AzureChatCompletion(
             # credential=credential,
             deployment_name=deployment,
@@ -365,8 +437,11 @@ class HandoffChatOrchestrator:
         )
 
     async def respond(self, user_text: str, history: list[dict] | None = None) -> dict:
-        # Only pass supported arguments to invoke()
+        # Improve context threading: if last agent prompted, prepend system message to user reply
         self._assistant_messages = []
+        if self._last_agent:
+            # Prepend a system message to help orchestration route reply to correct agent
+            user_text = f"[System: This is a follow-up response for {self._last_agent}. Please continue handling the user's request.]\n{user_text}"
         invoke_kwargs = dict(task=user_text, runtime=self._runtime)
         result = await self.handoff_orchestration.invoke(**invoke_kwargs)
         value = await result.get()
