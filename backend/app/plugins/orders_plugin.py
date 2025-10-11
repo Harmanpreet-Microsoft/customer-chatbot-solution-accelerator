@@ -2,8 +2,22 @@ from semantic_kernel.functions import kernel_function
 from ..cosmos_service import get_cosmos_service
 import json
 import logging
+import asyncio
+import concurrent.futures
 
 logger = logging.getLogger(__name__)
+
+def run_async_sync(coro):
+    """Run an async coroutine synchronously, handling event loop conflicts"""
+    try:
+        loop = asyncio.get_running_loop()
+        # We're in an async context, use a thread pool
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(asyncio.run, coro)
+            return future.result()
+    except RuntimeError:
+        # No event loop running, safe to use asyncio.run
+        return asyncio.run(coro)
 
 class OrdersPlugin:
     """Plugin for order management using Cosmos DB"""
@@ -13,11 +27,10 @@ class OrdersPlugin:
         """Get order by ID"""
         try:
             cosmos_service = get_cosmos_service()
-            order = cosmos_service.get_order_by_id(order_id)
+            order = run_async_sync(cosmos_service.get_order_by_id(order_id))
             if not order:
                 return json.dumps({"error": f"No order found with ID: {order_id}"})
             
-            # Convert to dict if it's a model instance
             if hasattr(order, 'model_dump'):
                 order_dict = order.model_dump()
             else:
@@ -33,11 +46,10 @@ class OrdersPlugin:
         """List orders for a customer"""
         try:
             cosmos_service = get_cosmos_service()
-            orders = cosmos_service.get_orders_by_customer(customer_id, limit=limit)
+            orders = run_async_sync(cosmos_service.get_orders_by_customer(customer_id, limit=limit))
             if not orders:
                 return json.dumps([])
             
-            # Convert to list of dicts
             orders_list = []
             for order in orders:
                 if hasattr(order, 'model_dump'):
@@ -55,11 +67,10 @@ class OrdersPlugin:
         """Get order status"""
         try:
             cosmos_service = get_cosmos_service()
-            order = cosmos_service.get_order_by_id(order_id)
+            order = run_async_sync(cosmos_service.get_order_by_id(order_id))
             if not order:
                 return json.dumps({"error": f"No order found with ID: {order_id}"})
             
-            # Extract status information
             if hasattr(order, 'model_dump'):
                 order_dict = order.model_dump()
             else:

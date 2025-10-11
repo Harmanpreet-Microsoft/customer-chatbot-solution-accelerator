@@ -272,6 +272,65 @@ class CosmosDatabaseService:
             logger.error(f"Error deleting product from Cosmos DB: {str(e)}")
             raise
     
+    async def get_product_by_sku(self, sku: str) -> Optional[Product]:
+        """Get product by SKU"""
+        try:
+            query = "SELECT * FROM c WHERE c.sku = @sku OR c.id = @sku"
+            parameters = [{"name": "@sku", "value": sku}]
+            
+            items = list(self.products_container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            if items:
+                item = items[0]
+                product = Product(
+                    id=item.get("id"),
+                    title=item.get("title", ""),
+                    price=item.get("price", 0.0),
+                    original_price=item.get("original_price", item.get("price", 0.0)),
+                    rating=item.get("rating", 4.0),
+                    review_count=item.get("review_count", 0),
+                    image=item.get("image", ""),
+                    category=item.get("category", ""),
+                    in_stock=item.get("in_stock", True),
+                    description=item.get("description", ""),
+                    tags=item.get("tags", []),
+                    specifications=item.get("specifications", {}),
+                    created_at=item.get("created_at", datetime.utcnow()),
+                    updated_at=item.get("updated_at", datetime.utcnow())
+                )
+                return product
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting product by SKU {sku}: {str(e)}")
+            return None
+    
+    async def search_products(self, query: str, limit: int = 10) -> List[Product]:
+        """Search products by query"""
+        search_params = {"query": query}
+        products = await self.get_products(search_params)
+        return products[:limit]
+    
+    async def get_products_by_category(self, category: str, limit: int = 10) -> List[Product]:
+        """Get products by category"""
+        search_params = {"category": category}
+        products = await self.get_products(search_params)
+        return products[:limit]
+    
+    async def get_order_by_id(self, order_id: str) -> Optional[Dict[str, Any]]:
+        """Get order by ID - placeholder until orders are properly implemented"""
+        logger.warning(f"get_order_by_id called for {order_id}, but orders not yet implemented in Cosmos DB")
+        return None
+    
+    async def get_orders_by_customer(self, customer_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get orders for a customer - placeholder until orders are properly implemented"""
+        logger.warning(f"get_orders_by_customer called for {customer_id}, but orders not yet implemented in Cosmos DB")
+        return []
+    
     async def get_user(self, user_id: str) -> Optional[User]:
         """Get user by ID - using query for better compatibility"""
         try:

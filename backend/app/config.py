@@ -66,6 +66,17 @@ class Settings(BaseSettings):
     azure_search_api_key: Optional[str] = None
     azure_search_index: str = "reference-docs"
     
+    # Azure AI Foundry
+    azure_foundry_endpoint: Optional[str] = None
+    foundry_orchestrator_agent_id: str = ""
+    foundry_product_agent_id: str = ""
+    foundry_order_agent_id: str = ""
+    foundry_customer_agent_id: str = ""
+    foundry_knowledge_agent_id: str = ""
+    
+    # Feature Flags
+    use_foundry_agents: bool = False
+    
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -97,3 +108,10 @@ def has_azure_search_config() -> bool:
 # Check if semantic kernel is properly configured
 def has_semantic_kernel_config() -> bool:
     return has_openai_config() and settings.use_semantic_kernel
+
+# Check if Azure AI Foundry is configured
+def has_foundry_config() -> bool:
+    return (
+        settings.azure_foundry_endpoint is not None 
+        and settings.foundry_orchestrator_agent_id != ""
+    )
