@@ -8,63 +8,48 @@ from ..database import get_db_service
 from ..ai_service import ai_service
 from ..semantic_kernel_service import get_semantic_kernel_service
 from ..handoff_orchestrator import get_handoff_orchestrator
-from ..config import settings, has_semantic_kernel_config
+from ..simple_foundry_orchestrator import get_simple_foundry_orchestrator
+from ..config import settings, has_semantic_kernel_config, has_foundry_config
 from ..auth import get_current_user_optional
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
 
-async def generate_ai_response(message_content: str, chat_history: List[ChatMessage]) -> str:
-    """Generate AI response using semantic kernel or fallback to regular AI service"""
-    # Debug logging
-    logger.info(f"Generating AI response. Semantic kernel config: {has_semantic_kernel_config()}, Handoff enabled: {settings.handoff_orchestration_enabled}")
+async def generate_ai_response(message_content: str, chat_history: List[ChatMessage], session_id: Optional[str] = None) -> str:
+    """Generate AI response using Foundry agents only"""
+    logger.info(f"Generating AI response. Foundry config: {has_foundry_config()}, Use Foundry: {settings.use_foundry_agents}")
     
-    if has_semantic_kernel_config() and settings.handoff_orchestration_enabled:
-        # Use handoff orchestrator for advanced routing
+    # Only use Foundry agents - no fallbacks
+    if has_foundry_config() and settings.use_foundry_agents:
         try:
-            handoff_orchestrator = get_handoff_orchestrator()
-            logger.info(f"Handoff orchestrator configured: {handoff_orchestrator.is_configured}")
-            ai_response_data = await handoff_orchestrator.respond(
-                user_text=message_content,
-                history=[{"role": msg.message_type, "content": msg.content} for msg in chat_history[-10:]]
-            )
-            return ai_response_data.get("text", "I'm sorry, I couldn't process your request.")
+            simple_foundry_orchestrator = await get_simple_foundry_orchestrator()
+            logger.info(f"Simple Foundry orchestrator configured: {simple_foundry_orchestrator.is_configured}")
+            
+            if simple_foundry_orchestrator.is_configured:
+                logger.info(f"Processing message with Foundry agents: {message_content[:100]}...")
+                # Pass conversation_id for thread caching
+                ai_response_data = await simple_foundry_orchestrator.respond(
+                    user_text=message_content, 
+                    conversation_id=session_id
+                )
+                
+                if "error" in ai_response_data:
+                    logger.error(f"Foundry orchestrator returned error: {ai_response_data['error']}")
+                    return f"❌ Foundry Agent Error: {ai_response_data['error']}"
+                
+                response_text = ai_response_data.get("text", "")
+                logger.info(f"Foundry orchestrator response length: {len(response_text)} chars")
+                return response_text
+            else:
+                logger.error("Simple Foundry orchestrator is not configured properly")
+                return "❌ Foundry Agent Error: Orchestrator not configured"
+                
         except Exception as e:
-            logger.error(f"Error with handoff orchestrator: {e}")
-            # Fallback to regular AI service
-            products = await get_db_service().get_products()
-            return await ai_service.generate_chat_response(
-                user_message=message_content,
-                chat_history=chat_history,
-                products=products
-            )
-    elif has_semantic_kernel_config():
-        # Use semantic kernel service with simple routing
-        try:
-            semantic_kernel_service = get_semantic_kernel_service()
-            logger.info(f"Semantic kernel service configured: {semantic_kernel_service.is_configured}")
-            ai_response_data = await semantic_kernel_service.respond(
-                user_text=message_content,
-                history=[{"role": msg.message_type, "content": msg.content} for msg in chat_history[-10:]]
-            )
-            return ai_response_data.get("text", "I'm sorry, I couldn't process your request.")
-        except Exception as e:
-            logger.error(f"Error with semantic kernel service: {e}")
-            # Fallback to regular AI service
-            products = await get_db_service().get_products()
-            return await ai_service.generate_chat_response(
-                user_message=message_content,
-                chat_history=chat_history,
-                products=products
-            )
+            logger.error(f"Error with Simple Foundry orchestrator: {e}", exc_info=True)
+            return f"❌ Foundry Agent Error: {str(e)}"
     else:
-        # Fallback to regular AI service
-        products = await get_db_service().get_products()
-        return await ai_service.generate_chat_response(
-            user_message=message_content,
-            chat_history=chat_history,
-            products=products
-        )
+        logger.error(f"Foundry not configured. Foundry config: {has_foundry_config()}, Use Foundry: {settings.use_foundry_agents}")
+        return "❌ Foundry Agent Error: Foundry agents not configured. Please check your environment variables."
 
 @router.get("/sessions")
 async def get_chat_sessions(current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)):
@@ -180,8 +165,8 @@ async def send_message(session_id: str, message: ChatMessageCreate, current_user
         # Add user message to session
         session = await get_db_service().add_message_to_session(session_id, message, user_id)
         
-        # Generate AI response using semantic kernel or fallback
-        ai_content = await generate_ai_response(message.content, session.messages)
+        # Generate AI response with thread caching
+        ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id)
         
         # Create AI response message
         ai_response = ChatMessageCreate(
@@ -251,8 +236,8 @@ async def send_message_legacy(message: ChatMessageCreate, current_user: Optional
         # Add user message to session
         session = await get_db_service().add_message_to_session(session_id, message, user_id)
         
-        # Generate AI response using semantic kernel or fallback
-        ai_content = await generate_ai_response(message.content, session.messages)
+        # Generate AI response with thread caching
+        ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id)
         
         # Create AI response message
         ai_response = ChatMessageCreate(
@@ -308,25 +293,51 @@ async def create_new_chat_session(current_user: Optional[Dict[str, Any]] = Depen
 
 @router.get("/ai/status", response_model=APIResponse)
 async def get_ai_status():
-    """Get AI service status"""
+    """Get AI service status - Foundry agents only"""
     try:
-        # Check semantic kernel status
-        semantic_kernel_configured = has_semantic_kernel_config()
-        handoff_configured = semantic_kernel_configured and settings.handoff_orchestration_enabled
+        # Check Foundry status
+        foundry_configured = has_foundry_config()
+        foundry_enabled = foundry_configured and settings.use_foundry_agents
+        
+        # Determine active service
+        active_service = "Unknown"
+        if foundry_enabled:
+            try:
+                simple_foundry_orchestrator = await get_simple_foundry_orchestrator()
+                if simple_foundry_orchestrator.is_configured:
+                    active_service = "Azure AI Foundry Agents (Simple)"
+                    # Get agent details
+                    agent_count = len(simple_foundry_orchestrator.agents)
+                    agent_names = list(simple_foundry_orchestrator.agents.keys())
+                else:
+                    active_service = "Foundry (not configured)"
+                    agent_count = 0
+                    agent_names = []
+            except Exception as e:
+                active_service = f"Foundry (error: {str(e)})"
+                agent_count = 0
+                agent_names = []
+        else:
+            active_service = "Foundry (not enabled)"
+            agent_count = 0
+            agent_names = []
         
         return APIResponse(
-            message="AI service status",
+            message="AI service status - Foundry agents only",
             data={
-                "ai_service_configured": ai_service.is_configured,
-                "semantic_kernel_configured": semantic_kernel_configured,
-                "handoff_orchestration_enabled": handoff_configured,
-                "use_semantic_kernel": settings.use_semantic_kernel,
-                "use_simple_router": settings.use_simple_router,
-                "active_service": "Handoff Orchestration" if handoff_configured else 
-                                "Semantic Kernel" if semantic_kernel_configured else 
-                                "Azure OpenAI" if ai_service.is_configured else "Fallback",
-                "plugins": settings.semantic_kernel_plugins if semantic_kernel_configured else []
+                "foundry_configured": foundry_configured,
+                "foundry_enabled": foundry_enabled,
+                "use_foundry_agents": settings.use_foundry_agents,
+                "active_service": active_service,
+                "agent_count": agent_count,
+                "agent_names": agent_names,
+                "foundry_endpoint": settings.azure_foundry_endpoint,
+                "orchestrator_agent_id": settings.foundry_orchestrator_agent_id,
+                "product_agent_id": settings.foundry_product_agent_id,
+                "order_agent_id": settings.foundry_order_agent_id,
+                "knowledge_agent_id": settings.foundry_knowledge_agent_id
             }
         )
     except Exception as e:
+        logger.error(f"Error getting AI status: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error getting AI status: {str(e)}")

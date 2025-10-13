@@ -2,7 +2,23 @@ import { Configuration, LogLevel } from '@azure/msal-browser';
 
 // Function to get configuration values from runtime config or Vite env
 const getConfigValue = (key: 'clientId' | 'authority' | 'redirectUri'): string => {
-  // In production, use runtime config; in development, use Vite env
+  // Check if we're running locally (development)
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  
+  // In development (localhost), always use Vite env variables
+  if (isLocalhost) {
+    switch (key) {
+      case 'clientId':
+        return import.meta.env.VITE_AZURE_CLIENT_ID || '';
+      case 'authority':
+        return import.meta.env.VITE_AZURE_AUTHORITY || '';
+      case 'redirectUri':
+        return import.meta.env.VITE_REDIRECT_URI || '';
+    }
+  }
+  
+  // In production, use runtime config; fallback to Vite env
   if (typeof window !== 'undefined' && window.APP_CONFIG) {
     switch (key) {
       case 'clientId':
@@ -32,7 +48,11 @@ export const createMsalConfig = (): Configuration => {
   const redirectUri = getConfigValue('redirectUri');
 
   // Debug MSAL configuration
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  
   console.log('🔧 MSAL Configuration:', {
+    environment: isLocalhost ? 'development (localhost)' : 'production',
     clientId: clientId,
     authority: authority,
     redirectUri: redirectUri,
