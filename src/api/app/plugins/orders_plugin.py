@@ -140,3 +140,61 @@ class OrdersPlugin:
         except Exception as e:
             logger.error(f"Error processing return for order {order_id}: {e}")
             return json.dumps({"error": f"Failed to process return: {str(e)}"})
+    
+    @kernel_function(description="Get orders within return window for a customer; returns JSON list")
+    def get_returnable_orders(self, customer_id: str) -> str:
+        """Get orders that are still within the return window (30 days)"""
+        try:
+            cosmos_service = get_cosmos_service()
+            orders = run_async_sync(cosmos_service.get_orders_in_date_range(customer_id, days=30))
+            
+            if not orders:
+                return json.dumps([])
+            
+            returnable_orders = []
+            for order in orders:
+                order_dict = order if isinstance(order, dict) else (order.model_dump() if hasattr(order, 'model_dump') else order)
+                returnable_orders.append(order_dict)
+            
+            return json.dumps(returnable_orders)
+        except Exception as e:
+            logger.error(f"Error getting returnable orders for customer {customer_id}: {e}")
+            return json.dumps({"error": f"Failed to get returnable orders: {str(e)}"})
+    
+    @kernel_function(description="Get orders from the past N days for a customer; returns JSON list")
+    def get_orders_by_date_range(self, customer_id: str, days: int = 180) -> str:
+        """Get orders from the last N days (default 180 days / 6 months)"""
+        try:
+            cosmos_service = get_cosmos_service()
+            orders = run_async_sync(cosmos_service.get_orders_in_date_range(customer_id, days=days))
+            
+            if not orders:
+                return json.dumps([])
+            
+            orders_list = []
+            for order in orders:
+                order_dict = order if isinstance(order, dict) else (order.model_dump() if hasattr(order, 'model_dump') else order)
+                orders_list.append(order_dict)
+            
+            return json.dumps(orders_list)
+        except Exception as e:
+            logger.error(f"Error getting orders by date range for customer {customer_id}: {e}")
+            return json.dumps({"error": f"Failed to get orders by date range: {str(e)}"})
+    
+    @kernel_function(description="Check if a specific order is still returnable (within 30-day window)")
+    def check_if_returnable(self, order_id: str) -> str:
+        """Check if an order is still within the return window"""
+        try:
+            cosmos_service = get_cosmos_service()
+            is_returnable = run_async_sync(cosmos_service.is_order_returnable(order_id, return_window_days=30))
+            
+            result = {
+                "order_id": order_id,
+                "is_returnable": is_returnable,
+                "return_window_days": 30
+            }
+            
+            return json.dumps(result)
+        except Exception as e:
+            logger.error(f"Error checking if order {order_id} is returnable: {e}")
+            return json.dumps({"error": f"Failed to check if order is returnable: {str(e)}"})

@@ -155,23 +155,23 @@ class SimpleFoundryOrchestrator:
         """Determine which agent should handle the request"""
         user_text_lower = user_text.lower()
         
-        # Product-related keywords
-        product_keywords = ['product', 'search', 'sku', 'price', 'available', 'paint', 'dusty', 'forest', 'category', 'buy', 'purchase']
-        if any(keyword in user_text_lower for keyword in product_keywords):
-            logger.info(f"Routing to ProductLookupAgent")
-            return "ProductLookupAgent"
+        # Knowledge-related keywords (check first for policy questions)
+        knowledge_keywords = ['policy', 'shipping', 'warranty', 'faq', 'help', 'support', 'information', 'how do i return', 'return policy', 'how to return']
+        if any(keyword in user_text_lower for keyword in knowledge_keywords):
+            logger.info(f"Routing to KnowledgeAgent")
+            return "KnowledgeAgent"
         
         # Order-related keywords
-        order_keywords = ['order', 'status', 'tracking', 'history', 'refund', 'return', 'shipped', 'delivered']
+        order_keywords = ['order', 'status', 'tracking', 'history', 'refund', 'return window', 'returnable', 'shipped', 'delivered', 'past orders', 'recent orders', 'past 6 months', 'past 3 months']
         if any(keyword in user_text_lower for keyword in order_keywords):
             logger.info(f"Routing to OrderStatusAgent")
             return "OrderStatusAgent"
         
-        # Knowledge-related keywords
-        knowledge_keywords = ['policy', 'shipping', 'warranty', 'faq', 'help', 'support', 'information']
-        if any(keyword in user_text_lower for keyword in knowledge_keywords):
-            logger.info(f"Routing to KnowledgeAgent")
-            return "KnowledgeAgent"
+        # Product-related keywords (including color/tone queries)
+        product_keywords = ['product', 'search', 'sku', 'price', 'available', 'paint', 'dusty', 'forest', 'category', 'buy', 'purchase', 'cool toned', 'warm toned', 'color', 'blue', 'green', 'orange', 'red']
+        if any(keyword in user_text_lower for keyword in product_keywords):
+            logger.info(f"Routing to ProductLookupAgent")
+            return "ProductLookupAgent"
         
         # Default to ProductLookupAgent
         logger.info("No specific keywords found, defaulting to ProductLookupAgent")

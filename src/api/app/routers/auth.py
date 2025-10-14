@@ -11,6 +11,10 @@ from ..config import settings, has_entra_id_config
 from ..auth import get_current_user, create_mock_token, verify_mock_token, create_access_token
 from ..models import LoginRequest, User, Token, UserResponse, UserUpdate
 from ..database import get_db_service
+from ..services.user_onboarding import create_demo_order_history
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
@@ -48,6 +52,14 @@ async def get_current_user_info(current_user: Dict[str, Any] = Depends(get_curre
                     password=""  # No password for Entra ID users
                 )
                 print(f"✅ Created new user: {user.email}")
+                
+                try:
+                    logger.info(f"🎁 Creating demo order history for new user: {user.id}")
+                    await create_demo_order_history(user.id)
+                    logger.info(f"✅ Demo order history created for user: {user.id}")
+                except Exception as e:
+                    logger.error(f"⚠️ Failed to create demo order history: {e}")
+                    
             except Exception as e:
                 print(f"❌ Error creating user: {e}")
                 # Return basic info even if user creation fails
@@ -141,6 +153,13 @@ async def login_with_email_password(login_data: LoginRequest):
                 name=login_data.email.split('@')[0],  # Use email prefix as name
                 password=login_data.password
             )
+            
+            try:
+                logger.info(f"🎁 Creating demo order history for new user: {user.id}")
+                await create_demo_order_history(user.id)
+                logger.info(f"✅ Demo order history created for user: {user.id}")
+            except Exception as e:
+                logger.error(f"⚠️ Failed to create demo order history: {e}")
         
         # Update last login
         user.last_login = datetime.utcnow()

@@ -189,6 +189,62 @@ try {
     }
 
     # ============================================================================
+    # PHASE 2.5: Azure AI Search
+    # ============================================================================
+    Write-Host "`n🔍 PHASE 2.5: AZURE AI SEARCH DEPLOYMENT" -ForegroundColor Blue
+    Write-Host "========================================" -ForegroundColor Blue
+
+    $searchServiceName = "ecommerce-$Environment-search-$timestamp"
+    $searchIndexName = "policies"
+
+    Write-Host "Creating Azure AI Search service: $searchServiceName" -ForegroundColor Yellow
+    az search service create `
+        --name $searchServiceName `
+        --resource-group $ResourceGroupName `
+        --location $Location `
+        --sku Free `
+        --output none
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "⚠️  Azure AI Search deployment failed (may already exist or quota exceeded)" -ForegroundColor Yellow
+        Write-Host "Continuing without Azure AI Search..." -ForegroundColor Yellow
+        $searchEndpoint = $null
+        $searchKey = $null
+    } else {
+        Write-Host "✅ Azure AI Search service created" -ForegroundColor Green
+
+        Start-Sleep -Seconds 30
+
+        $searchEndpoint = "https://$searchServiceName.search.windows.net"
+        $searchKey = az search admin-key show --service-name $searchServiceName --resource-group $ResourceGroupName --query "primaryKey" -o tsv
+
+        if ($searchKey) {
+            Write-Host "✅ Azure AI Search key retrieved" -ForegroundColor Green
+
+            Write-Host "Setting up search index and uploading policy documents..." -ForegroundColor Yellow
+            $env:AZURE_SEARCH_ENDPOINT = $searchEndpoint
+            $env:AZURE_SEARCH_KEY = $searchKey
+            $env:AZURE_SEARCH_INDEX_NAME = $searchIndexName
+
+            $searchSetupScript = Join-Path $scriptDir "setup-search-index-simple.py"
+            if (-not (Test-Path $searchSetupScript)) {
+                $searchSetupScript = Join-Path $scriptDir "setup-search-index.py"
+            }
+            
+            if (Test-Path $searchSetupScript) {
+                python $searchSetupScript
+                Write-Host "✅ Search index configured and documents uploaded" -ForegroundColor Green
+            } else {
+                Write-Host "⚠️  Search setup script not found" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "⚠️  Failed to retrieve search key" -ForegroundColor Yellow
+            $searchEndpoint = $null
+            $searchKey = $null
+        }
+    }
+
+    # ============================================================================
     # PHASE 3: Container Registry
     # ============================================================================
     Write-Host "`n📦 PHASE 3: CONTAINER REGISTRY" -ForegroundColor Blue
@@ -494,22 +550,34 @@ venv/
         --output none
 
     # Configure backend app settings with all necessary environment variables
+    $backendSettings = @(
+        "WEBSITES_ENABLE_APP_SERVICE_STORAGE=false",
+        "WEBSITES_PORT=8000",
+        "WEBSITES_CONTAINER_START_TIME_LIMIT=1800",
+        "ALLOWED_ORIGINS_STR=$frontendUrl,http://localhost:5173,http://localhost:3000",
+        "COSMOS_DB_ENDPOINT=$cosmosEndpoint",
+        "COSMOS_DB_KEY=$cosmosKey",
+        "COSMOS_DB_DATABASE_NAME=ecommerce_db",
+        "AZURE_OPENAI_ENDPOINT=https://testmodle.openai.azure.com/",
+        "AZURE_OPENAI_API_VERSION=2025-01-01-preview",
+        "AZURE_TENANT_ID=$AzureTenantId",
+        "AZURE_CLIENT_ID=$AzureClientId",
+        "AZURE_CLIENT_SECRET=$AzureClientSecret"
+    )
+    
+    if ($searchEndpoint -and $searchKey) {
+        $backendSettings += "AZURE_SEARCH_ENDPOINT=$searchEndpoint"
+        $backendSettings += "AZURE_SEARCH_API_KEY=$searchKey"
+        $backendSettings += "AZURE_SEARCH_INDEX=$searchIndexName"
+        Write-Host "✅ Including Azure AI Search configuration in backend settings" -ForegroundColor Green
+    } else {
+        Write-Host "⚠️  Azure AI Search not configured - policy lookups will not be available" -ForegroundColor Yellow
+    }
+    
     az webapp config appsettings set `
         --name $backendAppName `
         --resource-group $ResourceGroupName `
-        --settings `
-        WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" `
-        WEBSITES_PORT="8000" `
-        WEBSITES_CONTAINER_START_TIME_LIMIT="1800" `
-        ALLOWED_ORIGINS_STR="$frontendUrl,http://localhost:5173,http://localhost:3000" `
-        COSMOS_DB_ENDPOINT="$cosmosEndpoint" `
-        COSMOS_DB_KEY="$cosmosKey" `
-        COSMOS_DB_DATABASE_NAME="ecommerce_db" `
-        AZURE_OPENAI_ENDPOINT="https://testmodle.openai.azure.com/" `
-        AZURE_OPENAI_API_VERSION="2025-01-01-preview" `
-        AZURE_TENANT_ID="$AzureTenantId" `
-        AZURE_CLIENT_ID="$AzureClientId" `
-        AZURE_CLIENT_SECRET="$AzureClientSecret" `
+        --settings $backendSettings `
         --output none
 
     # Configure comprehensive HTTPS handling to prevent mixed content errors

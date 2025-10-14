@@ -15,7 +15,7 @@ from ..auth import get_current_user_optional
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
 
-async def generate_ai_response(message_content: str, chat_history: List[ChatMessage], session_id: Optional[str] = None) -> str:
+async def generate_ai_response(message_content: str, chat_history: List[ChatMessage], session_id: Optional[str] = None, user_id: Optional[str] = None) -> str:
     """Generate AI response using Foundry agents only"""
     logger.info(f"Generating AI response. Foundry config: {has_foundry_config()}, Use Foundry: {settings.use_foundry_agents}")
     
@@ -27,9 +27,13 @@ async def generate_ai_response(message_content: str, chat_history: List[ChatMess
             
             if simple_foundry_orchestrator.is_configured:
                 logger.info(f"Processing message with Foundry agents: {message_content[:100]}...")
-                # Pass conversation_id for thread caching
+                
+                enhanced_message = message_content
+                if user_id:
+                    enhanced_message = f"[User ID: {user_id}] {message_content}"
+                
                 ai_response_data = await simple_foundry_orchestrator.respond(
-                    user_text=message_content, 
+                    user_text=enhanced_message, 
                     conversation_id=session_id
                 )
                 
@@ -161,12 +165,21 @@ async def delete_chat_session(session_id: str, user_id: Optional[str] = None):
 async def send_message(session_id: str, message: ChatMessageCreate, current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)):
     """Send a message to a chat session"""
     try:
-        user_id = current_user.get("user_id") if current_user else None
+        user_id = None
+        if current_user:
+            email = current_user.get("email") or current_user.get("preferred_username")
+            if email:
+                try:
+                    cosmos_user = await get_db_service().get_user_by_email(email)
+                    if cosmos_user:
+                        user_id = cosmos_user.id
+                except Exception as e:
+                    logger.error(f"Error looking up user: {e}")
         # Add user message to session
         session = await get_db_service().add_message_to_session(session_id, message, user_id)
         
-        # Generate AI response with thread caching
-        ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id)
+        # Generate AI response with thread caching and user context
+        ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id, user_id=user_id)
         
         # Create AI response message
         ai_response = ChatMessageCreate(
@@ -224,7 +237,16 @@ async def get_chat_history(session_id: str = "default", current_user: Optional[D
 async def send_message_legacy(message: ChatMessageCreate, current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)):
     """Send a message to the chat (legacy endpoint)"""
     try:
-        user_id = current_user.get("user_id") if current_user else None
+        user_id = None
+        if current_user:
+            email = current_user.get("email") or current_user.get("preferred_username")
+            if email:
+                try:
+                    cosmos_user = await get_db_service().get_user_by_email(email)
+                    if cosmos_user:
+                        user_id = cosmos_user.id
+                except Exception as e:
+                    logger.error(f"Error looking up user: {e}")
         # Use a consistent session ID based on user or default
         if message.session_id:
             session_id = message.session_id
@@ -236,8 +258,8 @@ async def send_message_legacy(message: ChatMessageCreate, current_user: Optional
         # Add user message to session
         session = await get_db_service().add_message_to_session(session_id, message, user_id)
         
-        # Generate AI response with thread caching
-        ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id)
+        # Generate AI response with thread caching and user context
+        ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id, user_id=user_id)
         
         # Create AI response message
         ai_response = ChatMessageCreate(

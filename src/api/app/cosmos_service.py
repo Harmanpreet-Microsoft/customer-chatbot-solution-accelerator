@@ -2,7 +2,7 @@ from azure.cosmos import CosmosClient, PartitionKey
 from azure.cosmos.exceptions import CosmosResourceNotFoundError, CosmosResourceExistsError
 from typing import List, Optional, Dict, Any
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 
 from .config import settings
@@ -322,14 +322,96 @@ class CosmosDatabaseService:
         return products[:limit]
     
     async def get_order_by_id(self, order_id: str) -> Optional[Dict[str, Any]]:
-        """Get order by ID - placeholder until orders are properly implemented"""
-        logger.warning(f"get_order_by_id called for {order_id}, but orders not yet implemented in Cosmos DB")
-        return None
+        """Get order by ID from transactions container"""
+        try:
+            query = "SELECT * FROM c WHERE c.id = @order_id"
+            parameters = [{"name": "@order_id", "value": order_id}]
+            
+            items = list(self.transactions_container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            if not items:
+                logger.info(f"No order found with ID: {order_id}")
+                return None
+            
+            return items[0]
+            
+        except Exception as e:
+            logger.error(f"Error getting order by ID {order_id}: {e}")
+            return None
     
     async def get_orders_by_customer(self, customer_id: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get orders for a customer - placeholder until orders are properly implemented"""
-        logger.warning(f"get_orders_by_customer called for {customer_id}, but orders not yet implemented in Cosmos DB")
-        return []
+        """Get orders for a customer from transactions container"""
+        try:
+            query = "SELECT * FROM c WHERE c.user_id = @customer_id ORDER BY c.created_at DESC"
+            parameters = [{"name": "@customer_id", "value": customer_id}]
+            
+            items = list(self.transactions_container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=False
+            ))
+            
+            return items[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error getting orders for customer {customer_id}: {e}")
+            return []
+    
+    async def get_orders_in_date_range(self, customer_id: str, days: int = 180) -> List[Dict[str, Any]]:
+        """Get orders for a customer within the last N days"""
+        try:
+            cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+            
+            query = """
+                SELECT * FROM c 
+                WHERE c.user_id = @customer_id 
+                AND c.created_at >= @cutoff_date 
+                ORDER BY c.created_at DESC
+            """
+            parameters = [
+                {"name": "@customer_id", "value": customer_id},
+                {"name": "@cutoff_date", "value": cutoff_date}
+            ]
+            
+            items = list(self.transactions_container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=False
+            ))
+            
+            logger.info(f"Found {len(items)} orders for customer {customer_id} in last {days} days")
+            return items
+            
+        except Exception as e:
+            logger.error(f"Error getting orders in date range for customer {customer_id}: {e}")
+            return []
+    
+    async def is_order_returnable(self, order_id: str, return_window_days: int = 30) -> bool:
+        """Check if an order is within the return window"""
+        try:
+            order = await self.get_order_by_id(order_id)
+            if not order:
+                return False
+            
+            created_at_str = order.get("created_at")
+            if not created_at_str:
+                return False
+            
+            created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+            days_since_order = (datetime.utcnow() - created_at.replace(tzinfo=None)).days
+            
+            is_returnable = days_since_order <= return_window_days
+            logger.info(f"Order {order_id} is {'returnable' if is_returnable else 'not returnable'} ({days_since_order} days old)")
+            
+            return is_returnable
+            
+        except Exception as e:
+            logger.error(f"Error checking if order {order_id} is returnable: {e}")
+            return False
     
     async def get_user(self, user_id: str) -> Optional[User]:
         """Get user by ID - using query for better compatibility"""

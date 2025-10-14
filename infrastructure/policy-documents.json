@@ -1,0 +1,59 @@
+[
+  {
+    "id": "return-policy-001",
+    "title": "Return Policy",
+    "content": "Our Return Policy: We offer a 30-day return window for all products. Items must be in original condition with all packaging and tags intact. To initiate a return, contact our customer service team with your order number. We will provide a prepaid return label via email. Refunds are processed within 5-7 business days after we receive the returned item. Original shipping costs are non-refundable unless the return is due to our error. Opened paint products cannot be returned unless defective.",
+    "category": "returns",
+    "keywords": ["return", "refund", "exchange", "30 days", "return window", "return policy"]
+  },
+  {
+    "id": "shipping-policy-001",
+    "title": "Shipping Information",
+    "content": "Shipping Policy: We offer free standard shipping on orders over $50. Orders under $50 have a flat $9.99 shipping fee. Standard shipping takes 5-7 business days. Expedited shipping (2-3 business days) is available for $19.99. Express shipping (1-2 business days) is available for $29.99. Orders are processed within 1 business day. You will receive a tracking number via email once your order ships. We ship to all 50 US states. International shipping is not currently available.",
+    "category": "shipping",
+    "keywords": ["shipping", "delivery", "tracking", "free shipping", "shipping cost", "how long"]
+  },
+  {
+    "id": "warranty-policy-001",
+    "title": "Warranty and Guarantee",
+    "content": "Product Warranty: All paint products come with a 1-year quality guarantee. If you experience any defects in materials or workmanship within one year of purchase, we will replace the product free of charge. Paint tools and accessories have a 90-day warranty. To make a warranty claim, contact customer service with your order number and photos of the defect. Warranty does not cover damage from misuse, improper storage, or normal wear and tear.",
+    "category": "warranty",
+    "keywords": ["warranty", "guarantee", "defect", "quality", "replacement", "coverage"]
+  },
+  {
+    "id": "paint-colors-cool-001",
+    "title": "Cool Toned Paint Colors",
+    "content": "Cool Toned Paint Collection: Our cool-toned paints include blues, greens, purples, and grays. Popular options: Ocean Blue - a serene coastal blue perfect for bedrooms, Forest Green - a deep, calming green ideal for living spaces, Dusty Rose - a cool-toned pink with gray undertones, Lavender Mist - a soft purple perfect for accent walls, Slate Gray - a sophisticated neutral. Cool tones create a calming, refreshing atmosphere and work well in rooms with lots of natural light.",
+    "category": "products",
+    "keywords": ["cool toned", "cool tone", "blue", "green", "purple", "gray", "paint colors"]
+  },
+  {
+    "id": "paint-colors-warm-001",
+    "title": "Warm Toned Paint Colors",
+    "content": "Warm Toned Paint Collection: Our warm-toned paints include reds, oranges, yellows, and browns. Popular options: Sunset Orange - a vibrant coral-orange perfect for energizing spaces, Terracotta - a warm earthy tone ideal for cozy rooms, Golden Yellow - a cheerful sunny yellow, Rustic Brown - a rich chocolate brown, Warm Beige - a classic neutral with yellow undertones. Warm tones create an inviting, cozy atmosphere and work well in rooms with less natural light.",
+    "category": "products",
+    "keywords": ["warm toned", "warm tone", "red", "orange", "yellow", "brown", "paint colors"]
+  },
+  {
+    "id": "faq-order-status-001",
+    "title": "FAQ: Order Status and Tracking",
+    "content": "Order Status FAQ: How do I track my order? You will receive a tracking number via email once your order ships. Click the tracking link to see real-time updates. Why hasn't my order shipped? Orders are processed within 1 business day. If it's been longer, contact customer service. Can I change my shipping address? Contact us immediately if your order hasn't shipped yet. We cannot change the address once the order is in transit. What if my package is lost? Contact us if tracking shows no movement for 7+ days. We will file a claim and send a replacement.",
+    "category": "faq",
+    "keywords": ["order status", "tracking", "where is my order", "shipping address", "lost package"]
+  },
+  {
+    "id": "faq-returns-001",
+    "title": "FAQ: Returns and Refunds",
+    "content": "Returns FAQ: How do I return an item? Contact customer service with your order number to initiate a return. We'll email you a prepaid return label. How long do refunds take? Refunds are processed within 5-7 business days after we receive your return. Can I exchange an item? Yes! Contact customer service to arrange an exchange. We'll send the new item once we receive your return. What if I received a damaged item? Contact us immediately with photos. We'll send a replacement at no cost. Do you offer free returns? Yes, returns are free with our prepaid label.",
+    "category": "faq",
+    "keywords": ["return", "refund", "exchange", "damaged", "how to return", "return process"]
+  },
+  {
+    "id": "faq-products-001",
+    "title": "FAQ: Product Information",
+    "content": "Product FAQ: How much paint do I need? One gallon covers approximately 350-400 square feet. For a 12x12 room with 8-foot ceilings, you'll need about 2 gallons. What's the difference between finishes? Flat/Matte: No shine, hides imperfections. Eggshell: Slight sheen, easy to clean. Satin: Soft glow, durable. Semi-gloss: Shiny, moisture-resistant. Gloss: High shine, very durable. How long does paint last? Unopened paint lasts 2-10 years if stored properly. Opened paint lasts 2-5 years. Can I color match? Yes! Bring a sample to any store and we can match it.",
+    "category": "faq",
+    "keywords": ["paint", "coverage", "how much paint", "finish", "color match", "product questions"]
+  }
+]
+
