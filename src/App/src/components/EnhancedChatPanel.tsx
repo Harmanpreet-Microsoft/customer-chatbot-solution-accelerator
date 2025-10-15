@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PaperPlaneRight, Microphone } from '@phosphor-icons/react';
+import { PaperPlaneRight } from '@phosphor-icons/react';
+import { Add20Regular } from '@fluentui/react-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -78,7 +79,7 @@ export const EnhancedChatPanel = ({
                 
                 {/* Quick Start Hint */}
                 <div className="text-xs text-muted-foreground">
-                  Click the microphone icon to start a new chat anytime
+                  Click the plus icon to start a new chat anytime
                 </div>
               </div>
             )}
@@ -130,7 +131,7 @@ export const EnhancedChatPanel = ({
               onClick={onNewChat}
               disabled={isTyping}
             >
-              <Microphone className="h-4 w-4" />
+              <Add20Regular className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
