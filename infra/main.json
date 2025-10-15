@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.38.33.27573",
-      "templateHash": "15587606016887898822"
+      "templateHash": "4991989800174716962"
     }
   },
   "parameters": {
@@ -108,7 +108,7 @@
     },
     "imageVersion": {
       "type": "string",
-      "defaultValue": "latest_2025-09-22_455"
+      "defaultValue": "latest"
     },
     "deploymentType": {
       "type": "string",
@@ -15971,8 +15971,113 @@
             "value": [
               {
                 "name": "cmsabackend",
-                "image": "[format('cmsacontainerreg.azurecr.io/cmsabackend:{0}', parameters('imageVersion'))]",
-                "env": [],
+                "image": "ccbcontainerreg.azurecr.io/backend:latest",
+                "env": [
+                  {
+                    "name": "COSMOS_DB_ENDPOINT",
+                    "value": "[format('https://{0}.documents.azure.com:443/', variables('cosmosDbResourceName'))]"
+                  },
+                  {
+                    "name": "ALLOWED_ORIGINS_STR",
+                    "value": "[format('https://{0}.azurewebsites.net', take(format('container-app-frontend-{0}-deployment', variables('solutionPrefix')), 64))]"
+                  },
+                  {
+                    "name": "AZURE_CLIENT_ID",
+                    "value": "[reference('appIdentity').outputs.clientId.value]"
+                  },
+                  {
+                    "name": "AZURE_CLIENT_SECRET",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "AZURE_FOUNDRY_ENDPOINT",
+                    "value": "[format('https://{0}.services.ai.azure.com/api/projects/testModle-project', take(format('avm.res.cognitive-services.account.{0}', variables('solutionPrefix')), 64))]"
+                  },
+                  {
+                    "name": "AZURE_OPENAI_API_KEY",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "AZURE_OPENAI_API_KEY",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "AZURE_OPENAI_API_VERSION",
+                    "value": "[parameters('gptModelVersion')]"
+                  },
+                  {
+                    "name": "AZURE_OPENAI_ENDPOINT",
+                    "value": "[format('https://{0}.openai.azure.com/', take(format('avm.res.cognitive-services.account.{0}', variables('solutionPrefix')), 64))]"
+                  },
+                  {
+                    "name": "AZURE_SEARCH_API_KEY",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "AZURE_SEARCH_ENDPOINT",
+                    "value": "[format('https://{0}.search.windows.net/', take(format('avm.res.search.search-service.{0}', variables('solutionPrefix')), 64))]"
+                  },
+                  {
+                    "name": "AZURE_SEARCH_INDEX",
+                    "value": "policies"
+                  },
+                  {
+                    "name": "AZURE_TENANT_ID",
+                    "value": "[tenant().tenantId]"
+                  },
+                  {
+                    "name": "COSMOS_DB_DATABASE_NAME",
+                    "value": "[variables('comsmosDbDatabaseName')]"
+                  },
+                  {
+                    "name": "COSMOS_DB_ENDPOINT",
+                    "value": "[format('https://{0}.documents.azure.com:443/', variables('cosmosDbResourceName'))]"
+                  },
+                  {
+                    "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "DOCKER_REGISTRY_SERVER_URL",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "FOUNDRY_KNOWLEDGE_AGENT_ID",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "FOUNDRY_ORCHESTRATOR_AGENT_ID",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "FOUNDRY_ORDER_AGENT_ID",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "FOUNDRY_PRODUCT_AGENT_ID",
+                    "value": "ReplaceWithAppropriateValue"
+                  },
+                  {
+                    "name": "USE_FOUNDRY_AGENTS",
+                    "value": "true"
+                  },
+                  {
+                    "name": "WEBSITES_CONTAINER_START_TIME_LIMIT",
+                    "value": "1800"
+                  },
+                  {
+                    "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                    "value": "false"
+                  },
+                  {
+                    "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                    "value": "8000"
+                  }
+                ],
                 "resources": {
                   "cpu": 1,
                   "memory": "2.0Gi"
@@ -17430,7 +17535,11 @@
         }
       },
       "dependsOn": [
+        "aiServices",
+        "appIdentity",
+        "containerAppFrontend",
         "containerAppsEnvironment",
+        "searchService",
         "userAssignedIdentity"
       ]
     },
@@ -38383,9 +38492,46 @@
           "containers": {
             "value": [
               {
-                "env": [],
-                "image": "[format('cmsacontainerreg.azurecr.io/cmsafrontend:{0}', parameters('imageVersion'))]",
-                "name": "cmsafrontend",
+                "env": [
+                  {
+                    "name": "NODE_ENV",
+                    "value": "production"
+                  },
+                  {
+                    "name": "VITE_API_BASE_URL",
+                    "value": "[format('https://{0}backend-{1}.azurewebsites.net', variables('abbrs').containers.containerApp, variables('solutionPrefix'))]"
+                  },
+                  {
+                    "name": "VITE_AZURE_AUTHORITY",
+                    "value": "[format('https://login.microsoftonline.com/{0}', tenant().tenantId)]"
+                  },
+                  {
+                    "name": "VITE_AZURE_CLIENT_ID",
+                    "value": "[reference('appIdentity').outputs.clientId.value]"
+                  },
+                  {
+                    "name": "VITE_AZURE_TENANT_ID",
+                    "value": "[tenant().tenantId]"
+                  },
+                  {
+                    "name": "VITE_ENVIRONMENT",
+                    "value": "production"
+                  },
+                  {
+                    "name": "VITE_REDIRECT_URI",
+                    "value": "[format('https://{0}frontend-{1}.azurewebsites.net/auth/callback', variables('abbrs').containers.containerApp, variables('solutionPrefix'))]"
+                  },
+                  {
+                    "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                    "value": "false"
+                  },
+                  {
+                    "name": "WEBSITES_PORT",
+                    "value": "80"
+                  }
+                ],
+                "image": "ccbcontainerreg.azurecr.io/frontend:latest",
+                "name": "ccbsfrontend",
                 "resources": {
                   "cpu": "1",
                   "memory": "2.0Gi"

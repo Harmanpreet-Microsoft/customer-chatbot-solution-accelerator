@@ -41,7 +41,7 @@ param databaseName string = 'ecommerce_db'
 param secondaryLocation string = 'eastus2'
 @description('Optional. Size of the Jumpbox Virtual Machine when created. Set to custom value if enablePrivateNetworking is true.')
 param vmSize string? 
-param imageVersion string = 'latest_2025-09-22_455'
+param imageVersion string = 'latest'
 @minLength(1)
 @description('GPT model deployment type:')
 @allowed([
@@ -407,8 +407,113 @@ module containerAppBackend 'br/public:avm/res/app/container-app:0.17.0' = {
     containers: [
       {
         name: 'cmsabackend'
-        image: 'cmsacontainerreg.azurecr.io/cmsabackend:${imageVersion}'
-        env: []
+        image: 'ccbcontainerreg.azurecr.io/backend:latest'
+        env: [
+          {
+            name: 'COSMOS_DB_ENDPOINT'
+            value: 'https://${cosmosDbResourceName}.documents.azure.com:443/'
+          }
+          {
+            name: 'ALLOWED_ORIGINS_STR'
+            value: 'https://${containerAppFrontend.name}.azurewebsites.net'
+          }
+          {
+            name: 'AZURE_CLIENT_ID'
+            value: appIdentity.outputs.clientId
+          }
+          {
+            name: 'AZURE_CLIENT_SECRET'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'AZURE_FOUNDRY_ENDPOINT'
+            value: 'https://${aiServices.name}.services.ai.azure.com/api/projects/testModle-project'  
+          }
+          {
+            name: 'AZURE_OPENAI_API_KEY'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'AZURE_OPENAI_API_KEY'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'AZURE_OPENAI_API_VERSION'
+            value: gptModelVersion 
+          }
+          {
+            name: 'AZURE_OPENAI_ENDPOINT'
+            value: 'https://${aiServices.name}.openai.azure.com/' 
+          }
+          {
+            name: 'AZURE_SEARCH_API_KEY'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'AZURE_SEARCH_ENDPOINT'
+            value: 'https://${searchService.name}.search.windows.net/'
+          }
+          {
+            name: 'AZURE_SEARCH_INDEX'
+            value: 'policies' 
+          }
+          {
+            name: 'AZURE_TENANT_ID'
+            value: tenant().tenantId 
+          }
+          {
+            name: 'COSMOS_DB_DATABASE_NAME'
+            value: comsmosDbDatabaseName 
+          }
+          {
+            name: 'COSMOS_DB_ENDPOINT'
+            value: 'https://${cosmosDbResourceName}.documents.azure.com:443/' 
+          }
+          {
+            name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'DOCKER_REGISTRY_SERVER_URL'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'FOUNDRY_KNOWLEDGE_AGENT_ID'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'FOUNDRY_ORCHESTRATOR_AGENT_ID'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'FOUNDRY_ORDER_AGENT_ID'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'FOUNDRY_PRODUCT_AGENT_ID'
+            value: 'ReplaceWithAppropriateValue' // Replace with a valid value or remove this line if not needed
+          }
+          {
+            name: 'USE_FOUNDRY_AGENTS'
+            value: 'true'
+          }
+          {
+            name: 'WEBSITES_CONTAINER_START_TIME_LIMIT'
+            value: '1800'
+          }
+          {
+            name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+            value: 'false'
+          }
+                    {
+            name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+            value: '8000'
+          }
+        ]
         resources: {
           cpu: 1
           memory: '2.0Gi'
@@ -558,24 +663,52 @@ module containerAppFrontend 'br/public:avm/res/app/container-app:0.17.0' = {
     containers: [
       {
         env: [
-          // {
-          //   name: 'API_URL'
-          //   value: 'bing.com'
-          // }
-          // {
-          //   name: 'APP_ENV'
-          //   value: 'prod'
-          // }
+          {
+            name: 'NODE_ENV'
+            value: 'production'
+          }
+          {
+            name: 'VITE_API_BASE_URL'
+            value: 'https://${abbrs.containers.containerApp}backend-${solutionPrefix}.azurewebsites.net'
+          }
+                    {
+            name: 'VITE_AZURE_AUTHORITY'
+            value: 'https://login.microsoftonline.com/${tenant().tenantId}'
+          }
+                    {
+            name: 'VITE_AZURE_CLIENT_ID'
+            value: appIdentity.outputs.clientId
+          }
+                    {
+            name: 'VITE_AZURE_TENANT_ID'
+            value: tenant().tenantId
+          }
+                    {
+            name: 'VITE_ENVIRONMENT'
+            value: 'production'
+          }
+                    {
+            name: 'VITE_REDIRECT_URI'
+            value: 'https://${abbrs.containers.containerApp}frontend-${solutionPrefix}.azurewebsites.net/auth/callback'
+          }
+                    {
+            name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+            value: 'false'
+          }
+                    {
+            name: 'WEBSITES_PORT'
+            value: '80'
+          }
         ]
-        image: 'cmsacontainerreg.azurecr.io/cmsafrontend:${imageVersion}'
-        name: 'cmsafrontend'
+        image: 'ccbcontainerreg.azurecr.io/frontend:latest'
+        name: 'ccbsfrontend'
         resources: {
           cpu: '1'
           memory: '2.0Gi'
         }
       }
     ]
-    ingressTargetPort: 3000
+    ingressTargetPort: 80
     ingressExternal: true
     scaleSettings: {
       maxReplicas: enableScaling ? 3 : 1
