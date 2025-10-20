@@ -1,24 +1,12 @@
 import axios from 'axios';
 
-// Global token store for Entra ID tokens
-let currentIdToken: string | null = null;
-
-// Function to set the current ID token (called by auth context)
-export const setCurrentIdToken = (token: string | null) => {
-  currentIdToken = token;
-};
-
-// API Configuration - Runtime environment variable support
 const getApiBaseUrl = (): string => {
-  // Try to get from runtime environment variables first
-  // In App Service, these are available via window.__RUNTIME_CONFIG__
   if (typeof window !== 'undefined' && (window as any).__RUNTIME_CONFIG__?.VITE_API_BASE_URL) {
     const runtimeUrl = (window as any).__RUNTIME_CONFIG__.VITE_API_BASE_URL;
     console.log('Using runtime environment variable API URL:', runtimeUrl);
     return runtimeUrl;
   }
 
-  // Fallback to build-time environment variable
   let baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   console.log('Using build-time environment variable API URL:', baseUrl);
   return baseUrl;
@@ -33,46 +21,39 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000,
+  withCredentials: true, // This is crucial for Easy Auth cookies
 });
 
-// Add request interceptor to include auth token
-api.interceptors.request.use((config) => {
-  // Get client ID from runtime environment variables first, then fallback to build-time
-  let clientId = '';
-  
-  if (typeof window !== 'undefined' && (window as any).__RUNTIME_CONFIG__?.VITE_AZURE_CLIENT_ID) {
-    clientId = (window as any).__RUNTIME_CONFIG__.VITE_AZURE_CLIENT_ID;
-    console.log('Using runtime environment variable for client ID');
-  } else {
-    clientId = import.meta.env.VITE_AZURE_CLIENT_ID || '';
-    console.log('Using build-time environment variable for client ID');
+// Add request interceptor to handle authentication
+api.interceptors.request.use(
+  (config) => {
+    console.log('🔍 API Request:', config.url);
+    return config;
+  },
+  (error) => {
+    console.error('❌ API Request Error:', error);
+    return Promise.reject(error);
   }
-  const isLocalDev = !clientId || 
-                     clientId === 'local-dev' ||
-                     clientId === 'your-client-id-here' ||
-                     clientId === '';
-  
-  // Only add token if no Authorization header is already set
-  if (!config.headers.Authorization) {
-    if (isLocalDev) {
-      // Local dev mode - use mock token
-      const token = localStorage.getItem('mock_token');
-      console.log('API Request:', config.method?.toUpperCase(), config.url, 'Mock Token:', !!token);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } else {
-      // Entra ID mode - use the stored ID token
-      console.log('API Request:', config.method?.toUpperCase(), config.url, 'Entra ID Token:', !!currentIdToken);
-      if (currentIdToken) {
-        config.headers.Authorization = `Bearer ${currentIdToken}`;
-      }
+);
+
+// Add response interceptor to handle authentication redirects
+api.interceptors.response.use(
+  (response) => {
+    console.log('✅ API Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('❌ API Response Error:', error.response?.status, error.config?.url);
+    
+    // If we get a 302 redirect, it means we need to authenticate
+    if (error.response?.status === 302) {
+      console.log('🔄 302 Redirect detected - user needs to authenticate');
+      // Don't automatically redirect here, let the UI handle it
     }
-  } else {
-    console.log('API Request:', config.method?.toUpperCase(), config.url, 'Auth Header already set:', !!config.headers.Authorization);
+    
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 // Types
 export interface Product {

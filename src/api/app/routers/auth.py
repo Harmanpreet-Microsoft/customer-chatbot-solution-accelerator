@@ -1,15 +1,6 @@
-"""
-Authentication endpoints for Microsoft Entra ID
-"""
-
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm
-from typing import Dict, Any, Optional
-import requests
-from datetime import datetime, timedelta
-from ..config import settings, has_entra_id_config
-from ..auth import get_current_user, create_mock_token, verify_mock_token, create_access_token
-from ..models import LoginRequest, User, Token, UserResponse, UserUpdate
+from fastapi import APIRouter, HTTPException, Depends, status, Request
+from typing import Dict, Any
+from ..auth import get_current_user
 from ..database import get_db_service
 from ..services.user_onboarding import create_demo_order_history
 import logging
@@ -18,203 +9,133 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
+@router.get("/debug")
+async def debug_auth_headers(request: Request):
+    """Debug endpoint to see all headers and Easy Auth status"""
+    headers = dict(request.headers)
+    
+    # Check for Easy Auth headers
+    easy_auth_headers = {k: v for k, v in headers.items() if 'x-ms-client' in k.lower()}
+    
+    return {
+        "all_headers": headers,
+        "easy_auth_headers": easy_auth_headers,
+        "has_easy_auth": len(easy_auth_headers) > 0,
+        "user_agent": headers.get("user-agent", "unknown"),
+        "host": headers.get("host", "unknown"),
+        "x_forwarded_for": headers.get("x-forwarded-for", "none"),
+        "x_forwarded_proto": headers.get("x-forwarded-proto", "none")
+    }
+
 @router.get("/me")
-async def get_current_user_info(current_user: Dict[str, Any] = Depends(get_current_user)):
-    """Get current user information"""
+async def get_current_user_info(request: Request):
     try:
-        # Extract user information from ID token
-        user_id = current_user.get("sub", current_user.get("oid", current_user.get("user_id")))
+        # Enhanced debugging for Easy Auth headers
+        headers = dict(request.headers)
+        logger.info(f"🔍 /api/auth/me: ALL REQUEST HEADERS:")
+        for key, value in headers.items():
+            logger.info(f"  {key}: {value}")
+        
+        # Check specifically for Easy Auth headers (forwarded from frontend)
+        easy_auth_headers = {k: v for k, v in headers.items() if 'x-ms-client' in k.lower()}
+        logger.info(f"🔍 /api/auth/me: Easy Auth headers found: {easy_auth_headers}")
+        
+        # Check for other potential auth headers
+        auth_headers = {k: v for k, v in headers.items() if 'auth' in k.lower() or 'token' in k.lower()}
+        logger.info(f"🔍 /api/auth/me: Other auth-related headers: {auth_headers}")
+        
+        current_user = await get_current_user(request)
+        logger.info(f"🔍 /api/auth/me: Current user from get_current_user: {current_user}")
+        
+        # Additional logging for user creation process
+        if not current_user.get("is_guest"):
+            logger.info(f"🔍 /api/auth/me: Authenticated user detected - will check/create in Cosmos DB")
+        
+        if current_user.get("is_guest"):
+            guest_response = {
+                "id": current_user["id"],
+                "name": current_user["name"],
+                "email": current_user["email"],
+                "roles": current_user["roles"],
+                "is_authenticated": False,
+                "is_guest": True
+            }
+            logger.info(f"🔍 /api/auth/me: Returning guest user data: {guest_response}")
+            return guest_response
+        
+        user_id = current_user.get("sub", current_user.get("id"))
         email = current_user.get("preferred_username", current_user.get("email"))
         name = current_user.get("name", "Unknown User")
         
-        print(f"🔍 ID Token claims: sub={current_user.get('sub')}, oid={current_user.get('oid')}, preferred_username={current_user.get('preferred_username')}, name={current_user.get('name')}")
+        logger.info(f"🔍 /api/auth/me: Processing user - ID: {user_id}, Email: {email}, Name: {name}")
         
-        print(f"🔍 Getting user info for: {email} (ID: {user_id})")
+        logger.info(f"Getting user info for: {email} (ID: {user_id})")
         
-        # Try to get user from database
         db_service = get_db_service()
         user = None
         
-        if email:
+        # First try to get user by Easy Auth ID
+        try:
+            user = await db_service.get_user_by_id(user_id)
+            logger.info(f"Found existing user by ID: {user.email if user else 'None'}")
+        except Exception as e:
+            logger.warning(f"Error getting user by ID: {e}")
+        
+        # If not found by ID, try by email (for backward compatibility)
+        if not user and email:
             try:
                 user = await db_service.get_user_by_email(email)
-                print(f"📊 Found existing user: {user.email if user else 'None'}")
+                logger.info(f"Found existing user by email: {user.email if user else 'None'}")
             except Exception as e:
-                print(f"⚠️ Error getting user by email: {e}")
+                logger.warning(f"Error getting user by email: {e}")
         
-        # If user doesn't exist, create them
         if not user:
-            print(f"👤 Creating new user: {email}")
+            logger.info(f"Creating new user: {email} with ID: {user_id}")
             try:
                 user = await db_service.create_user_with_password(
                     email=email,
                     name=name,
-                    password=""  # No password for Entra ID users
+                    password="",
+                    user_id=user_id  # Use Easy Auth user_principal_id as Cosmos DB user ID
                 )
-                print(f"✅ Created new user: {user.email}")
+                logger.info(f"Created new user: {user.email}")
                 
                 try:
-                    logger.info(f"🎁 Creating demo order history for new user: {user.id}")
+                    logger.info(f"Creating demo order history for new user: {user.id}")
                     await create_demo_order_history(user.id)
-                    logger.info(f"✅ Demo order history created for user: {user.id}")
+                    logger.info(f"Demo order history created for user: {user.id}")
                 except Exception as e:
-                    logger.error(f"⚠️ Failed to create demo order history: {e}")
+                    logger.error(f"Failed to create demo order history: {e}")
                     
             except Exception as e:
-                print(f"❌ Error creating user: {e}")
-                # Return basic info even if user creation fails
+                logger.error(f"Error creating user: {e}")
                 return {
                     "id": user_id,
                     "name": name,
                     "email": email,
                     "roles": ["user"],
-                    "is_authenticated": True
+                    "is_authenticated": True,
+                    "is_guest": False
                 }
         
-        return {
+        response_data = {
             "id": str(user.id),
             "name": user.name,
             "email": user.email,
             "roles": [user.role.value] if hasattr(user, 'role') else ["user"],
-            "is_authenticated": True
+            "is_authenticated": True,
+            "is_guest": False
         }
+        logger.info(f"🔍 /api/auth/me: Returning authenticated user data: {response_data}")
+        return response_data
         
     except Exception as e:
-        print(f"❌ Error in get_current_user_info: {e}")
-        # Fallback to basic token info
+        logger.error(f"Error in get_current_user_info: {e}")
         return {
-            "id": current_user.get("sub", current_user.get("user_id")),
-            "name": current_user.get("name", "Unknown User"),
-            "email": current_user.get("email", current_user.get("preferred_username")),
-            "roles": current_user.get("roles", ["user"]),
-            "is_authenticated": True
+            "id": "guest-user-00000000",
+            "name": "Guest User",
+            "email": "guest@contoso.com",
+            "roles": ["guest"],
+            "is_authenticated": False,
+            "is_guest": True
         }
-
-@router.post("/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Login endpoint - supports both mock and Entra ID authentication"""
-    
-    # Check if we have Entra ID configuration
-    if has_entra_id_config():
-        # Real Entra ID authentication - redirect to Microsoft
-        raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="Please use the frontend login flow for Entra ID authentication"
-        )
-    
-    # Mock authentication for local development
-    user_data = {
-        "sub": "local-dev-user",
-        "name": "Local Developer",
-        "email": form_data.username or "dev@localhost.com",
-        "roles": ["user"]
-    }
-    
-    token = create_mock_token(user_data)
-    
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "id": user_data["sub"],
-            "name": user_data["name"],
-            "email": user_data["email"],
-            "roles": user_data["roles"]
-        }
-    }
-
-@router.post("/logout")
-async def logout():
-    """Logout endpoint"""
-    return {"message": "Successfully logged out"}
-
-@router.get("/config")
-async def get_auth_config():
-    """Get authentication configuration for frontend"""
-    return {
-        "azure_client_id": settings.azure_client_id,
-        "azure_tenant_id": settings.azure_tenant_id,
-        "azure_authority": f"https://login.microsoftonline.com/{settings.azure_tenant_id}" if settings.azure_tenant_id else None,
-        "is_entra_id_configured": has_entra_id_config(),
-        "is_local_dev": not has_entra_id_config()
-    }
-
-@router.post("/email-login", response_model=Token)
-async def login_with_email_password(login_data: LoginRequest):
-    """Login with email and password (password is ignored for local testing)"""
-    try:
-        # Check if user exists
-        user = await get_db_service().get_user_by_email(login_data.email)
-        
-        if not user:
-            # Create new user if doesn't exist
-            user = await get_db_service().create_user_with_password(
-                email=login_data.email,
-                name=login_data.email.split('@')[0],  # Use email prefix as name
-                password=login_data.password
-            )
-            
-            try:
-                logger.info(f"🎁 Creating demo order history for new user: {user.id}")
-                await create_demo_order_history(user.id)
-                logger.info(f"✅ Demo order history created for user: {user.id}")
-            except Exception as e:
-                logger.error(f"⚠️ Failed to create demo order history: {e}")
-        
-        # Update last login
-        user.last_login = datetime.utcnow()
-        await get_db_service().update_user(user.id, UserUpdate(last_login=user.last_login))
-        
-        # Create JWT token
-        access_token_expires = timedelta(minutes=settings.jwt_access_token_expire_minutes)
-        access_token = create_access_token(
-            data={"sub": user.email, "user_id": user.id, "scopes": ["me"]}, 
-            expires_delta=access_token_expires
-        )
-        
-        return {
-            "access_token": access_token, 
-            "token_type": "bearer",
-            "user": UserResponse(
-                id=user.id,
-                email=user.email,
-                name=user.name,
-                role=user.role.value,
-                is_active=user.is_active
-            )
-        }
-        
-    except Exception as e:
-        import traceback
-        print(f"Login error: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
-
-@router.post("/mock-login")
-async def mock_login(username: str = "dev@localhost.com", name: str = "Local Developer"):
-    """Mock login endpoint for local development"""
-    if has_entra_id_config():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mock login only available when Entra ID is not configured"
-        )
-    
-    user_data = {
-        "sub": f"mock-{username}",
-        "name": name,
-        "email": username,
-        "roles": ["user"]
-    }
-    
-    token = create_mock_token(user_data)
-    
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "id": user_data["sub"],
-            "name": user_data["name"],
-            "email": user_data["email"],
-            "roles": user_data["roles"]
-        }
-    }

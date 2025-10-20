@@ -165,16 +165,8 @@ async def delete_chat_session(session_id: str, user_id: Optional[str] = None):
 async def send_message(session_id: str, message: ChatMessageCreate, current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)):
     """Send a message to a chat session"""
     try:
-        user_id = None
-        if current_user:
-            email = current_user.get("email") or current_user.get("preferred_username")
-            if email:
-                try:
-                    cosmos_user = await get_db_service().get_user_by_email(email)
-                    if cosmos_user:
-                        user_id = cosmos_user.id
-                except Exception as e:
-                    logger.error(f"Error looking up user: {e}")
+        user_id = current_user.get("user_id") if current_user else None
+        
         # Add user message to session
         session = await get_db_service().add_message_to_session(session_id, message, user_id)
         
@@ -237,16 +229,8 @@ async def get_chat_history(session_id: str = "default", current_user: Optional[D
 async def send_message_legacy(message: ChatMessageCreate, current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)):
     """Send a message to the chat (legacy endpoint)"""
     try:
-        user_id = None
-        if current_user:
-            email = current_user.get("email") or current_user.get("preferred_username")
-            if email:
-                try:
-                    cosmos_user = await get_db_service().get_user_by_email(email)
-                    if cosmos_user:
-                        user_id = cosmos_user.id
-                except Exception as e:
-                    logger.error(f"Error looking up user: {e}")
+        user_id = current_user.get("user_id") if current_user else None
+        
         # Use a consistent session ID based on user or default
         if message.session_id:
             session_id = message.session_id

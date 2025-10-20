@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 import asyncio
+import re
 from typing import List, Dict, Any, Optional
 from cachetools import TTLCache
 
@@ -152,30 +153,55 @@ class SimpleFoundryOrchestrator:
             return self
     
     def _determine_target_agent(self, user_text: str) -> str:
-        """Determine which agent should handle the request"""
-        user_text_lower = user_text.lower()
+        """Enhanced agent selection with semantic understanding"""
+        query_lower = user_text.lower()
         
-        # Knowledge-related keywords (check first for policy questions)
-        knowledge_keywords = ['policy', 'shipping', 'warranty', 'faq', 'help', 'support', 'information', 'how do i return', 'return policy', 'how to return']
-        if any(keyword in user_text_lower for keyword in knowledge_keywords):
-            logger.info(f"Routing to KnowledgeAgent")
-            return "KnowledgeAgent"
+        # Product-related keywords and patterns
+        product_patterns = [
+            r'\b(paint|color|blue|red|green|white|black|shade|tone|finish)\b',
+            r'\b(product|item|buy|purchase|price|cost)\b',
+            r'\b(what.*offer|show.*product|find.*paint)\b',
+            r'\b(match.*color|color.*match|sample)\b',
+            r'\b(recommend|suggest|help.*choose)\b',
+            r'\b(interior|exterior|primer|coating)\b'
+        ]
         
-        # Order-related keywords
-        order_keywords = ['order', 'status', 'tracking', 'history', 'refund', 'return window', 'returnable', 'shipped', 'delivered', 'past orders', 'recent orders', 'past 6 months', 'past 3 months']
-        if any(keyword in user_text_lower for keyword in order_keywords):
-            logger.info(f"Routing to OrderStatusAgent")
-            return "OrderStatusAgent"
+        # Policy/support keywords and patterns  
+        policy_patterns = [
+            r'\b(return|refund|exchange|policy|warranty)\b',
+            r'\b(problem|issue|complaint|damaged|leaking)\b',
+            r'\b(ship|delivery|shipping|track)\b',
+            r'\b(help|support|contact|customer service)\b',
+            r'\b(guarantee|coverage|defect)\b',
+            r'\b(cancel|order.*status|tracking)\b'
+        ]
         
-        # Product-related keywords (including color/tone queries)
-        product_keywords = ['product', 'search', 'sku', 'price', 'available', 'paint', 'dusty', 'forest', 'category', 'buy', 'purchase', 'cool toned', 'warm toned', 'color', 'blue', 'green', 'orange', 'red']
-        if any(keyword in user_text_lower for keyword in product_keywords):
-            logger.info(f"Routing to ProductLookupAgent")
+        # Check for product intent
+        product_score = sum(1 for pattern in product_patterns if re.search(pattern, query_lower))
+        
+        # Check for policy intent
+        policy_score = sum(1 for pattern in policy_patterns if re.search(pattern, query_lower))
+        
+        # Special cases
+        if any(phrase in query_lower for phrase in ["what products", "what do you offer", "show me products"]):
+            logger.info("Routing to ProductLookupAgent - general product inquiry")
             return "ProductLookupAgent"
         
-        # Default to ProductLookupAgent
-        logger.info("No specific keywords found, defaulting to ProductLookupAgent")
-        return "ProductLookupAgent"
+        if any(phrase in query_lower for phrase in ["return policy", "warranty", "refund", "damaged"]):
+            logger.info("Routing to KnowledgeAgent - policy inquiry")
+            return "KnowledgeAgent"
+        
+        # Determine primary intent
+        if product_score > policy_score:
+            logger.info(f"Routing to ProductLookupAgent - product score: {product_score}")
+            return "ProductLookupAgent"
+        elif policy_score > 0:
+            logger.info(f"Routing to KnowledgeAgent - policy score: {policy_score}")
+            return "KnowledgeAgent"
+        else:
+            # Default to product search for general queries
+            logger.info("No specific keywords found, defaulting to ProductLookupAgent")
+            return "ProductLookupAgent"
     
     async def respond(self, user_text: str, conversation_id: Optional[str] = None, history: List[Dict[str, str]] | None = None) -> Dict[str, Any]:
         """Respond using the determined agent with thread caching"""

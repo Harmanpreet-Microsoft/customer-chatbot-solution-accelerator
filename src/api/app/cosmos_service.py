@@ -320,6 +320,208 @@ class CosmosDatabaseService:
         products = await self.get_products(search_params)
         return products[:limit]
     
+    async def search_products_hybrid(self, query: str, limit: int = 10) -> List[Product]:
+        """Hybrid search: Azure AI Search first (fast), then Cosmos DB fallback"""
+        try:
+            # Strategy 1: Try Azure AI Search first (fastest, most accurate)
+            try:
+                from ..services.search import search_products_fast
+                ai_search_results = search_products_fast(query, limit)
+                
+                if ai_search_results:
+                    logger.info(f"Azure AI Search returned {len(ai_search_results)} products for query: {query}")
+                    
+                    # Convert AI Search results to Product objects
+                    products = []
+                    for hit in ai_search_results:
+                        # Try to get full product data from Cosmos DB
+                        try:
+                            full_product = await self.get_product_by_sku(hit["id"])
+                            if full_product:
+                                products.append(full_product)
+                            else:
+                                # Create Product from AI Search data
+                                product = Product(
+                                    id=hit["id"],
+                                    title=hit.get("title", ""),
+                                    price=hit.get("price", 0.0),
+                                    original_price=hit.get("price", 0.0),
+                                    rating=4.0,  # Default rating
+                                    review_count=0,
+                                    image=hit.get("image", ""),
+                                    category=hit.get("category", ""),
+                                    in_stock=hit.get("inventory", 0) > 0,
+                                    description=hit.get("description", ""),
+                                    tags=hit.get("tags", ""),
+                                    specifications={}
+                                )
+                                products.append(product)
+                        except Exception as e:
+                            logger.warning(f"Failed to get full product data for {hit['id']}: {e}")
+                            continue
+                    
+                    if products:
+                        logger.info(f"Hybrid search (AI Search) returned {len(products)} products")
+                        return products[:limit]
+                        
+            except ImportError:
+                logger.warning("Azure AI Search not available, falling back to Cosmos DB")
+            except Exception as e:
+                logger.warning(f"Azure AI Search failed: {e}, falling back to Cosmos DB")
+            
+            # Strategy 2: Fallback to enhanced Cosmos DB search
+            logger.info(f"Falling back to enhanced Cosmos DB search for query: {query}")
+            return await self.search_products_enhanced(query, limit)
+            
+        except Exception as e:
+            logger.error(f"Hybrid search error: {e}")
+            # Final fallback to basic search
+            return await self.search_products(query, limit)
+
+    async def search_products_ai_search(self, query: str, limit: int = 10) -> List[Product]:
+        """Search products using Azure AI Search only"""
+        try:
+            from ..services.search import search_products
+            
+            ai_search_results = search_products(query, limit)
+            
+            if not ai_search_results:
+                return []
+            
+            # Convert AI Search results to Product objects
+            products = []
+            for hit in ai_search_results:
+                try:
+                    # Try to get full product data from Cosmos DB
+                    full_product = await self.get_product_by_sku(hit["id"])
+                    if full_product:
+                        products.append(full_product)
+                    else:
+                        # Create Product from AI Search data
+                        product = Product(
+                            id=hit["id"],
+                            title=hit.get("title", ""),
+                            price=hit.get("price", 0.0),
+                            original_price=hit.get("price", 0.0),
+                            rating=4.0,
+                            review_count=0,
+                            image=hit.get("image", ""),
+                            category=hit.get("category", ""),
+                            in_stock=hit.get("inventory", 0) > 0,
+                            description=hit.get("description", ""),
+                            tags=hit.get("tags", ""),
+                            specifications={}
+                        )
+                        products.append(product)
+                except Exception as e:
+                    logger.warning(f"Failed to process AI Search result {hit['id']}: {e}")
+                    continue
+            
+            logger.info(f"AI Search returned {len(products)} products for query: {query}")
+            return products[:limit]
+            
+        except Exception as e:
+            logger.error(f"AI Search error: {e}")
+            return []
+
+    async def search_products_enhanced(self, query: str, limit: int = 10) -> List[Product]:
+        """Enhanced product search with fuzzy matching and semantic understanding"""
+        try:
+            # Split query into terms for better matching
+            terms = query.lower().split()
+            
+            # Build more sophisticated query with multiple search strategies
+            search_strategies = [
+                # Strategy 1: Exact phrase match
+                {
+                    "query": """
+                        SELECT * FROM c 
+                        WHERE CONTAINS(LOWER(c.title), LOWER(@query)) 
+                           OR CONTAINS(LOWER(c.description), LOWER(@query))
+                        ORDER BY c.rating DESC, c.price ASC
+                    """,
+                    "params": [{"name": "@query", "value": query}]
+                },
+                # Strategy 2: Individual term matching
+                {
+                    "query": """
+                        SELECT * FROM c 
+                        WHERE {conditions}
+                        ORDER BY c.rating DESC, c.price ASC
+                    """,
+                    "params": []
+                },
+                # Strategy 3: Category and tag matching
+                {
+                    "query": """
+                        SELECT * FROM c 
+                        WHERE CONTAINS(LOWER(c.category), LOWER(@query))
+                           OR CONTAINS(LOWER(c.tags), LOWER(@query))
+                        ORDER BY c.rating DESC, c.price ASC
+                    """,
+                    "params": [{"name": "@query", "value": query}]
+                }
+            ]
+            
+            # Build individual term conditions for strategy 2
+            if len(terms) > 1:
+                conditions = []
+                for i, term in enumerate(terms):
+                    param_name = f"@term{i}"
+                    conditions.append(f"""
+                        (CONTAINS(LOWER(c.title), LOWER({param_name})) OR 
+                         CONTAINS(LOWER(c.description), LOWER({param_name})) OR
+                         CONTAINS(LOWER(c.category), LOWER({param_name})))
+                    """)
+                    search_strategies[1]["params"].append({"name": param_name, "value": term})
+                
+                search_strategies[1]["query"] = search_strategies[1]["query"].format(
+                    conditions=" OR ".join(conditions)
+                )
+            
+            # Try each strategy until we get results
+            for strategy in search_strategies:
+                try:
+                    items = list(self.products_container.query_items(
+                        query=strategy["query"],
+                        parameters=strategy["params"],
+                        enable_cross_partition_query=True
+                    ))
+                    
+                    products = []
+                    for item in items[:limit]:
+                        product = Product(
+                            id=item.get("id"),
+                            title=item.get("title", ""),
+                            price=item.get("price", 0.0),
+                            original_price=item.get("original_price", item.get("price", 0.0)),
+                            rating=item.get("rating", 4.0),
+                            review_count=item.get("review_count", 0),
+                            image=item.get("image", ""),
+                            category=item.get("category", ""),
+                            in_stock=item.get("in_stock", True),
+                            description=item.get("description", ""),
+                            tags=item.get("tags", []),
+                            specifications=item.get("specifications", {})
+                        )
+                        products.append(product)
+                    
+                    if products:  # If we got results, return them
+                        logger.info(f"Enhanced search strategy returned {len(products)} products for query: {query}")
+                        return products
+                        
+                except Exception as strategy_error:
+                    logger.warning(f"Search strategy failed: {strategy_error}")
+                    continue
+            
+            # If all strategies failed, try a simple fallback
+            logger.warning(f"All enhanced search strategies failed for query: {query}")
+            return await self.search_products(query, limit)
+            
+        except Exception as e:
+            logger.error(f"Enhanced product search error: {e}")
+            return await self.search_products(query, limit)  # Fallback to basic search
+    
     async def get_products_by_category(self, category: str, limit: int = 10) -> List[Product]:
         """Get products by category"""
         search_params = {"category": category}
@@ -468,6 +670,37 @@ class CosmosDatabaseService:
             logger.error(f"Error creating user in Cosmos DB: {str(e)}")
             raise
     
+    async def get_user_by_id(self, user_id: str) -> Optional[User]:
+        """Get user by ID - using query for better compatibility"""
+        try:
+            # Use query instead of direct read to avoid partition_key issues
+            query = "SELECT * FROM c WHERE c.id = @user_id"
+            parameters = [{"name": "@user_id", "value": user_id}]
+            
+            items = list(self.users_container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            if not items:
+                return None
+            
+            user_data = items[0]
+            
+            # Convert datetime strings back to datetime objects
+            for field in ['created_at', 'updated_at', 'last_login']:
+                if field in user_data and isinstance(user_data[field], str):
+                    user_data[field] = datetime.fromisoformat(user_data[field].replace('Z', '+00:00'))
+            
+            return User(**user_data)
+            
+        except CosmosResourceNotFoundError:
+            return None
+        except Exception as e:
+            logger.error(f"Error fetching user by ID: {str(e)}")
+            raise
+
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """Get user by email - optimized for Cosmos DB"""
         try:
@@ -498,11 +731,12 @@ class CosmosDatabaseService:
             logger.error(f"Error fetching user by email: {str(e)}")
             raise
     
-    async def create_user_with_password(self, email: str, name: str, password: str) -> User:
+    async def create_user_with_password(self, email: str, name: str, password: str, user_id: str = None) -> User:
         """Create a new user - simplified for Cosmos DB"""
         try:
+            # Use provided user_id (from Easy Auth) or generate UUID
             new_user = User(
-                id=str(uuid.uuid4()),
+                id=user_id or str(uuid.uuid4()),
                 email=email,
                 name=name
             )

@@ -45,7 +45,7 @@ function App() {
       try {
         console.log('Testing API with proper configuration...');
         // Use the same API configuration as the rest of the app
-        const apiUrl = window.APP_CONFIG?.API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const apiUrl = (window as any).__RUNTIME_CONFIG__?.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
         const fullUrl = `${apiUrl}/api/products`;
         console.log('Testing API URL:', fullUrl);
         
@@ -72,7 +72,6 @@ function App() {
   const { data: chatMessages = [], refetch: refetchChat, isLoading: chatLoading, isFetching: chatFetching } = useQuery({
     queryKey: ['chat', currentSessionId],
     queryFn: () => getChatHistory(currentSessionId || undefined),
-    enabled: isAuthenticated,
     staleTime: 0,
     refetchOnMount: true,
   });
@@ -207,11 +206,6 @@ function App() {
 
   // Chat functions
   const handleSendMessage = async (content: string) => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to send messages');
-      return;
-    }
-
     if (!currentSessionId) {
       try {
         const sessionData = await createNewChatSession();
@@ -249,17 +243,13 @@ function App() {
   };
 
   const handleNewChat = () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to start a new chat');
-      return;
-    }
     createNewSessionMutation.mutate();
   };
 
   const toggleChat = () => {
     const newChatState = !isChatOpen;
     setIsChatOpen(newChatState);
-    if (newChatState && currentSessionId && isAuthenticated) {
+    if (newChatState && currentSessionId) {
       refetchChat();
     }
   };

@@ -1,34 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, SignOut, Spinner } from '@phosphor-icons/react';
-import { LoginForm } from './LoginForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Spinner, ShieldWarning } from '@phosphor-icons/react';
 
 export function LoginButton() {
-  const { user, isLoading, login, logout, isAuthenticated } = useAuth();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const { user, isLoading, logout, isAuthenticated, isIdentityProviderConfigured } = useAuth();
 
-  const handleLogin = async (email: string, password: string) => {
-    try {
-      await login(email, password);
-      setIsLoginOpen(false);
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    }
-  };
-
-  const handleDirectLogin = async () => {
-    console.log('🔥 BUTTON CLICKED!');
-    try {
-      console.log('🎯 Direct login button clicked');
-      console.log('🔍 Auth context state:', { user, isLoading, isAuthenticated });
-      await login();
-    } catch (error) {
-      console.error('Direct login failed:', error);
-    }
-  };
+  console.log('🔍 LoginButton: Current state:', {
+    user,
+    isLoading,
+    isAuthenticated,
+    isIdentityProviderConfigured
+  });
 
   if (isLoading) {
     return (
@@ -39,16 +23,78 @@ export function LoginButton() {
   }
 
   if (isAuthenticated && user) {
+    // Better initials logic for email addresses
+    let initials = "U"; // Default fallback
+    
+    if (user.name && user.name.includes("@")) {
+      // For email addresses like "john.doe@contoso.com"
+      const emailPrefix = user.name.split("@")[0];
+      const parts = emailPrefix.split(".");
+      if (parts.length >= 2) {
+        initials = (parts[0][0] + parts[1][0]).toUpperCase();
+      } else {
+        initials = emailPrefix.substring(0, 2).toUpperCase();
+      }
+    } else if (user.name) {
+      // For regular names like "John Doe"
+      initials = user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+
     return (
-      <Button variant="outline" size="small" onClick={logout} className="transition-all duration-200 hover:bg-accent" title={`Logout ${user.name}`}>
-        <User className="w-5 h-5" />
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="small"
+          onClick={logout}
+          className="transition-all duration-200 hover:bg-accent p-1"
+          title={`Logout ${user.name.includes("@") ? user.name.split("@")[0] : user.name} (${user.email})`}
+        >
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={undefined} alt={user.name} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </Button>
+      </div>
+    );
+  }
+
+  // If Identity Provider is configured but user is not authenticated, show login button
+  if (isIdentityProviderConfigured && !isAuthenticated) {
+    return (
+      <Button
+        variant="default"
+        size="small"
+        onClick={() => {
+          // Use frontend's Easy Auth login endpoint
+          window.location.href = '/.auth/login/aad';
+        }}
+        className="transition-all duration-200 flex items-center gap-2"
+        title="Login with Microsoft"
+      >
+        <ShieldWarning className="w-5 h-5" />
+        <span className="hidden sm:inline text-xs">Login</span>
       </Button>
     );
   }
 
+  // If Identity Provider is not configured, show disabled button
   return (
-    <Button variant="default" size="small" onClick={handleDirectLogin} className="transition-all duration-200" title="Login">
-      <User className="w-5 h-5" />
+    <Button
+      variant="outline"
+      size="small"
+      disabled
+      className="transition-all duration-200 flex items-center gap-2 opacity-50 cursor-not-allowed"
+      title="Enable Identity Provider in Azure Portal to enable authentication"
+    >
+      <ShieldWarning className="w-5 h-5" />
+      <span className="hidden sm:inline text-xs">Enable Identity Provider</span>
     </Button>
   );
 }

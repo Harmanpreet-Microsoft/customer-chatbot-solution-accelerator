@@ -57,80 +57,9 @@ try {
     Write-Host "✅ Project directories found" -ForegroundColor Green
 
     # Get tenant ID
-    Write-Host "`n📋 Getting Azure tenant information..." -ForegroundColor Blue
-    $tenantInfo = az account show --query "{tenantId: tenantId, name: name}" -o json | ConvertFrom-Json
-    $AzureTenantId = $tenantInfo.tenantId
-    $tenantName = $tenantInfo.name
-    Write-Host "Using tenant: $tenantName ($AzureTenantId)" -ForegroundColor Cyan
-
-    # ============================================================================
-    # PHASE 1: Azure App Registration for Entra ID
-    # ============================================================================
-    Write-Host "`n🔐 PHASE 1: AZURE APP REGISTRATION" -ForegroundColor Blue
-    Write-Host "==================================" -ForegroundColor Blue
-
-    $appName = "ecommerce-chat-$Environment-App"
-    $expectedFrontendUrl = "https://$frontendAppName.azurewebsites.net"
-
-    Write-Host "Creating app registration..." -ForegroundColor Gray
-    $appRegistration = az ad app create `
-        --display-name $appName `
-        --sign-in-audience "AzureADMyOrg" `
-        --enable-id-token-issuance true `
-        --query "{appId: appId, id: id}" `
-        -o json | ConvertFrom-Json
-
-    if (-not $appRegistration) {
-        throw "Failed to create app registration"
-    }
-
-    $AzureClientId = $appRegistration.appId
-    $appObjectId = $appRegistration.id
-    Write-Host "✅ App Registration created: $AzureClientId" -ForegroundColor Green
-
-    Write-Host "Configuring as Single-Page Application with redirect URIs..." -ForegroundColor Gray
-
-    
-    
-    # Configure SPA using Graph API
-    $initialSpaConfig = @{
-        "spa" = @{
-            "redirectUris" = @(
-                "http://localhost:5173",
-                "http://localhost:5173/auth/callback"
-            )
-        }
-    }
-    
-    $initialSpaConfigJson = $initialSpaConfig | ConvertTo-Json -Depth 3
-    
-    try {
-        $headers = @{
-            "Content-Type" = "application/json"
-            "Authorization" = "Bearer $((az account get-access-token --query accessToken -o tsv))"
-        }
-        
-        Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/applications/$appObjectId" -Method PATCH -Body $initialSpaConfigJson -Headers $headers | Out-Null
-        Write-Host "✅ SPA configuration applied" -ForegroundColor Green
-    } catch {
-        Write-Host "⚠️  Failed to configure SPA redirect URIs automatically" -ForegroundColor Yellow
-    }
-
-    # Create client secret
-    Write-Host "Creating client secret..." -ForegroundColor Blue
-    $secretName = "$appName-Secret-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-    $secretResponse = az ad app credential reset `
-        --id $AzureClientId `
-        --display-name $secretName `
-        --query "{password: password}" `
-        -o json | ConvertFrom-Json
-
-    if (-not $secretResponse) {
-        throw "Failed to create client secret"
-    }
-
-    $AzureClientSecret = $secretResponse.password
-    Write-Host "✅ Client secret created" -ForegroundColor Green
+    Write-Host "`n⏭️  PHASE 1: SKIPPED - No App Registration needed" -ForegroundColor Blue
+    Write-Host "=================================================" -ForegroundColor Blue
+    Write-Host "You will configure authentication manually via Azure Portal after deployment." -ForegroundColor Cyan
 
     # ============================================================================
     # PHASE 2: Resource Group & Cosmos DB
@@ -196,6 +125,7 @@ try {
 
     $searchServiceName = "ecommerce-$Environment-search-$timestamp"
     $searchIndexName = "policies"
+    $searchProductIndexName = "products"
 
     Write-Host "Creating Azure AI Search service: $searchServiceName" -ForegroundColor Yellow
     az search service create `
@@ -221,11 +151,13 @@ try {
         if ($searchKey) {
             Write-Host "✅ Azure AI Search key retrieved" -ForegroundColor Green
 
-            Write-Host "Setting up search index and uploading policy documents..." -ForegroundColor Yellow
+            Write-Host "Setting up search indexes and uploading documents..." -ForegroundColor Yellow
             $env:AZURE_SEARCH_ENDPOINT = $searchEndpoint
-            $env:AZURE_SEARCH_KEY = $searchKey
+            $env:AZURE_SEARCH_API_KEY = $searchKey
             $env:AZURE_SEARCH_INDEX_NAME = $searchIndexName
 
+            # Set up policy documents index
+            Write-Host "Setting up policy documents index..." -ForegroundColor Gray
             $searchSetupScript = Join-Path $scriptDir "setup-search-index-simple.py"
             if (-not (Test-Path $searchSetupScript)) {
                 $searchSetupScript = Join-Path $scriptDir "setup-search-index.py"
@@ -233,9 +165,20 @@ try {
             
             if (Test-Path $searchSetupScript) {
                 python $searchSetupScript
-                Write-Host "✅ Search index configured and documents uploaded" -ForegroundColor Green
+                Write-Host "✅ Policy documents index configured and uploaded" -ForegroundColor Green
             } else {
-                Write-Host "⚠️  Search setup script not found" -ForegroundColor Yellow
+                Write-Host "⚠️  Policy search setup script not found" -ForegroundColor Yellow
+            }
+
+            # Set up product search index
+            Write-Host "Setting up product search index..." -ForegroundColor Gray
+            $productSearchSetupScript = Join-Path $scriptDir "setup-product-search-index.py"
+            
+            if (Test-Path $productSearchSetupScript) {
+                python $productSearchSetupScript
+                Write-Host "✅ Product search index configured and uploaded" -ForegroundColor Green
+            } else {
+                Write-Host "⚠️  Product search setup script not found" -ForegroundColor Yellow
             }
         } else {
             Write-Host "⚠️  Failed to retrieve search key" -ForegroundColor Yellow
@@ -421,15 +364,11 @@ README.md
         WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" `
         WEBSITES_PORT="80" `
         VITE_API_BASE_URL="$tempBackendUrl" `
-        VITE_AZURE_CLIENT_ID="$AzureClientId" `
-        VITE_AZURE_TENANT_ID="$AzureTenantId" `
-        VITE_AZURE_AUTHORITY="https://login.microsoftonline.com/$AzureTenantId" `
-        VITE_REDIRECT_URI="$tempFrontendUrl/auth/callback" `
-        VITE_ENVIRONMENT="production" `
         NODE_ENV="production" `
         --output none
 
-    Write-Host "✅ Frontend configured" -ForegroundColor Green
+    Write-Host "✅ Frontend environment variables configured" -ForegroundColor Green
+    Write-Host "⚠️  Authentication not configured - you'll add it via Azure Portal" -ForegroundColor Yellow
 
     # ============================================================================
     # PHASE 6: Backend Container Deployment
@@ -559,19 +498,17 @@ venv/
         "COSMOS_DB_KEY=$cosmosKey",
         "COSMOS_DB_DATABASE_NAME=ecommerce_db",
         "AZURE_OPENAI_ENDPOINT=https://testmodle.openai.azure.com/",
-        "AZURE_OPENAI_API_VERSION=2025-01-01-preview",
-        "AZURE_TENANT_ID=$AzureTenantId",
-        "AZURE_CLIENT_ID=$AzureClientId",
-        "AZURE_CLIENT_SECRET=$AzureClientSecret"
+        "AZURE_OPENAI_API_VERSION=2025-01-01-preview"
     )
     
     if ($searchEndpoint -and $searchKey) {
         $backendSettings += "AZURE_SEARCH_ENDPOINT=$searchEndpoint"
         $backendSettings += "AZURE_SEARCH_API_KEY=$searchKey"
         $backendSettings += "AZURE_SEARCH_INDEX=$searchIndexName"
-        Write-Host "✅ Including Azure AI Search configuration in backend settings" -ForegroundColor Green
+        $backendSettings += "AZURE_SEARCH_PRODUCT_INDEX=$searchProductIndexName"
+        Write-Host "✅ Including Azure AI Search configuration (policies + products) in backend settings" -ForegroundColor Green
     } else {
-        Write-Host "⚠️  Azure AI Search not configured - policy lookups will not be available" -ForegroundColor Yellow
+        Write-Host "⚠️  Azure AI Search not configured - policy and product lookups will not be available" -ForegroundColor Yellow
     }
     
     az webapp config appsettings set `
@@ -617,11 +554,11 @@ venv/
         --output none
 
     Write-Host "✅ Backend configured with Cosmos DB connection and HTTPS handling" -ForegroundColor Green
+    Write-Host "⚠️  Authentication not configured - backend will accept guest users" -ForegroundColor Yellow
 
-    # Restart backend to apply comprehensive HTTPS configuration
-    Write-Host "Restarting backend to apply comprehensive HTTPS configuration..." -ForegroundColor Blue
+    Write-Host "Restarting backend..." -ForegroundColor Blue
     az webapp restart --name $backendAppName --resource-group $ResourceGroupName --output none
-    Write-Host "✅ Backend restarted with comprehensive HTTPS configuration" -ForegroundColor Green
+    Write-Host "✅ Backend restarted" -ForegroundColor Green
 
     # ============================================================================
     # PHASE 7: Update Frontend with Backend URL
@@ -633,77 +570,11 @@ venv/
     
     Write-Host "Updating frontend with backend URL: $backendUrl" -ForegroundColor Yellow
     
-    # Update runtime configuration with correct backend URL
-    Push-Location $frontendDir
-    try {
-        # Create updated runtime configuration with real backend URL and Entra ID
-        $frontendUrl = "https://$frontendAppName.azurewebsites.net"
-        $configContent = @"
-// Runtime configuration
-window.APP_CONFIG = {
-  API_BASE_URL: '$backendUrl',
-  ENVIRONMENT: 'production',
-  AZURE_CLIENT_ID: '$AzureClientId',
-  AZURE_TENANT_ID: '$AzureTenantId',
-  AZURE_AUTHORITY: 'https://login.microsoftonline.com/$AzureTenantId',
-  REDIRECT_URI: '$frontendUrl/auth/callback'
-};
-"@
-        $configContent | Out-File -FilePath "public/config.js" -Encoding UTF8
-        
-        # Create updated environment with real backend URL and Entra ID
-        $envContent = @"
-VITE_API_BASE_URL=$backendUrl
-VITE_AZURE_CLIENT_ID=$AzureClientId
-VITE_AZURE_TENANT_ID=$AzureTenantId
-VITE_AZURE_AUTHORITY=https://login.microsoftonline.com/$AzureTenantId
-VITE_REDIRECT_URI=$frontendUrl/auth/callback
-VITE_ENVIRONMENT=production
-NODE_ENV=production
-"@
-        $envContent | Out-File -FilePath ".env.production" -Encoding UTF8
-
-        # Rebuild and push updated frontend
-        az acr build `
-            --registry $registryName `
-            --image "frontend:v2" `
-            --file "Dockerfile" `
-            . `
-            --no-logs
-
-        if ($LASTEXITCODE -ne 0) {
-            throw "Frontend rebuild failed"
-        }
-
-        # Clean up
-        Remove-Item ".env.production" -Force -ErrorAction SilentlyContinue
-        
-    } finally {
-        Pop-Location
-    }
-
-    # Update frontend to use new image
-    $frontendImageV2 = "$registryName.azurecr.io/frontend:v2"
-    az webapp config container set `
-        --name $frontendAppName `
-        --resource-group $ResourceGroupName `
-        --docker-custom-image-name $frontendImageV2 `
-        --docker-registry-server-url "https://$registryName.azurecr.io" `
-        --docker-registry-server-user $acrCredentials.username `
-        --docker-registry-server-password $acrCredentials.passwords[0].value `
-        --output none
-
-    # Update frontend app settings with correct backend URL
     az webapp config appsettings set `
         --name $frontendAppName `
         --resource-group $ResourceGroupName `
         --settings `
         VITE_API_BASE_URL="$backendUrl" `
-        VITE_AZURE_CLIENT_ID="$AzureClientId" `
-        VITE_AZURE_TENANT_ID="$AzureTenantId" `
-        VITE_AZURE_AUTHORITY="https://login.microsoftonline.com/$AzureTenantId" `
-        VITE_REDIRECT_URI="$frontendUrl/auth/callback" `
-        VITE_ENVIRONMENT="production" `
         NODE_ENV="production" `
         --output none
 
@@ -799,8 +670,8 @@ NODE_ENV=production
     # ============================================================================
     # SUCCESS SUMMARY
     # ============================================================================
-    Write-Host "`n🎉 DEPLOYMENT COMPLETED SUCCESSFULLY WITH ENTRA ID AUTH!" -ForegroundColor Green
-    Write-Host "=======================================================" -ForegroundColor Green
+    Write-Host "`n🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!" -ForegroundColor Green
+    Write-Host "======================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "📋 DEPLOYED RESOURCES:" -ForegroundColor Cyan
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
@@ -816,34 +687,53 @@ NODE_ENV=production
     Write-Host "Frontend:  $frontendUrl" -ForegroundColor Green
     Write-Host "Backend:   $backendUrl" -ForegroundColor Green
     Write-Host "API Docs:  $backendUrl/docs" -ForegroundColor Green
-    Write-Host "Health:    $backendUrl/health" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "🔐 ENTRA ID AUTHENTICATION DETAILS:" -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-    Write-Host "Client ID: $AzureClientId" -ForegroundColor White
-    Write-Host "Tenant ID: $AzureTenantId" -ForegroundColor White
-    Write-Host "Client Secret: $AzureClientSecret" -ForegroundColor White
-    Write-Host "Redirect URIs: $finalFrontendUrl, $finalFrontendUrl/auth/callback" -ForegroundColor White
     Write-Host ""
     Write-Host "🔧 CONFIGURATION:" -ForegroundColor Cyan
     Write-Host "━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     Write-Host "✅ CORS configured for frontend ↔ backend communication" -ForegroundColor White
     Write-Host "✅ Backend connected to Cosmos DB" -ForegroundColor White
-    Write-Host "✅ Frontend configured with backend API URL and Entra ID" -ForegroundColor White
     Write-Host "✅ Container registry with both images" -ForegroundColor White
     Write-Host "✅ Sample data seeded in Cosmos DB" -ForegroundColor White
+    Write-Host "✅ Azure AI Search configured for policies and products" -ForegroundColor White
     Write-Host ""
-    Write-Host "⏰ NEXT STEPS:" -ForegroundColor Yellow
-    Write-Host "━━━━━━━━━━━━━━" -ForegroundColor Yellow
-    Write-Host "1. Wait 2-3 minutes for containers to fully start" -ForegroundColor White
-    Write-Host "2. Visit the frontend URL to test your application" -ForegroundColor White
-    Write-Host "3. Click 'Login' to authenticate with Microsoft Entra ID" -ForegroundColor White
-    Write-Host "4. Check the API docs to explore available endpoints" -ForegroundColor White
-    Write-Host "5. Monitor logs if needed:" -ForegroundColor White
-    Write-Host "   az webapp log tail --name $frontendAppName --resource-group $ResourceGroupName" -ForegroundColor Gray
-    Write-Host "   az webapp log tail --name $backendAppName --resource-group $ResourceGroupName" -ForegroundColor Gray
+    Write-Host "⚠️  AUTHENTICATION NOT CONFIGURED YET" -ForegroundColor Yellow
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "🚀 Your complete e-commerce solution with Entra ID auth is ready!" -ForegroundColor Green
+    Write-Host "⏰ NEXT STEPS - CONFIGURE AUTHENTICATION:" -ForegroundColor Yellow
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "1️⃣  Go to Azure Portal: https://portal.azure.com" -ForegroundColor White
+    Write-Host ""
+    Write-Host "2️⃣  Navigate to your Frontend App Service:" -ForegroundColor White
+    Write-Host "   → Resource Groups → $ResourceGroupName → $frontendAppName" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "3️⃣  Click 'Authentication' in the left menu" -ForegroundColor White
+    Write-Host ""
+    Write-Host "4️⃣  Click 'Add identity provider'" -ForegroundColor White
+    Write-Host ""
+    Write-Host "5️⃣  Select 'Microsoft' as the identity provider" -ForegroundColor White
+    Write-Host ""
+    Write-Host "6️⃣  Configure:" -ForegroundColor White
+    Write-Host "   • Tenant type: Workforce" -ForegroundColor Gray
+    Write-Host "   • App registration: Create new app registration" -ForegroundColor Gray
+    Write-Host "   • Supported account types: Current tenant - Single tenant" -ForegroundColor Gray
+    Write-Host "   • Restrict access: Require authentication" -ForegroundColor Gray
+    Write-Host "   • Unauthenticated requests: HTTP 302 Found redirect (recommended)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "7️⃣  Click 'Add' and wait for configuration to complete" -ForegroundColor White
+    Write-Host ""
+    Write-Host "8️⃣  Done! Your app now has authentication" -ForegroundColor White
+    Write-Host ""
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "🧪 TESTING:" -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "• Visit: $frontendUrl" -ForegroundColor White
+    Write-Host "• App works in guest mode (no login required)" -ForegroundColor White
+    Write-Host "• Click 'Login' to authenticate with Microsoft" -ForegroundColor White
+    Write-Host "• Test chat: 'What products do you offer?'" -ForegroundColor White
+    Write-Host ""
+    Write-Host "🚀 Your application is ready!" -ForegroundColor Green
 
 } catch {
     Write-Host "`n❌ DEPLOYMENT FAILED!" -ForegroundColor Red

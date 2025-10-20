@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     azure_search_endpoint: Optional[str] = None
     azure_search_api_key: Optional[str] = None
     azure_search_index: str = "reference-docs"
+    azure_search_product_index: str = "products"
     
     # Azure AI Foundry
     azure_foundry_endpoint: Optional[str] = None
