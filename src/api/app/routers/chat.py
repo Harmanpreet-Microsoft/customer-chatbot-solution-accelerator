@@ -5,9 +5,6 @@ import uuid
 import logging
 from ..models import ChatMessage, ChatMessageCreate, ChatSession, ChatSessionCreate, ChatSessionUpdate, APIResponse
 from ..database import get_db_service
-from ..ai_service import ai_service
-from ..semantic_kernel_service import get_semantic_kernel_service
-from ..handoff_orchestrator import get_handoff_orchestrator
 from ..simple_foundry_orchestrator import get_simple_foundry_orchestrator
 from ..config import settings, has_semantic_kernel_config, has_foundry_config
 from ..auth import get_current_user_optional
