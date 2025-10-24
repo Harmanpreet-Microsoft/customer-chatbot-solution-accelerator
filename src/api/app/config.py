@@ -107,9 +107,13 @@ def has_entra_id_config() -> bool:
         settings.azure_tenant_id
     ])
 
-# Check if we have Azure Search configuration
+# Check if we have Azure Search configuration (AAD authentication)
 def has_azure_search_config() -> bool:
-    return settings.azure_search_endpoint is not None and settings.azure_search_api_key is not None
+    return settings.azure_search_endpoint is not None
+
+# Legacy function for backwards compatibility (now only checks endpoint)
+def has_azure_search_endpoint() -> bool:
+    return settings.azure_search_endpoint is not None
 
 # Check if semantic kernel is properly configured
 def has_semantic_kernel_config() -> bool:
