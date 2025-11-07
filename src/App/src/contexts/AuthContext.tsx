@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔍 AuthContext: Initializing authentication...');
         
         // First, try to get Easy Auth headers from frontend
-        let easyAuthHeaders = null;
+        let easyAuthHeaders: Record<string, string> | null = null;
         try {
           console.log('🔍 AuthContext: Getting Easy Auth headers from frontend...');
           const authResponse = await fetch('/.auth/me', { 

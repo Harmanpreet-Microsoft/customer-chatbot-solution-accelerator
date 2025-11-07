@@ -62,7 +62,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "database": "connected" if settings.cosmos_db_endpoint else "mock",
+        "database": "connected" if settings.cosmos_db_endpoint else "not_configured",
         "openai": "configured" if settings.azure_openai_endpoint else "not_configured",
         "auth": "configured" if settings.azure_client_id else "not_configured",
         "version": "minimal"

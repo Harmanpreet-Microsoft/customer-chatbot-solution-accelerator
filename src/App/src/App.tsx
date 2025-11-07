@@ -185,7 +185,6 @@ function App() {
       setCurrentSessionId(sessionData.session_id);
       queryClient.setQueryData(['chat', sessionData.session_id], []);
       queryClient.invalidateQueries({ queryKey: ['chat'] });
-      toast.success(`New chat started: ${sessionData.session_name}`);
     },
     onError: (error) => {
       toast.error('Failed to create new chat session');
