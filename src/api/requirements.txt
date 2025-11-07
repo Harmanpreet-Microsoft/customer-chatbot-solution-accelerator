@@ -3,7 +3,7 @@ cachetools==6.2.1
 python-dotenv==1.1.1
 fastapi==0.119.0
 uvicorn[standard]==0.38.0
-pydantic[email]==2.12.3
+pydantic[email]==2.9.2
  
 # Azure SDK Core
 azure-core==1.35.1
@@ -19,6 +19,7 @@ azure-ai-projects==1.0.0 # azure-ai-projects==1.1.0b2 --pre
 # azure-ai-agents==1.2.0b1 --pre
 azure-ai-inference==1.0.0b9
 azure-cosmos==4.9.0
+semantic-kernel==1.11.0
  
 # Additional utilities
 # openai==1.109.1
