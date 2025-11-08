@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '@/lib/api';
+import { api, setEasyAuthHeaders } from '@/lib/api';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 export interface User {
   id: string;
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔍 AuthContext: Initializing authentication...');
         
         // First, try to get Easy Auth headers from frontend
-        let easyAuthHeaders = null;
+        let easyAuthHeaders: Record<string, string> | null = null;
         try {
           console.log('🔍 AuthContext: Getting Easy Auth headers from frontend...');
           const authResponse = await fetch('/.auth/me', { 
@@ -65,16 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 'x-ms-client-principal': JSON.stringify(claims)
               };
               console.log('🔍 AuthContext: Extracted Easy Auth headers:', easyAuthHeaders);
+              
+              // Store headers globally so they're sent with ALL API requests
+              setEasyAuthHeaders(easyAuthHeaders);
             }
           }
         } catch (authError) {
           console.log('🔍 AuthContext: Frontend Easy Auth not available:', authError);
         }
         
-        // Now get user info from backend with Easy Auth headers
-        const response = await api.get('/api/auth/me', {
-          headers: easyAuthHeaders || {}
-        });
+        // Now get user info from backend (headers will be auto-added by interceptor)
+        const response = await api.get('/api/auth/me');
         console.log('🔍 AuthContext: Backend response:', response.data);
         setUser(response.data);
         
@@ -145,6 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    // Clear cached auth headers
+    setEasyAuthHeaders(null);
+    
     // Use frontend's Easy Auth logout endpoint
     window.location.href = '/.auth/logout';
   };
