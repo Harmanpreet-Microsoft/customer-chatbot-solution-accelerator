@@ -85,7 +85,7 @@ export const EnhancedChatPanel = ({
                     Hey! I'm here to help.
                   </h2>
                   <p className="text-muted-foreground max-w-sm">
-                    Ask me about returns & exchanges, warranties, order status, or general product advice.
+                    Ask me about returns & exchanges, warranties, or general product advice.
                   </p>
                 </div>
                 
