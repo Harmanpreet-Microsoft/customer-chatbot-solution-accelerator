@@ -136,7 +136,6 @@ Follow the quick deploy steps on the deployment guide to deploy this solution to
 
 
 | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/customer-chatbot-solution-accelerator) | [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/customer-chatbot-solution-accelerator) | 
-
 |---|---|
 
 
@@ -188,22 +187,15 @@ _Note: This is not meant to outline all costs as selected SKUs, scaled use, cust
 
 
 | Product | Description | Tier / Expected Usage Notes | Cost |
-
 |---|---|---|---|
-
 | [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry) | Used to orchestrate and build AI workflows with specialized agents for customer service. | Free Tier | [Pricing](https://azure.microsoft.com/pricing/details/ai-studio/) |
-
 | [Azure AI Services (OpenAI)](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/overview) | Enables language understanding and chat capabilities using GPT models for conversational AI. | S0 Tier; pricing depends on token volume and model used (e.g., GPT-4o-mini). | [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/) |
-
 | [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search) | Provides hybrid search capabilities for product catalogs and policy documents with semantic and keyword search. | Basic Tier; pricing based on search units and data storage. | [Pricing](https://azure.microsoft.com/pricing/details/search/) |
-
 | [Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/overview) | Hosts the frontend React application and backend FastAPI services. | Basic or Standard plan; includes a free tier for development. | [Pricing](https://azure.microsoft.com/pricing/details/app-service/windows/) |
-
 | [Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-intro) | Stores and serves container images used by Azure App Service. | Basic Tier; fixed daily cost per registry. | [Pricing](https://azure.microsoft.com/pricing/details/container-registry/) |
-
 | [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) | Stores product catalogs, customer orders, and chat conversation history. | Serverless or provisioned throughput; pricing based on request units and storage. | [Pricing](https://azure.microsoft.com/pricing/details/cosmos-db/) |
-
 | [Azure Monitor / Log Analytics](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overview) | Collects and analyzes telemetry and logs from services and applications. | Pay-as-you-go; charges based on data ingestion volume. | [Pricing](https://azure.microsoft.com/pricing/details/monitor/) |
+| 
 
 
 
@@ -336,9 +328,7 @@ Check out similar solution accelerators
 
 
 | Solution Accelerator | Description |
-
 |---|---|
-
 | [Agentic Applications for Unified Data Foundation](https://github.com/microsoft/agentic-applications-for-unified-data-foundation-solution-accelerator) | Empowers organizations to make faster, smarter decisions at scale by leveraging agentic AI solutions built on a unified data foundation with Microsoft Fabric. |
 
 
