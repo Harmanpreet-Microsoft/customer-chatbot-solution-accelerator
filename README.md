@@ -22,7 +22,11 @@ This solution accelerator empowers organizations to build intelligent, conversat
 
 
 
-<h2>Solution overview</h2>
+<h2><img src="./documents/Images/solution-overview.png" width="48" />
+
+Solution overview
+
+</h2>
 
 
 
@@ -109,7 +113,11 @@ Cosmos DB stores product catalogs, customer orders, and chat history with high a
 
 <br /><br />
 
-<h2>Quick deploy</h2>
+<h2><img src="./documents/Images/quick-deploy.png" width="48" />
+
+Quick deploy
+
+</h2>
 
 
 
@@ -215,7 +223,11 @@ either by deleting the resource group in the Portal or running `azd down`.
 
 <br /><br />
 
-<h2>Business scenario</h2>
+<h2><img src="./documents/Images/business-scenario.png" width="48" />
+
+Business scenario
+
+</h2>
 
 
 
@@ -283,7 +295,11 @@ Deliver consistent customer experiences at scale with a microservices architectu
 
 
 
-<h2>Supporting documentation</h2>
+<h2><img src="./documents/Images/supporting-documentation.png" width="48" />
+
+Supporting documentation
+
+</h2>
 
 
 
