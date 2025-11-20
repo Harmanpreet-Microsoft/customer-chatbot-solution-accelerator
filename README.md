@@ -115,29 +115,11 @@ Cosmos DB stores product catalogs, customer orders, and chat history with high a
 
 ### How to install or deploy
 
-This solution uses Azure Developer CLI (azd) for deployment. To deploy:
+Follow the quick deploy steps on the deployment guide to deploy this solution to your own Azure subscription.
 
-1. **Prerequisites**: Install [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
 
-2. **Deploy the solution**:
-   ```bash
-   azd init
-   azd up
-   ```
 
-3. **Post-deployment**: After deployment completes, run the data setup scripts to populate product catalogs and create search indexes:
-   ```bash
-   cd infra/scripts/data_scripts
-   ./run_upload_data_scripts.sh
-   ```
-
-4. **Create AI Agents**: Set up the Azure AI Foundry agents:
-   ```bash
-   cd infra/scripts/agent_scripts
-   ./run_create_agents_scripts.sh
-   ```
-
-For detailed deployment instructions, see the [Azure Developer CLI documentation](https://learn.microsoft.com/azure/developer/azure-developer-cli/).
+[Click here to launch the deployment guide](./documents/DeploymentGuide.md)
 
 <br/><br/>
 
@@ -157,18 +139,11 @@ For detailed deployment instructions, see the [Azure Developer CLI documentation
 
 > ⚠️ **Important: Check Azure OpenAI Quota Availability**
 
- <br/>To ensure sufficient quota is available in your subscription, run the quota check script before deploying:
-
-```bash
-cd infra/scripts
-./checkquota_agentic_application.sh
-```
+ <br/>To ensure sufficient quota is available in your subscription, please follow [quota check instructions guide](./documents/QuotaCheck.md) before you deploy the solution.
 
 
 
 <br/>
-
-
 
 ### Prerequisites and costs
 
