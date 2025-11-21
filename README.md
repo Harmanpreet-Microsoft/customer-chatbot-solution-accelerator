@@ -89,7 +89,7 @@ Azure AI Foundry's agent framework orchestrates multi-agent workflows using GPT-
 
 - **Modern e-commerce experience** <br/>  
 
-React-based frontend with dual-panel layout featuring product browsing, shopping cart, and integrated AI chat assistant for seamless shopping and support experiences
+React-based frontend with dual-panel layout featuring product browsing and integrated AI chat assistant for seamless shopping and support experiences
 
 
 
