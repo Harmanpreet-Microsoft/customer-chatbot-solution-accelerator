@@ -27,4 +27,4 @@ Hosts the React frontend application and FastAPI backend service. The backend or
 Stores and serves containerized deployments of the frontend and backend applications.
 
 ### Web Front-End  
-A modern React/TypeScript application featuring dual-panel layout with product browsing, shopping cart functionality, and integrated AI chat assistant. Enables customers to shop and receive support through natural language conversations.
+A modern React/TypeScript application featuring dual-panel layout with product browsing and integrated AI chat assistant. Enables customers to shop and receive support through natural language conversations.
