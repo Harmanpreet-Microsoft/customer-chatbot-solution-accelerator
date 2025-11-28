@@ -1,27 +1,15 @@
+import argparse
 import asyncio
-import json
-import logging
-import os
-import struct
-from datetime import date, datetime
-from xmlrpc import client
 
-import pyodbc
-from dotenv import load_dotenv
-from pydantic import BaseModel, ConfigDict
-
+from azure.ai.agents.aio import AgentsClient
 from azure.ai.projects.aio import AIProjectClient
+from azure.ai.projects.models import ConnectionType
 from azure.identity.aio import AzureCliCredential
-
-from agent_framework import ChatAgent,HostedFileSearchTool
-from agent_framework.azure import AzureAIAgentClient
-
-from decimal import Decimal
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-import argparse
 p = argparse.ArgumentParser()
 p.add_argument("--ai_project_endpoint", required=True)
 p.add_argument("--solution_name", required=True)
@@ -32,15 +20,6 @@ ai_project_endpoint = args.ai_project_endpoint
 solutionName = args.solution_name
 gptModelName = args.gpt_model_name
 
-# # fetch all required env variables
-# ai_project_endpoint = os.getenv("AZURE_AI_AGENT_ENDPOINT")
-# solution_name = os.getenv("SOLUTION_NAME")
-# gpt_model_name = os.getenv("AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME")
-# app_env = os.getenv("APP_ENV", "prod").lower()
-
-# # ai_project_endpoint = 'https://aisa-ccblgmiensv4lga.services.ai.azure.com/api/projects/aifp-ccblgmiensv4lga'
-# ai_project_endpoint = 'https://testmodle.services.ai.azure.com/api/projects/testModle-project'
-# gpt_model_name = 'gpt-4o-mini'
 
 async def create_agents():
     """Create and return orchestrator, SQL, and chart agent IDs."""
@@ -51,14 +30,9 @@ async def create_agents():
             endpoint=ai_project_endpoint,
             credential=credential,
         ) as project_client,
-    ):     
-        # Create agents
-        agents_client = project_client.agents
-        # print("Creating agents...")
-
-
-        # Create the client and manually create an agent with Azure AI Search tool
-        from azure.ai.projects.models import ConnectionType
+        AgentsClient(endpoint=ai_project_endpoint, credential=credential) as agents_client,
+    ):
+        # Get Azure AI Search connection ID
         ai_search_conn_id = ""
         async for connection in project_client.connections.list():
             if connection.type == ConnectionType.AZURE_AI_SEARCH:
@@ -101,7 +75,6 @@ async def create_agents():
                 }
             },
         )
-    
 
         # 1. Create Azure AI agent with the search tool
         policy_agent_instructions = '''You are a helpful agent that searches policy information and warranty information using Azure AI Search.
@@ -140,13 +113,13 @@ async def create_agents():
                 }
             },
         )
- 
+
         chat_agent_instructions = '''You are a helpful assistant that can use the product agent and policy agent to answer user questions. 
 If you don't find any information in the knowledge source, please say no data found.'''
 
         chat_agent = await agents_client.create_agent(
             model=gptModelName,
-            name=f"chat_agent",
+            name="chat_agent",
             instructions=chat_agent_instructions
         )
 
