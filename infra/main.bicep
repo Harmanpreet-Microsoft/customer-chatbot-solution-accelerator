@@ -98,21 +98,17 @@ var deployingUserPrincipalId = deployerInfo.objectId
 
 
 // ========== Resource Group Tag ========== //
-resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
+resource resourceGroupTags 'Microsoft.Resources/tags@2025-04-01' = {
   name: 'default'
   properties: {
-    tags: union(
-      reference(
-        resourceGroup().id, 
-        '2021-04-01', 
-        'Full'
-      ).tags ?? {},
-      {
-        TemplateName: 'Unified Data Analysis Agents'
-        CreatedBy: createdBy
-      },
-      tags
-    )
+    tags: {
+      ...resourceGroup().tags
+      ...tags
+      TemplateName: 'Customer Chat bot'
+      Type: 'Non-WAF'
+      CreatedBy: createdBy
+      DeploymentName: deployment().name
+    }
   }
 }
 

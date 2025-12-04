@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.38.33.27573",
-      "templateHash": "9987540811568217506"
+      "version": "0.39.26.7824",
+      "templateHash": "3219627837189722290"
     }
   },
   "parameters": {
@@ -373,17 +373,17 @@
     "solutionLocation": "[if(empty(parameters('AZURE_LOCATION')), resourceGroup().location, parameters('AZURE_LOCATION'))]",
     "uniqueId": "[toLower(uniqueString(subscription().id, parameters('environmentName'), variables('solutionLocation')))]",
     "solutionPrefix": "[format('ccb{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
-    "acrName": "newacrapith",
+    "acrName": "ccbcontainerreg",
     "deployerInfo": "[deployer()]",
     "deployingUserPrincipalId": "[variables('deployerInfo').objectId]"
   },
   "resources": [
     {
       "type": "Microsoft.Resources/tags",
-      "apiVersion": "2021-04-01",
+      "apiVersion": "2025-04-01",
       "name": "default",
       "properties": {
-        "tags": "[union(coalesce(reference(resourceGroup().id, '2021-04-01', 'Full').tags, createObject()), createObject('TemplateName', 'Unified Data Analysis Agents', 'CreatedBy', parameters('createdBy')), parameters('tags'))]"
+        "tags": "[shallowMerge(createArray(resourceGroup().tags, parameters('tags'), createObject('TemplateName', 'Customer Chat bot', 'Type', 'Non-WAF', 'CreatedBy', parameters('createdBy'), 'DeploymentName', deployment().name)))]"
       }
     },
     {
@@ -413,8 +413,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.38.33.27573",
-              "templateHash": "15251832267003348547"
+              "version": "0.39.26.7824",
+              "templateHash": "16718832344803611069"
             }
           },
           "parameters": {
@@ -551,8 +551,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.38.33.27573",
-              "templateHash": "18012318463114249948"
+              "version": "0.39.26.7824",
+              "templateHash": "17426404956794294200"
             }
           },
           "parameters": {
@@ -1206,8 +1206,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "5573020945529205304"
+                      "version": "0.39.26.7824",
+                      "templateHash": "10393506767552764602"
                     }
                   },
                   "parameters": {
@@ -1316,8 +1316,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "10207661110648213608"
+                      "version": "0.39.26.7824",
+                      "templateHash": "4945522242866731198"
                     }
                   },
                   "parameters": {
@@ -1447,8 +1447,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "5101030011491757699"
+                      "version": "0.39.26.7824",
+                      "templateHash": "17296057603019338290"
                     }
                   },
                   "parameters": {
@@ -1658,8 +1658,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "5101030011491757699"
+                      "version": "0.39.26.7824",
+                      "templateHash": "17296057603019338290"
                     }
                   },
                   "parameters": {
@@ -1892,6 +1892,10 @@
             "aiFoundryResourceId": {
               "type": "string",
               "value": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), parameters('azureExistingAIProjectResourceId'), resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')))]"
+            },
+            "searchServiceResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Search/searchServices', variables('aiSearchName'))]"
             }
           }
         }
@@ -1924,8 +1928,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.38.33.27573",
-              "templateHash": "3097606171407570745"
+              "version": "0.39.26.7824",
+              "templateHash": "14013232130779548785"
             }
           },
           "parameters": {
@@ -1950,13 +1954,33 @@
             }
           },
           "variables": {
-            "databaseName": "db_conversation_history",
-            "collectionName": "conversations",
+            "databaseName": "ecommerce_db",
+            "collectionName": "chat_sessions",
             "containers": [
               {
-                "name": "[variables('collectionName')]",
-                "id": "[variables('collectionName')]",
-                "partitionKey": "/userId"
+                "name": "carts",
+                "id": "carts",
+                "partitionKey": "/user_id"
+              },
+              {
+                "name": "chat_sessions",
+                "id": "chat_sessions",
+                "partitionKey": "/user_id"
+              },
+              {
+                "name": "products",
+                "id": "products",
+                "partitionKey": "/productId"
+              },
+              {
+                "name": "transactions",
+                "id": "transactions",
+                "partitionKey": "/user_id"
+              },
+              {
+                "name": "users",
+                "id": "users",
+                "partitionKey": "/email"
               }
             ]
           },
@@ -2068,8 +2092,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.38.33.27573",
-              "templateHash": "9618451231425769369"
+              "version": "0.39.26.7824",
+              "templateHash": "13662630839938701330"
             },
             "description": "Creates an Azure App Service plan."
           },
@@ -2202,10 +2226,20 @@
               "DUMMY_TEST": "True",
               "SOLUTION_NAME": "[variables('solutionPrefix')]",
               "APP_ENV": "Prod",
-              "AGENT_ID_CHAT": "",
-              "FABRIC_SQL_DATABASE": "",
-              "FABRIC_SQL_SERVER": "",
-              "FABRIC_SQL_CONNECTION_STRING": ""
+              "ALLOWED_ORIGINS_STR": "*",
+              "AZURE_FOUNDRY_ENDPOINT": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2025-04-01').outputs.projectEndpoint.value]",
+              "AZURE_SEARCH_ENDPOINT": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2025-04-01').outputs.aiSearchTarget.value]",
+              "AZURE_SEARCH_INDEX": "policies",
+              "AZURE_SEARCH_PRODUCT_INDEX": "products",
+              "COSMOS_DB_DATABASE_NAME": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_cosmos_db'), '2025-04-01').outputs.cosmosDatabaseName.value]",
+              "COSMOS_DB_ENDPOINT": "[format('https://{0}.documents.azure.com:443/', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_cosmos_db'), '2025-04-01').outputs.cosmosAccountName.value)]",
+              "USE_FOUNDRY_AGENTS": "True",
+              "AZURE_OPENAI_DEPLOYMENT_NAME": "[parameters('gptModelName')]",
+              "RATE_LIMIT_REQUESTS": 100,
+              "RATE_LIMIT_WINDOW": 60,
+              "FOUNDRY_CHAT_AGENT_ID": "",
+              "FOUNDRY_CUSTOM_PRODUCT_AGENT_ID": "",
+              "FOUNDRY_POLICY_AGENT_ID": ""
             }
           }
         },
@@ -2215,8 +2249,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.38.33.27573",
-              "templateHash": "1665370808826755566"
+              "version": "0.39.26.7824",
+              "templateHash": "1752966148383175393"
             }
           },
           "parameters": {
@@ -2264,8 +2298,8 @@
             "existingAIServiceResourceGroup": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), split(parameters('azureExistingAIProjectResourceId'), '/')[4], resourceGroup().name)]",
             "existingAIServicesName": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), split(parameters('azureExistingAIProjectResourceId'), '/')[8], '')]",
             "existingAIProjectName": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), split(parameters('azureExistingAIProjectResourceId'), '/')[10], '')]",
-            "imageName": "[format('DOCKER|{0}.azurecr.io/ccb-api1:{1}', parameters('acrName'), parameters('imageTag'))]",
-            "reactAppLayoutConfig": "{\n  \"appConfig\": {\n      \"CHAT_CHATHISTORY\": {\n        \"CHAT\": 70,\n        \"CHATHISTORY\": 30\n      }\n    }\n  }\n}"
+            "imageName": "[format('DOCKER|{0}.azurecr.io/backend:{1}', parameters('acrName'), parameters('imageTag'))]",
+            "reactAppLayoutConfig": "{\r\n  \"appConfig\": {\r\n      \"CHAT_CHATHISTORY\": {\r\n        \"CHAT\": 70,\r\n        \"CHATHISTORY\": 30\r\n      }\r\n    }\r\n  }\r\n}"
           },
           "resources": [
             {
@@ -2330,8 +2364,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "3356168949734524762"
+                      "version": "0.39.26.7824",
+                      "templateHash": "15244144601163238479"
                     }
                   },
                   "parameters": {
@@ -2452,8 +2486,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.38.33.27573",
-                              "templateHash": "16561033618269121632"
+                              "version": "0.39.26.7824",
+                              "templateHash": "13170597498988978976"
                             },
                             "description": "Updates app settings for an Azure App Service."
                           },
@@ -2525,8 +2559,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "5573020945529205304"
+                      "version": "0.39.26.7824",
+                      "templateHash": "10393506767552764602"
                     }
                   },
                   "parameters": {
@@ -2630,8 +2664,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "5101030011491757699"
+                      "version": "0.39.26.7824",
+                      "templateHash": "17296057603019338290"
                     }
                   },
                   "parameters": {
@@ -2862,8 +2896,8 @@
           },
           "appSettings": {
             "value": {
-              "APP_API_BASE_URL": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_backend_docker'), '2025-04-01').outputs.appUrl.value]",
-              "CHAT_LANDING_TEXT": "You can ask questions around sales, products and orders."
+              "NODE_ENV": "production",
+              "VITE_API_BASE_URL": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_backend_docker'), '2025-04-01').outputs.appUrl.value]"
             }
           }
         },
@@ -2873,8 +2907,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.38.33.27573",
-              "templateHash": "11846876852692706713"
+              "version": "0.39.26.7824",
+              "templateHash": "14725159886736741473"
             }
           },
           "parameters": {
@@ -2905,7 +2939,7 @@
             }
           },
           "variables": {
-            "imageName": "[format('DOCKER|{0}.azurecr.io/ccb-app1:{1}', parameters('acrName'), parameters('imageTag'))]"
+            "imageName": "[format('DOCKER|{0}.azurecr.io/frontend:{1}', parameters('acrName'), parameters('imageTag'))]"
           },
           "resources": [
             {
@@ -2940,8 +2974,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.38.33.27573",
-                      "templateHash": "3356168949734524762"
+                      "version": "0.39.26.7824",
+                      "templateHash": "15244144601163238479"
                     }
                   },
                   "parameters": {
@@ -3062,8 +3096,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.38.33.27573",
-                              "templateHash": "16561033618269121632"
+                              "version": "0.39.26.7824",
+                              "templateHash": "13170597498988978976"
                             },
                             "description": "Updates app settings for an Azure App Service."
                           },
@@ -3186,9 +3220,13 @@
       "type": "string",
       "value": "[parameters('gptModelName')]"
     },
-    "AZURE_OPENAI_DEPLOYMENT_MODEL_CAPACITY": {
+    "AZURE_OPENAI_EMBEDDING_MODEL": {
+      "type": "string",
+      "value": "[parameters('embeddingModel')]"
+    },
+    "AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY": {
       "type": "int",
-      "value": "[parameters('gptDeploymentCapacity')]"
+      "value": "[parameters('embeddingDeploymentCapacity')]"
     },
     "AZURE_OPENAI_ENDPOINT": {
       "type": "string",
@@ -3197,6 +3235,10 @@
     "AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE": {
       "type": "string",
       "value": "[parameters('deploymentType')]"
+    },
+    "AZURE_AI_SEARCH_ENDPOINT": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2025-04-01').outputs.aiSearchTarget.value]"
     },
     "AZURE_OPENAI_API_VERSION": {
       "type": "string",
@@ -3270,18 +3312,6 @@
       "type": "string",
       "value": ""
     },
-    "FABRIC_SQL_DATABASE": {
-      "type": "string",
-      "value": ""
-    },
-    "FABRIC_SQL_SERVER": {
-      "type": "string",
-      "value": ""
-    },
-    "FABRIC_SQL_CONNECTION_STRING": {
-      "type": "string",
-      "value": ""
-    },
     "MANAGED_IDENTITY_CLIENT_ID": {
       "type": "string",
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2025-04-01').outputs.managedIdentityOutput.value.clientId]"
@@ -3289,6 +3319,10 @@
     "AI_FOUNDRY_RESOURCE_ID": {
       "type": "string",
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2025-04-01').outputs.aiFoundryResourceId.value]"
+    },
+    "AI_SEARCH_SERVICE_RESOURCE_ID": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2025-04-01').outputs.searchServiceResourceId.value]"
     }
   }
 }
