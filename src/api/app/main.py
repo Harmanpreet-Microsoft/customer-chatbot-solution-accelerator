@@ -6,6 +6,13 @@ import logging
 import sys
 import os
 
+# Configure logging BEFORE importing other modules
+# This ensures all loggers created in imported modules inherit this configuration
+logging.basicConfig(
+    level=logging.INFO,
+    force=True  # Force reconfiguration even if logging was already configured
+)
+
 # Handle both local debugging and Docker deployment
 try:
     # Try relative imports first (for Docker)
@@ -19,8 +26,7 @@ except ImportError:
     from app.routers import products, chat, cart, auth
     from app.auth import get_current_user
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Get logger for this module (logging already configured above)
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app

@@ -49,7 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (authResponse.ok) {
             const authData = await authResponse.json();
-            
             if (authData && authData.length > 0) {
               const userData = authData[0];
               const claims = userData.user_claims;
@@ -61,12 +60,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const preferredUsername = claims.find(c => c.typ === 'preferred_username')?.val;
               
               // Create Easy Auth headers in the format backend expects
+              // The x-ms-client-principal must be base64-encoded JSON (same format Azure Easy Auth uses)
+              const claimsObject = claims.reduce((acc: Record<string, string>, claim: { typ: string; val: string }) => {
+                // Map common claim types to simpler keys
+                if (claim.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress') {
+                  acc['email'] = claim.val;
+                } else if (claim.typ === 'preferred_username') {
+                  acc['preferred_username'] = claim.val;
+                } else if (claim.typ === 'http://schemas.microsoft.com/identity/claims/objectidentifier') {
+                  acc['oid'] = claim.val;
+                } else if (claim.typ === 'name') {
+                  acc['name'] = claim.val;
+                } else {
+                  // Use the last segment of the claim type as key
+                  const shortKey = claim.typ.split('/').pop() || claim.typ;
+                  acc[shortKey] = claim.val;
+                }
+                return acc;
+              }, {});
+              
+              const clientPrincipalB64 = btoa(JSON.stringify(claimsObject));
+              
               easyAuthHeaders = {
                 'x-ms-client-principal-id': userId,
                 'x-ms-client-principal-name': userName || email || preferredUsername,
                 'x-ms-client-principal-idp': userData.provider_name,
                 'x-ms-token-aad-id-token': userData.id_token,
-                'x-ms-client-principal': JSON.stringify(claims)
+                'x-ms-client-principal': clientPrincipalB64
               };
               
               // Store headers globally so they're sent with ALL API requests
