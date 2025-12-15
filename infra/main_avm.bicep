@@ -45,10 +45,10 @@ param azureAiServiceLocation string
 
 @minLength(1)
 @description('Optional. Name of the GPT model to deploy:')
-param gptModelName string = 'gpt-4.1-mini'
+param gptModelName string = 'gpt-4o-mini'
 
-@description('Optional. Version of the GPT model to deploy. Defaults to 2025-04-14.')
-param gptModelVersion string = '2025-04-14'
+@description('Optional. Version of the GPT model to deploy. Defaults to 2024-07-18.')
+param gptModelVersion string = '2024-07-18'
 
 @description('Optional. Version of the OpenAI.')
 param azureOpenAIApiVersion string = '2025-01-01-preview'
@@ -933,6 +933,7 @@ module searchService 'br/public:avm/res/search/search-service:0.11.1' = {
   }
 }
 
+
 // ========== Search Service - AI Project Connection ========== //
 var aiSearchConnectionName = 'aifp-srch-connection-${solutionSuffix}'
 module aiSearchFoundryConnection 'modules/aifp-connections.bicep' = {
@@ -975,6 +976,26 @@ var aiFoundryAiProjectEndpoint = useExistingAiFoundryAiProject
 var aiFoundryAiProjectPrincipalId = useExistingAiFoundryAiProject
   ? existingAiFoundryAiServicesProject!.identity.principalId
   : aiFoundryAiServicesProject!.outputs.principalId
+
+// ========== Search Service to Azure OpenAI Role Assignment ========== //
+resource searchServiceToOpenAIRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useExistingAiFoundryAiProject) {
+  name: guid(searchServiceName, '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd', aiFoundryAiServicesResourceName)
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd') // Cognitive Services OpenAI User
+    principalId: searchService.outputs.systemAssignedMIPrincipalId!
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module searchServiceToOpenAIRoleAssignmentExisting 'modules/role-assignment.bicep' = if (useExistingAiFoundryAiProject) {
+  name: 'searchToExistingAiServices-roleAssignment'
+  scope: resourceGroup(aiFoundryAiServicesSubscriptionId, aiFoundryAiServicesResourceGroupName)
+  params: {
+    principalId: searchService.outputs.systemAssignedMIPrincipalId!
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd' // Cognitive Services OpenAI User
+    targetResourceName: aiFoundryAiServicesResourceName
+  }
+}
 
 // ========== Cosmos DB ========== //
 var cosmosDbResourceName = 'cosmos-${solutionSuffix}'
@@ -1150,6 +1171,7 @@ module webSiteBackend 'modules/web-sites.bicep' = {
           REACT_APP_LAYOUT_CONFIG: reactAppLayoutConfig
         
           API_UID: userAssignedIdentity.outputs.clientId
+          AZURE_CLIENT_ID: userAssignedIdentity.outputs.clientId
           AZURE_AI_SEARCH_ENDPOINT: 'https://${searchServiceName}.search.windows.net'
           AZURE_AI_SEARCH_INDEX: 'call_transcripts_index'
           AZURE_AI_SEARCH_CONNECTION_NAME: aiSearchConnectionName
@@ -1172,6 +1194,7 @@ module webSiteBackend 'modules/web-sites.bicep' = {
           AZURE_OPENAI_DEPLOYMENT_NAME: gptModelName
           RATE_LIMIT_REQUESTS: '100'
           RATE_LIMIT_WINDOW: '60'
+          // Agent IDs will be set by post-deployment script
           FOUNDRY_CHAT_AGENT_ID: ''
           FOUNDRY_CUSTOM_PRODUCT_AGENT_ID: ''
           FOUNDRY_POLICY_AGENT_ID: ''
@@ -1191,14 +1214,14 @@ module webSiteBackend 'modules/web-sites.bicep' = {
 
 // ========== Additional Cosmos DB Role Assignment for Backend App Service ========== //
 // Add the backend App Service's system-assigned managed identity to Cosmos DB role
-// resource cosmosDbBackendRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
-//   name: '${cosmosDbResourceName}/${guid(subscription().id, resourceGroup().id, backendWebSiteResourceName, 'CosmosDBDataContributor')}'
-//   properties: {
-//     principalId: webSiteBackend.outputs.systemAssignedMIPrincipalId!
-//     roleDefinitionId: '${cosmosDb.outputs.resourceId}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
-//     scope: cosmosDb.outputs.resourceId
-//   }
-// }
+resource cosmosDbBackendRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-05-15' = {
+  name: '${cosmosDbResourceName}/${guid(subscription().id, resourceGroup().id, backendWebSiteResourceName, 'CosmosDBDataContributor')}'
+  properties: {
+    principalId: webSiteBackend.outputs.systemAssignedMIPrincipalId!
+    roleDefinitionId: '${cosmosDb.outputs.resourceId}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+    scope: cosmosDb.outputs.resourceId
+  }
+}
 
 // ========== Frontend Web App Docker container ========== //
 var webSiteResourceName = 'app-${solutionSuffix}'
@@ -1243,6 +1266,10 @@ output AZURE_AI_PROJECT_CONN_STRING string = aiFoundryAiProjectEndpoint
 output AZURE_AI_AGENT_API_VERSION string = azureAiAgentApiVersion
 output AZURE_AI_PROJECT_NAME string = aiFoundryAiProjectName
 output AZURE_COSMOSDB_ACCOUNT string = cosmosDb.outputs.name
+output COSMOS_DB_ENDPOINT string = 'https://${cosmosDb.outputs.name}.documents.azure.com:443/'
+output COSMOS_DB_DATABASE_NAME string = cosmosDbDatabaseName
+output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = 'chat_sessions'
+output AZURE_COSMOSDB_DATABASE string = cosmosDbDatabaseName
 output AZURE_OPENAI_DEPLOYMENT_MODEL string = gptModelName
 output AZURE_OPENAI_EMBEDDING_MODEL string = embeddingModel
 output AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY int = embeddingDeploymentCapacity
@@ -1250,7 +1277,6 @@ output AZURE_OPENAI_ENDPOINT string = 'https://${aiFoundryAiServicesResourceName
 output AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE string = gptModelDeploymentType
 
 output AZURE_AI_SEARCH_ENDPOINT string = 'https://${searchServiceName}.search.windows.net'
-
 
 output AZURE_OPENAI_API_VERSION string = azureOpenAIApiVersion
 output AZURE_OPENAI_RESOURCE string = aiFoundryAiServicesResourceName
@@ -1277,3 +1303,4 @@ output AGENT_ID_CHAT string = ''
 output MANAGED_IDENTITY_CLIENT_ID string = userAssignedIdentity.outputs.clientId
 output AI_FOUNDRY_RESOURCE_ID string = useExistingAiFoundryAiProject ? existingAiFoundryAiProjectResourceId : aiFoundryAiServices!.outputs.resourceId
 output AI_SEARCH_SERVICE_RESOURCE_ID string = searchService.outputs.resourceId
+output APP_ENV string = 'Prod'

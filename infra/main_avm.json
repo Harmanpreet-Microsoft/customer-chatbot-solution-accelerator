@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "16945591745136931741"
+      "templateHash": "17680472718465654054"
     },
     "name": "Customer Chat bot",
     "description": "This module contains the resources required to deploy the [Customer Chat bot solution accelerator](https://github.com/microsoft/Customer-Chat-bot-Solution-Accelerator) for both Sandbox environments and WAF aligned environments.\r\n\r\n> **Note:** This module is not intended for broad, generic use, as it was designed by the Commercial Solution Areas CTO team, as a Microsoft Solution Accelerator. Feature requests and bug fix requests are welcome if they support the needs of this organization but may not be incorporated if they aim to make this module more generic than what it needs to be for its primary use case. This module will likely be updated to leverage AVM resource modules in the future. This may result in breaking changes in upcoming versions when these features are implemented.\r\n"
@@ -72,7 +72,7 @@
     },
     "gptModelName": {
       "type": "string",
-      "defaultValue": "gpt-4.1-mini",
+      "defaultValue": "gpt-4o-mini",
       "minLength": 1,
       "metadata": {
         "description": "Optional. Name of the GPT model to deploy:"
@@ -80,9 +80,9 @@
     },
     "gptModelVersion": {
       "type": "string",
-      "defaultValue": "2025-04-14",
+      "defaultValue": "2024-07-18",
       "metadata": {
-        "description": "Optional. Version of the GPT model to deploy. Defaults to 2025-04-14."
+        "description": "Optional. Version of the GPT model to deploy. Defaults to 2024-07-18."
       }
     },
     "azureOpenAIApiVersion": {
@@ -113,9 +113,9 @@
     },
     "gptModelCapacity": {
       "type": "int",
-      "defaultValue": 50,
+      "defaultValue": 10,
       "metadata": {
-        "description": "Optional. AI model deployment token capacity. Defaults to 50 for optimal performance."
+        "description": "Optional. AI model deployment token capacity. Defaults to 10 for optimal performance."
       }
     },
     "embeddingModel": {
@@ -457,6 +457,34 @@
       "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
       "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
       "name": "[format('{0}/{1}', variables('aiFoundryAiServicesResourceName'), variables('aiFoundryAiProjectResourceName'))]"
+    },
+    "searchServiceToOpenAIRoleAssignment": {
+      "condition": "[not(variables('useExistingAiFoundryAiProject'))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('searchServiceName'), '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd', variables('aiFoundryAiServicesResourceName'))]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]",
+        "principalId": "[reference('searchService').outputs.systemAssignedMIPrincipalId.value]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "searchService"
+      ]
+    },
+    "cosmosDbBackendRoleAssignment": {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments",
+      "apiVersion": "2024-05-15",
+      "name": "[format('{0}/{1}', variables('cosmosDbResourceName'), guid(subscription().id, resourceGroup().id, variables('backendWebSiteResourceName'), 'CosmosDBDataContributor'))]",
+      "properties": {
+        "principalId": "[reference('webSiteBackend').outputs.systemAssignedMIPrincipalId.value]",
+        "roleDefinitionId": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002', reference('cosmosDb').outputs.resourceId.value)]",
+        "scope": "[reference('cosmosDb').outputs.resourceId.value]"
+      },
+      "dependsOn": [
+        "cosmosDb",
+        "webSiteBackend"
+      ]
     },
     "logAnalyticsWorkspace": {
       "condition": "[and(parameters('enableMonitoring'), not(variables('useExistingLogAnalytics')))]",
@@ -25268,9 +25296,9 @@
         }
       },
       "dependsOn": [
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "logAnalyticsWorkspace",
         "userAssignedIdentity",
         "virtualNetwork"
@@ -27862,6 +27890,86 @@
       },
       "dependsOn": [
         "aiFoundryAiServices"
+      ]
+    },
+    "searchServiceToOpenAIRoleAssignmentExisting": {
+      "condition": "[variables('useExistingAiFoundryAiProject')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "searchToExistingAiServices-roleAssignment",
+      "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
+      "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "principalId": {
+            "value": "[reference('searchService').outputs.systemAssignedMIPrincipalId.value]"
+          },
+          "roleDefinitionId": {
+            "value": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd"
+          },
+          "targetResourceName": {
+            "value": "[variables('aiFoundryAiServicesResourceName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "1586050067356610851"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            },
+            "roleDefinitionId": {
+              "type": "string"
+            },
+            "targetResourceName": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "defaultValue": "Role assignment created by Bicep"
+            }
+          },
+          "variables": {
+            "uniqueName": "[guid(subscription().subscriptionId, resourceGroup().name, parameters('targetResourceName'), parameters('principalId'), parameters('roleDefinitionId'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[variables('uniqueName')]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('roleDefinitionId'))]",
+                "principalType": "ServicePrincipal",
+                "description": "[parameters('description')]"
+              }
+            }
+          ],
+          "outputs": {
+            "roleAssignmentId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Authorization/roleAssignments', variables('uniqueName'))]"
+            },
+            "roleAssignmentName": {
+              "type": "string",
+              "value": "[variables('uniqueName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "searchService"
       ]
     },
     "cosmosDb": {
@@ -32326,6 +32434,7 @@
                   "AZURE_COSMOSDB_ENABLE_FEEDBACK": "",
                   "REACT_APP_LAYOUT_CONFIG": "[variables('reactAppLayoutConfig')]",
                   "API_UID": "[reference('userAssignedIdentity').outputs.clientId.value]",
+                  "AZURE_CLIENT_ID": "[reference('userAssignedIdentity').outputs.clientId.value]",
                   "AZURE_AI_SEARCH_ENDPOINT": "[format('https://{0}.search.windows.net', variables('searchServiceName'))]",
                   "AZURE_AI_SEARCH_INDEX": "call_transcripts_index",
                   "AZURE_AI_SEARCH_CONNECTION_NAME": "[variables('aiSearchConnectionName')]",
@@ -32340,7 +32449,7 @@
                   "AZURE_SEARCH_ENDPOINT": "[reference('searchService').outputs.endpoint.value]",
                   "AZURE_SEARCH_INDEX": "policies",
                   "AZURE_SEARCH_PRODUCT_INDEX": "products",
-                  "COSMOS_DB_DATABASE_NAME": "[reference('cosmosDb').outputs.name.value]",
+                  "COSMOS_DB_DATABASE_NAME": "[variables('cosmosDbDatabaseName')]",
                   "COSMOS_DB_ENDPOINT": "[format('https://{0}.documents.azure.com:443/', reference('cosmosDb').outputs.name.value)]",
                   "USE_FOUNDRY_AGENTS": "True",
                   "AZURE_OPENAI_DEPLOYMENT_NAME": "[parameters('gptModelName')]",
@@ -34390,7 +34499,7 @@
                 "name": "appsettings",
                 "properties": {
                   "NODE_ENV": "production",
-                  "VITE_API_BASE_URL": "[reference('webSiteBackend').outputs.defaultHostname.value]"
+                  "VITE_API_BASE_URL": "[format('https://{0}', reference('webSiteBackend').outputs.defaultHostname.value)]"
                 },
                 "applicationInsightResourceId": "[if(parameters('enableMonitoring'), reference('applicationInsights').outputs.resourceId.value, null())]"
               }
@@ -36428,6 +36537,22 @@
       "type": "string",
       "value": "[reference('cosmosDb').outputs.name.value]"
     },
+    "COSMOS_DB_ENDPOINT": {
+      "type": "string",
+      "value": "[format('https://{0}.documents.azure.com:443/', reference('cosmosDb').outputs.name.value)]"
+    },
+    "COSMOS_DB_DATABASE_NAME": {
+      "type": "string",
+      "value": "[variables('cosmosDbDatabaseName')]"
+    },
+    "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
+      "type": "string",
+      "value": "chat_sessions"
+    },
+    "AZURE_COSMOSDB_DATABASE": {
+      "type": "string",
+      "value": "[variables('cosmosDbDatabaseName')]"
+    },
     "AZURE_OPENAI_DEPLOYMENT_MODEL": {
       "type": "string",
       "value": "[parameters('gptModelName')]"
@@ -36535,6 +36660,10 @@
     "AI_SEARCH_SERVICE_RESOURCE_ID": {
       "type": "string",
       "value": "[reference('searchService').outputs.resourceId.value]"
+    },
+    "APP_ENV": {
+      "type": "string",
+      "value": "Prod"
     }
   }
 }
