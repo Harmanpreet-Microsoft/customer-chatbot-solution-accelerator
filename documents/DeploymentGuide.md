@@ -169,7 +169,7 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
   .venv\Scripts\activate
   ```
 
-  On Linux/Mac:
+  On Linux/Mac/GitBash:
 
   ```shell
   source .venv/bin/activate
