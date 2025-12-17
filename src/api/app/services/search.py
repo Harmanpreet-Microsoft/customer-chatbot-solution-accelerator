@@ -1,22 +1,16 @@
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
-from ..config import settings, has_azure_search_config
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
+
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
+
+from ..config import has_azure_search_config, settings
+from ..utils.azure_credential_utils import get_azure_credential
 
 logger = logging.getLogger(__name__)
 
 _client = None
 _product_client = None
-_credential = None
-
-def get_azure_credential():
-    """Get Azure credential for authentication"""
-    global _credential
-    if _credential is None:
-        _credential = DefaultAzureCredential()
-    return _credential
 
 def has_azure_search_endpoint() -> bool:
     """Check if we have at least the Azure Search endpoint configured"""
