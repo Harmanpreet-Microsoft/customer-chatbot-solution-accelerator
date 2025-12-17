@@ -3,11 +3,12 @@ Comprehensive tests for src/api/app/auth.py
 Tests Easy Auth integration, header handling, and user authentication flows.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
-from fastapi import Request
 import base64
 import json
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi import Request
 
 
 class MockHeaders:
@@ -79,7 +80,7 @@ class TestGetCurrentUserForwardedHeaders:
     ):
         """Test with forwarded Easy Auth headers and valid email in token."""
         from app.auth import get_current_user
-        
+
         # Setup forwarded headers
         headers_dict = {
             "x-ms-client-principal-id": "user123",
@@ -200,7 +201,7 @@ class TestGetCurrentUserDirectHeaders:
     ):
         """Test with direct Easy Auth headers (no forwarded prefix)."""
         from app.auth import get_current_user
-        
+
         # No forwarded headers, only direct headers
         headers_dict = {
             "x-ms-client-principal": client_principal_token

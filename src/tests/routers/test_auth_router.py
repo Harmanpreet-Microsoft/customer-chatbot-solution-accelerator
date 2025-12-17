@@ -3,9 +3,10 @@ Comprehensive tests for src/api/app/routers/auth.py
 Tests authentication router endpoints.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 
 
 class MockHeaders:
