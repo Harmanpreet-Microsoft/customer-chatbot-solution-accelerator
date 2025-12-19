@@ -105,7 +105,8 @@ async def debug_auth(request: Request):
             },
         }
     except Exception as e:
-        return {"error": str(e), "headers": dict(request.headers)}
+        logger.error(f"Debug auth error: {str(e)}", exc_info=True)
+        return {"error": "Auth debug failed", "headers": dict(request.headers)}
 
 
 @app.exception_handler(HTTPException)
