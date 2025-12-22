@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def run_async_sync(coro):
     """Run an async coroutine synchronously, handling event loop conflicts"""
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
         # We're in an async context, use a thread pool
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future = executor.submit(asyncio.run, coro)

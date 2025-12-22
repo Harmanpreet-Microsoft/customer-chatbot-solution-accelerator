@@ -5,7 +5,6 @@ import logging
 import re
 from typing import Any, Dict, List, Optional
 
-from azure.ai.projects.aio import AIProjectClient
 from cachetools import TTLCache
 from semantic_kernel.agents import AzureAIAgent, AzureAIAgentThread
 
@@ -46,7 +45,7 @@ class ThreadCache(TTLCache):
 
 async def _resolve_foundry_agent_definition(agent_id: str):
     """Get the agent definition from Foundry"""
-    client = get_foundry_client()
+    # client = get_foundry_client()
     try:
         # For now, return a basic agent definition structure
         # This needs to be updated when the correct Azure AI Projects SDK method is available
@@ -127,9 +126,6 @@ async def _build_foundry_agent(
                         run = await self.client.beta.threads.runs.create(
                             thread_id=thread_id, assistant_id=self.assistant_id
                         )
-
-                        # Poll for completion (simplified polling)
-                        import asyncio
 
                         max_attempts = 30  # 30 seconds max
                         attempt = 0

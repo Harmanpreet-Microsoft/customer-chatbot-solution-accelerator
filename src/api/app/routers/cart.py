@@ -1,10 +1,9 @@
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import get_current_user
-from ..config import settings
 from ..database import get_db_service
 from ..models import (
     AddToCartRequest,

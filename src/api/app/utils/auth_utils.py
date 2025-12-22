@@ -35,11 +35,11 @@ def get_authenticated_user_details(request_headers):
         k: v for k, v in request_headers.items() if "x-ms-client" in k.lower()
     }
     if easy_auth_headers:
-        logger.info(f"🔍 AUTH_UTILS: Easy Auth headers found with values:")
+        logger.info("🔍 AUTH_UTILS: Easy Auth headers found with values:")
         for key, value in easy_auth_headers.items():
             logger.info(f"  {key}: {value}")
     else:
-        logger.info(f"🔍 AUTH_UTILS: NO Easy Auth headers found!")
+        logger.info("🔍 AUTH_UTILS: NO Easy Auth headers found!")
 
     # Check for Easy Auth headers (either direct or forwarded)
     if "x-ms-client-principal-id" not in normalized_headers:

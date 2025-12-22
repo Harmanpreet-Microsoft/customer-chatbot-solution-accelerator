@@ -1,7 +1,6 @@
 import logging
-import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -9,18 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException
 try:
     # Try relative imports first (for Docker)
     from ..auth import get_current_user_optional
-    from ..config import has_foundry_config, has_semantic_kernel_config, settings
+    from ..config import settings
     from ..cosmos_service import get_cosmos_service
-    from ..models import (
-        APIResponse,
-        ChatMessage,
-        ChatMessageCreate,
-        ChatMessageType,
-        ChatSession,
-        ChatSessionCreate,
-        ChatSessionUpdate,
-    )
-    from ..simple_foundry_orchestrator import get_simple_foundry_orchestrator
+    from ..models import (APIResponse, ChatMessageCreate, ChatMessageType,
+                          ChatSessionCreate, ChatSessionUpdate)
 except ImportError:
     # Fall back to absolute imports (for local debugging)
     import os
@@ -30,9 +21,7 @@ except ImportError:
         0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     )
     from app.models import (
-        ChatMessage,
         ChatMessageCreate,
-        ChatSession,
         ChatSessionCreate,
         ChatSessionUpdate,
         APIResponse,
@@ -40,13 +29,13 @@ except ImportError:
     )
     from app.cosmos_service import get_cosmos_service
 
-    from app.config import settings, has_semantic_kernel_config, has_foundry_config
+    from app.config import settings
     from app.auth import get_current_user_optional
 
-from agent_framework import ChatAgent, HostedFileSearchTool
+from agent_framework import ChatAgent
 from agent_framework_azure_ai import AzureAIAgentClient
 from azure.ai.projects.aio import AIProjectClient
-from azure.identity.aio import AzureCliCredential, DefaultAzureCredential
+from azure.identity.aio import DefaultAzureCredential
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
@@ -190,53 +179,53 @@ async def delete_chat_session(session_id: str, user_id: Optional[str] = None):
         )
 
 
-@router.post("/sessions/{session_id}/messages")
-async def send_message(
-    session_id: str,
-    message: ChatMessageCreate,
-    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
-):
-    """Send a message to a chat session"""
-    try:
-        user_id = current_user.get("user_id") if current_user else None
+# @router.post("/sessions/{session_id}/messages")
+# async def send_message(
+#     session_id: str,
+#     message: ChatMessageCreate,
+#     current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
+# ):
+#     """Send a message to a chat session"""
+#     try:
+#         user_id = current_user.get("user_id") if current_user else None
 
-        # Add user message to session
-        session = await get_cosmos_service().add_message_to_session(
-            session_id, message, user_id
-        )
+#         # Add user message to session
+#         session = await get_cosmos_service().add_message_to_session(
+#             session_id, message, user_id
+#         )
 
-        # Generate AI response with thread caching and user context
-        ai_content = await generate_ai_response(
-            message.content, session.messages, session_id=session_id, user_id=user_id
-        )
+#         # Generate AI response with thread caching and user context
+#         ai_content = await generate_ai_response(
+#             message.content, session.messages, session_id=session_id, user_id=user_id
+#         )
 
-        # Create AI response message
-        ai_response = ChatMessageCreate(
-            content=ai_content,
-            message_type=ChatMessageType.ASSISTANT,
-            metadata={
-                "type": "ai_response",
-                "original_message_id": session.messages[-1].id,
-            },
-        )
+#         # Create AI response message
+#         ai_response = ChatMessageCreate(
+#             content=ai_content,
+#             message_type=ChatMessageType.ASSISTANT,
+#             metadata={
+#                 "type": "ai_response",
+#                 "original_message_id": session.messages[-1].id,
+#             },
+#         )
 
-        # Add AI response to session
-        updated_session = await get_cosmos_service().add_message_to_session(
-            session_id, ai_response, user_id
-        )
+#         # Add AI response to session
+#         updated_session = await get_cosmos_service().add_message_to_session(
+#             session_id, ai_response, user_id
+#         )
 
-        # Return the latest message (AI response)
-        latest_message = updated_session.messages[-1]
-        return {
-            "id": latest_message.id,
-            "content": latest_message.content,
-            "sender": latest_message.message_type,
-            "timestamp": format_timestamp(latest_message.created_at),
-            "metadata": latest_message.metadata,
-        }
+#         # Return the latest message (AI response)
+#         latest_message = updated_session.messages[-1]
+#         return {
+#             "id": latest_message.id,
+#             "content": latest_message.content,
+#             "sender": latest_message.message_type,
+#             "timestamp": format_timestamp(latest_message.created_at),
+#             "metadata": latest_message.metadata,
+#         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")
 
 
 # Legacy endpoints for backward compatibility
@@ -292,7 +281,7 @@ async def send_message_legacy(
             session_id = "anonymous_default"
 
         # Add user message to session
-        session = await get_cosmos_service().add_message_to_session(
+        await get_cosmos_service().add_message_to_session(
             session_id, message, user_id
         )
 
@@ -407,7 +396,7 @@ async def send_message_legacy(
             message_type=ChatMessageType.ASSISTANT,
             metadata={"type": "ai_response"},
         )
-        updated_session = await get_cosmos_service().add_message_to_session(
+        await get_cosmos_service().add_message_to_session(
             session_id, ai_response, user_id
         )
 

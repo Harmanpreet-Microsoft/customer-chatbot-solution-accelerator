@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from fastapi import Request
 
@@ -45,7 +45,7 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
             "x-ms-client-principal-id"
         ):
             logger.info(
-                f"🔍 AUTH: Found valid forwarded Easy Auth headers from frontend"
+                "🔍 AUTH: Found valid forwarded Easy Auth headers from frontend"
             )
             # Create a new dictionary with proper types
             user_details: Dict[str, Any] = dict(forwarded_easy_auth_headers)
@@ -62,7 +62,7 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
         else:
             # Fall back to direct Easy Auth headers (for backward compatibility)
             logger.info(
-                f"🔍 AUTH: No valid forwarded headers, checking for direct Easy Auth headers"
+                "🔍 AUTH: No valid forwarded headers, checking for direct Easy Auth headers"
             )
             user_details = get_authenticated_user_details(headers)
             logger.info(

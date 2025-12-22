@@ -1,17 +1,9 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 
-from ..config import settings
 from ..database import get_db_service
-from ..models import (
-    APIResponse,
-    PaginatedResponse,
-    Product,
-    ProductCreate,
-    ProductSearch,
-    ProductUpdate,
-)
+from ..models import APIResponse, Product, ProductCreate, ProductUpdate
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 

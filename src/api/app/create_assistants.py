@@ -41,7 +41,7 @@ async def create_assistants():
 
 You have access to tools for:
 - Product search and recommendations
-- Order tracking and management  
+- Order tracking and management
 - Policy and FAQ information
 
 Always aim to provide accurate, helpful responses while maintaining excellent customer service.""",
@@ -123,7 +123,7 @@ Always provide accurate, helpful information from official policies and document
 
         # Print environment variable updates
         if created_assistants:
-            print(f"\n🎯 Update your .env file with these new assistant IDs:")
+            print("\n🎯 Update your .env file with these new assistant IDs:")
             print("=" * 60)
 
             env_mapping = {

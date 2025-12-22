@@ -1,7 +1,6 @@
 import logging
-from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request
 
 from ..auth import get_current_user
 from ..database import get_db_service
@@ -36,7 +35,7 @@ async def get_current_user_info(request: Request):
     try:
         # Enhanced debugging for Easy Auth headers
         headers = dict(request.headers)
-        logger.info(f"🔍 /api/auth/me: ALL REQUEST HEADERS:")
+        logger.info("🔍 /api/auth/me: ALL REQUEST HEADERS:")
         for key, value in headers.items():
             logger.info(f"  {key}: {value}")
 
@@ -62,7 +61,7 @@ async def get_current_user_info(request: Request):
         # Additional logging for user creation process
         if not current_user.get("is_guest"):
             logger.info(
-                f"🔍 /api/auth/me: Authenticated user detected - will check/create in Cosmos DB"
+                "🔍 /api/auth/me: Authenticated user detected - will check/create in Cosmos DB"
             )
 
         if current_user.get("is_guest"):

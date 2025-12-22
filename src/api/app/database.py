@@ -1,16 +1,11 @@
-import json
-import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .config import has_cosmos_db_config, settings
+from .config import has_cosmos_db_config
 from .models import (
     Cart,
-    CartItem,
     ChatMessage,
     ChatMessageCreate,
-    ChatSession,
     Product,
     ProductCreate,
     ProductUpdate,

@@ -1,6 +1,5 @@
 import asyncio
 import concurrent.futures
-import json
 import logging
 
 from semantic_kernel.functions import kernel_function
@@ -60,7 +59,7 @@ class ProductPlugin:
 
         except Exception as e:
             logger.error(f"Error getting product by ID {product_id}: {e}")
-            return f"I'm having trouble looking up that product right now. Please try again or contact support."
+            return "I'm having trouble looking up that product right now. Please try again or contact support."
 
     @kernel_function(
         description="Search products with hybrid AI Search + Cosmos DB for maximum speed and accuracy"
@@ -99,7 +98,7 @@ class ProductPlugin:
                         desc = desc[:150] + "..."
                     response_parts.append(f"{desc}")
                 if product.in_stock:
-                    response_parts.append(f"✅ Available in stock")
+                    response_parts.append("✅ Available in stock")
                 else:
                     response_parts.append("❌ Currently out of stock")
             else:
@@ -133,7 +132,7 @@ class ProductPlugin:
 
         except Exception as e:
             logger.error(f"Error in hybrid product search with query '{query}': {e}")
-            return f"I'm having trouble searching products right now. Please try again or contact support for assistance."
+            return "I'm having trouble searching products right now. Please try again or contact support for assistance."
 
     @kernel_function(description="Fast product search optimized for chat responses")
     def search_fast(self, query: str, limit: int = 3) -> str:

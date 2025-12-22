@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional, Union
 
 from azure.cosmos import ContainerProxy, CosmosClient, DatabaseProxy, PartitionKey
 from azure.cosmos.exceptions import (
-    CosmosResourceExistsError,
     CosmosResourceNotFoundError,
 )
 from azure.identity import ClientSecretCredential, DefaultAzureCredential
@@ -640,8 +639,8 @@ Original error: {error_msg}
                 # Strategy 1: Exact phrase match
                 {
                     "query": """
-                        SELECT * FROM c 
-                        WHERE CONTAINS(LOWER(c.title), LOWER(@query)) 
+                        SELECT * FROM c
+                        WHERE CONTAINS(LOWER(c.title), LOWER(@query))
                            OR CONTAINS(LOWER(c.description), LOWER(@query))
                         ORDER BY c.rating DESC, c.price ASC
                     """,
@@ -650,7 +649,7 @@ Original error: {error_msg}
                 # Strategy 2: Individual term matching
                 {
                     "query": """
-                        SELECT * FROM c 
+                        SELECT * FROM c
                         WHERE {conditions}
                         ORDER BY c.rating DESC, c.price ASC
                     """,
@@ -659,7 +658,7 @@ Original error: {error_msg}
                 # Strategy 3: Category and tag matching
                 {
                     "query": """
-                        SELECT * FROM c 
+                        SELECT * FROM c
                         WHERE CONTAINS(LOWER(c.category), LOWER(@query))
                            OR CONTAINS(LOWER(c.tags), LOWER(@query))
                         ORDER BY c.rating DESC, c.price ASC
@@ -675,7 +674,7 @@ Original error: {error_msg}
                     param_name = f"@term{i}"
                     conditions.append(
                         f"""
-                        (CONTAINS(LOWER(c.title), LOWER({param_name})) OR 
+                        (CONTAINS(LOWER(c.title), LOWER({param_name})) OR
                          CONTAINS(LOWER(c.description), LOWER({param_name})) OR
                          CONTAINS(LOWER(c.category), LOWER({param_name})))
                     """
@@ -799,9 +798,9 @@ Original error: {error_msg}
             cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
 
             query = """
-                SELECT * FROM c 
-                WHERE c.user_id = @customer_id 
-                AND c.created_at >= @cutoff_date 
+                SELECT * FROM c
+                WHERE c.user_id = @customer_id
+                AND c.created_at >= @cutoff_date
                 ORDER BY c.created_at DESC
             """
             parameters = [

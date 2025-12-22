@@ -1,10 +1,9 @@
-import json
 import logging
 
 from semantic_kernel.functions import kernel_function
 
 from ..config import has_azure_search_config
-from ..services.search import search_reference, search_reference_enhanced
+from ..services.search import search_reference_enhanced
 
 logger = logging.getLogger(__name__)
 

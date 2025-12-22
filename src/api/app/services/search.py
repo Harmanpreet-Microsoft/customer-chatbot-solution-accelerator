@@ -1,7 +1,6 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
 from ..config import has_azure_search_config, settings
