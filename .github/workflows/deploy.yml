@@ -146,14 +146,7 @@ jobs:
                 createdBy="Pipeline" \
                 tags="{'SecurityControl':'Ignore','Purpose':'Pipeline','CreatedDate':'$current_date','Solution':'Customer-Chatbot'}"
 
-      - name: Assign Contributor role to Service Principal
-        if: always()
-        run: |
-          echo "Assigning Contributor role to SPN for RG: ${{ env.RESOURCE_GROUP_NAME }}"
-          az role assignment create \
-            --assignee ${{ secrets.AZURE_CLIENT_ID }} \
-            --role "Contributor" \
-            --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}
+
 
       - name: Get Deployment Output and extract Values
         id: get_output
@@ -193,23 +186,6 @@ jobs:
             az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
             az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
           
-      - name: Assign Contributor role to Service Principal
-        if: always()
-        run: |
-          echo "Assigning Contributor role to SPN for RG: ${{ env.RESOURCE_GROUP_NAME }}"
-          az role assignment create \
-            --assignee ${{ secrets.AZURE_CLIENT_ID }} \
-            --role "Contributor" \
-            --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}
-          
-          echo "Assigning Log Analytics Contributor role for Log Analytics workspace access at RG level..."
-          az role assignment create \
-            --assignee ${{ secrets.AZURE_CLIENT_ID }} \
-            --role "Log Analytics Reader" \
-            --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }} || echo "Log Analytics Contributor role assignment failed (may already exist)"
-          
-          echo "Waiting for role assignment propagation..."
-          sleep 30
 
       - name: Get Azure Resources from Resource Group
         if: always()
