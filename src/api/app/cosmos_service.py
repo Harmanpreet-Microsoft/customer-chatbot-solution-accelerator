@@ -4,9 +4,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 from azure.cosmos import ContainerProxy, CosmosClient, DatabaseProxy, PartitionKey
-from azure.cosmos.exceptions import (
-    CosmosResourceNotFoundError,
-)
+from azure.cosmos.exceptions import CosmosResourceNotFoundError
 from azure.identity import ClientSecretCredential, DefaultAzureCredential
 
 # Handle both relative and absolute imports

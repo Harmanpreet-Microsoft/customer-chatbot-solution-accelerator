@@ -1,11 +1,9 @@
 from unittest.mock import AsyncMock, patch
 
+import app.foundry_client as fc
 import pytest
-from app.foundry_client import (
-    get_foundry_client,
-    init_foundry_client,
-    shutdown_foundry_client,
-)
+from app.foundry_client import (get_foundry_client, init_foundry_client,
+                                shutdown_foundry_client)
 
 # ============================================================================
 # Tests for init_foundry_client
@@ -20,8 +18,6 @@ async def test_init_foundry_client_success(
     mock_ai_client, mock_credential, mock_settings
 ):
     """Test successful initialization of Foundry client"""
-    # Reset global state
-    import app.foundry_client as fc
 
     fc._async_cred = None
     fc._async_client = None
@@ -56,8 +52,6 @@ async def test_init_foundry_client_custom_endpoint(
     mock_ai_client, mock_credential, mock_settings
 ):
     """Test initialization with custom endpoint parameter"""
-    # Reset global state
-    import app.foundry_client as fc
 
     fc._async_cred = None
     fc._async_client = None
@@ -86,8 +80,6 @@ async def test_init_foundry_client_custom_endpoint(
 @patch("app.foundry_client.settings")
 async def test_init_foundry_client_no_endpoint(mock_settings):
     """Test initialization fails when endpoint is missing"""
-    # Reset global state
-    import app.foundry_client as fc
 
     fc._async_cred = None
     fc._async_client = None
@@ -111,8 +103,6 @@ async def test_init_foundry_client_already_initialized(
     mock_ai_client, mock_credential, mock_settings
 ):
     """Test initialization is skipped when client already exists"""
-    # Set up already initialized client
-    import app.foundry_client as fc
 
     existing_client = AsyncMock()
     fc._async_client = existing_client
@@ -136,8 +126,6 @@ async def test_init_foundry_client_already_initialized(
 
 def test_get_foundry_client_success():
     """Test successful retrieval of initialized client"""
-    # Set up initialized client
-    import app.foundry_client as fc
 
     mock_client = AsyncMock()
     fc._async_client = mock_client
@@ -151,8 +139,6 @@ def test_get_foundry_client_success():
 
 def test_get_foundry_client_not_initialized():
     """Test getting client when not initialized raises error"""
-    # Reset global state
-    import app.foundry_client as fc
 
     fc._async_client = None
 
@@ -172,8 +158,6 @@ def test_get_foundry_client_not_initialized():
 @pytest.mark.asyncio
 async def test_shutdown_foundry_client_both_exist():
     """Test shutdown when both client and credential exist"""
-    # Set up client and credential
-    import app.foundry_client as fc
 
     mock_client = AsyncMock()
     mock_cred = AsyncMock()
@@ -195,8 +179,6 @@ async def test_shutdown_foundry_client_both_exist():
 @pytest.mark.asyncio
 async def test_shutdown_foundry_client_already_shutdown():
     """Test shutdown when both are already None"""
-    # Set up already shutdown state
-    import app.foundry_client as fc
 
     fc._async_client = None
     fc._async_cred = None
@@ -207,4 +189,3 @@ async def test_shutdown_foundry_client_already_shutdown():
     # Verify still None
     assert fc._async_client is None
     assert fc._async_cred is None
-

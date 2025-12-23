@@ -202,5 +202,3 @@ def test_get_user_email_no_email_fields():
     email = get_user_email(encoded)
 
     assert email == ""
-
-

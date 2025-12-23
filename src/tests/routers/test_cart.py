@@ -251,5 +251,3 @@ def test_cart_checkout_endpoint(mock_get_db, mock_get_user):
     response = client.post("/api/cart/checkout")
     # May return 500 due to service dependencies
     assert response.status_code in [200, 404, 500]
-
-

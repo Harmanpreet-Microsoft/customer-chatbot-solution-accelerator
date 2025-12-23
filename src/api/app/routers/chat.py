@@ -10,8 +10,13 @@ try:
     from ..auth import get_current_user_optional
     from ..config import settings
     from ..cosmos_service import get_cosmos_service
-    from ..models import (APIResponse, ChatMessageCreate, ChatMessageType,
-                          ChatSessionCreate, ChatSessionUpdate)
+    from ..models import (
+        APIResponse,
+        ChatMessageCreate,
+        ChatMessageType,
+        ChatSessionCreate,
+        ChatSessionUpdate,
+    )
 except ImportError:
     # Fall back to absolute imports (for local debugging)
     import os
@@ -281,9 +286,7 @@ async def send_message_legacy(
             session_id = "anonymous_default"
 
         # Add user message to session
-        await get_cosmos_service().add_message_to_session(
-            session_id, message, user_id
-        )
+        await get_cosmos_service().add_message_to_session(session_id, message, user_id)
 
         # Generate AI response with thread caching and user context
         # ai_content = await generate_ai_response(message.content, session.messages, session_id=session_id, user_id=user_id)

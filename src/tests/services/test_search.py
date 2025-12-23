@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch
 
+import app.services.search as search_module
 import pytest
 from app.services.search import (get_product_search_client, get_search_client,
                                  has_azure_search_endpoint, search_products,
@@ -43,8 +44,6 @@ def mock_has_config():
 @pytest.fixture(autouse=True)
 def reset_clients():
     """Reset global client variables before each test"""
-    import app.services.search as search_module
-
     search_module._client = None
     search_module._product_client = None
     yield
