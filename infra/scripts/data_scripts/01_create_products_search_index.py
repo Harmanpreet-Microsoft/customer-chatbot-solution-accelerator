@@ -1,24 +1,15 @@
 # from azure.keyvault.secrets import SecretClient
-from azure.search.documents.indexes import SearchIndexClient
-from azure.search.documents.indexes.models import (
-    SearchField,
-    SearchFieldDataType,
-    VectorSearch,
-    HnswAlgorithmConfiguration,
-    VectorSearchProfile,
-    AzureOpenAIVectorizer,
-    AzureOpenAIVectorizerParameters,
-    SemanticConfiguration,
-    SemanticSearch,
-    SemanticPrioritizedFields,
-    SemanticField,
-    SearchIndex
-)
-from azure_credential_utils import get_azure_credential
-
+import argparse
 import sys
 
-import argparse
+from azure.search.documents.indexes import SearchIndexClient
+from azure.search.documents.indexes.models import (
+    AzureOpenAIVectorizer, AzureOpenAIVectorizerParameters,
+    HnswAlgorithmConfiguration, SearchField, SearchFieldDataType, SearchIndex,
+    SemanticConfiguration, SemanticField, SemanticPrioritizedFields,
+    SemanticSearch, VectorSearch, VectorSearchProfile)
+from azure_credential_utils import get_azure_credential
+
 p = argparse.ArgumentParser()
 p.add_argument("--ai_search_endpoint", required=True)
 p.add_argument("--azure_openai_endpoint", required=True)
@@ -27,7 +18,9 @@ args = p.parse_args()
 
 
 import os
+
 from dotenv import load_dotenv
+
 # Load environment variables
 load_dotenv()
 
@@ -130,25 +123,24 @@ def create_search_index():
 create_search_index()
 
 
-from azure.identity import ManagedIdentityCredential, AzureCliCredential, DefaultAzureCredential
-from azure.identity import get_bearer_token_provider
-from openai import AzureOpenAI
-import time 
-from azure.search.documents import SearchClient
-import pandas as pd
 import re
+import time
+
+import pandas as pd
+from azure.identity import (AzureCliCredential, DefaultAzureCredential,
+                            ManagedIdentityCredential,
+                            get_bearer_token_provider)
+from azure.search.documents import SearchClient
+from openai import AzureOpenAI
 
 openai_api_version = '2025-01-01-preview'
-# openai_api_base = os.getenv("AZURE_OPENAI_ENDPOINT") 
-
-# search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
 openai_api_base = args.azure_openai_endpoint
 search_endpoint = args.ai_search_endpoint
 
 credential = get_azure_credential()
 search_client = SearchClient(endpoint=search_endpoint, index_name=INDEX_NAME, credential=credential)
 
-# Utility functions
+
 def get_embeddings_batch(texts: list, openai_api_base, openai_api_version, batch_size=50):
     """Get embeddings for multiple texts in batches"""
     model_id = "text-embedding-ada-002"
@@ -181,48 +173,6 @@ def get_embeddings_batch(texts: list, openai_api_base, openai_api_version, batch
             time.sleep(1)
     return all_embeddings
 
-
-def clean_spaces_with_regex(text):
-    cleaned_text = re.sub(r'\s+', ' ', text)
-    cleaned_text = re.sub(r'\.{2,}', '.', cleaned_text)
-    return cleaned_text
-
-def chunk_data(text, tokens_per_chunk=1024):
-    text = clean_spaces_with_regex(text)
-    sentences = text.split('. ')
-    chunks, current_chunk, current_chunk_token_count = [], '', 0
-    for sentence in sentences:
-        tokens = sentence.split()
-        if current_chunk_token_count + len(tokens) <= tokens_per_chunk:
-            current_chunk += ('. ' if current_chunk else '') + sentence
-            current_chunk_token_count += len(tokens)
-        else:
-            chunks.append(current_chunk)
-            current_chunk, current_chunk_token_count = sentence, len(tokens)
-    if current_chunk:
-        chunks.append(current_chunk)
-    return chunks
-
-def prepare_search_doc(content, document_id, path_name):
-    docs = []
-    try:
-        v_contentVector = get_embeddings(str(content),openai_api_base,openai_api_version)
-    except:
-        time.sleep(30)
-        try: 
-            v_contentVector = get_embeddings(str(content),openai_api_base,openai_api_version)
-        except: 
-            v_contentVector = []
-
-    docs.append({
-        "id": document_id,
-        "content": content,
-        "sourceurl": path_name,
-        "contentVector": v_contentVector
-    })
-    return docs
-
-# conversationIds, docs, counter = [], [], 0
 
 df_products = pd.read_csv('infra/data/products/products.csv')
 # Prepare all content first

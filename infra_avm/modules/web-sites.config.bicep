@@ -24,7 +24,7 @@ param name string
 param properties object = {}
 
 // Parameters only relevant for the config type 'appsettings'
-@description('Optional. If the provided storage account requires Identity based authentication (\'allowSharedKeyAccess\' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is \'Storage Blob Data Owner\'.')
+@description('Optional. If the provided storage account requires Identity based authentication (\'allowSharedKeyAccess\' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is \'Storage Blob Data Owner\'. Set to true for enhanced security when the storage account disallows shared key access.')
 param storageAccountUseIdentityAuthentication bool = false
 
 @description('Optional. Required if app of kind functionapp. Resource ID of the storage account to manage triggers and logging function executions.')

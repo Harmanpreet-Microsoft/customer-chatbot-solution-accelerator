@@ -589,8 +589,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:0.17.0' = if (e
     nicConfigurations: [
       {
         name: 'nic-${virtualMachineResourceName}'
-        //networkSecurityGroupResourceId: virtualMachineConfiguration.?nicConfigurationConfiguration.networkSecurityGroupResourceId
-        //nicSuffix: 'nic-${virtualMachineResourceName}'
         tags: tags
         deleteOption: 'Delete'
         diagnosticSettings: enableMonitoring //WAF aligned configuration for Monitoring
@@ -813,9 +811,6 @@ module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-service
     disableLocalAuth: true
     allowProjectManagement: true
     customSubDomainName: aiFoundryAiServicesResourceName
-    apiProperties: {
-      //staticsEnabled: false
-    }
     // Use individual deployment objects instead of loop to prevent ETag conflicts
     deployments: [
       {
@@ -1191,9 +1186,8 @@ module webSiteBackend 'modules/web-sites.bicep' = {
           AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME: gptModelName
           USE_CHAT_HISTORY_ENABLED: 'True'
           AZURE_COSMOSDB_ACCOUNT: cosmosDb.outputs.name
-          // AZURE_COSMOSDB_CONVERSATIONS_CONTAINER: 'chat_sessions'
           AZURE_COSMOSDB_DATABASE: cosmosDbDatabaseName
-          AZURE_COSMOSDB_ENABLE_FEEDBACK: '' //'True'
+          AZURE_COSMOSDB_ENABLE_FEEDBACK: '' //Set to 'True' to enable Cosmos DB feedback collection
           REACT_APP_LAYOUT_CONFIG: reactAppLayoutConfig
         
           API_UID: userAssignedIdentity.outputs.clientId
@@ -1209,7 +1203,7 @@ module webSiteBackend 'modules/web-sites.bicep' = {
           SOLUTION_NAME: solutionSuffix
           APP_ENV: 'Prod'
 
-          ALLOWED_ORIGINS_STR: '*'
+          ALLOWED_ORIGINS_STR: 'https://app-${solutionSuffix}.azurewebsites.net,*'
           AZURE_FOUNDRY_ENDPOINT: aiFoundryAiProjectEndpoint
           AZURE_SEARCH_ENDPOINT: searchService.outputs.endpoint
           AZURE_SEARCH_INDEX: 'policies'

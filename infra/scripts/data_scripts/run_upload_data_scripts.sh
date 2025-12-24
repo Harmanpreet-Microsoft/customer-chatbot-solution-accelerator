@@ -74,9 +74,6 @@ enable_public_access() {
 
 	# Enable public access for Cosmos DB
 	echo "Configuring Cosmos DB network access: $cosmosdb_account"
-	echo "Getting current IP address..."
-	current_ip=$(curl -s https://ipinfo.io/ip)
-	echo "Current IP: $current_ip"
 	
 	# Get Cosmos DB resource ID  
 	subscription_id=$(az account show --query id -o tsv)
@@ -93,6 +90,9 @@ enable_public_access() {
 	if [ "$original_cosmos_public_access" = "Enabled" ]; then
 		echo "✓ Cosmos DB public access already enabled - no changes needed"
 	else
+		echo "Getting current IP address..."
+		current_ip=$(curl -s https://ipinfo.io/ip)
+		echo "Current IP: $current_ip"
         # Get current firewall rules and public network access setting
         echo "Getting current firewall configuration..."
         original_cosmos_ip_filter=$(MSYS_NO_PATHCONV=1 az resource show \

@@ -172,10 +172,6 @@ resource cognitiveService_deployments 'Microsoft.CognitiveServices/accounts/depl
     }
     sku: deployment.?sku ?? {
       name: sku
-      capacity: sku.?capacity
-      tier: sku.?tier
-      size: sku.?size
-      family: sku.?family
     }
   }
 ]
@@ -189,7 +185,7 @@ resource cognitiveService_roleAssignments 'Microsoft.Authorization/roleAssignmen
       description: roleAssignment.?description
       principalType: roleAssignment.?principalType
       condition: roleAssignment.?condition
-      conditionVersion: !empty(roleAssignment.?condition) ? (roleAssignment.?conditionVersion ?? '2.0') : null // Must only be set if condtion is set
+      conditionVersion: !empty(roleAssignment.?condition) ? (roleAssignment.?conditionVersion ?? '2.0') : null // Must only be set if condition is set
       delegatedManagedIdentityResourceId: roleAssignment.?delegatedManagedIdentityResourceId
     }
     scope: cognitiveService

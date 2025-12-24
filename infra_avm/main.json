@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "4409798523061497961"
+      "templateHash": "15569693053458227079"
     },
     "name": "Customer Chat bot",
     "description": "This module contains the resources required to deploy the [Customer Chat bot solution accelerator](https://github.com/microsoft/Customer-Chat-bot-Solution-Accelerator) for both Sandbox environments and WAF aligned environments.\r\n\r\n> **Note:** This module is not intended for broad, generic use, as it was designed by the Commercial Solution Areas CTO team, as a Microsoft Solution Accelerator. Feature requests and bug fix requests are welcome if they support the needs of this organization but may not be incorporated if they aim to make this module more generic than what it needs to be for its primary use case. This module will likely be updated to leverage AVM resource modules in the future. This may result in breaking changes in upcoming versions when these features are implemented.\r\n"
@@ -22365,7 +22365,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "1082820832327327752"
+              "templateHash": "10614806341150549004"
             }
           },
           "definitions": {
@@ -22663,7 +22663,7 @@
                 "raiPolicyName": "[tryGet(coalesce(parameters('deployments'), createArray())[copyIndex()], 'raiPolicyName')]",
                 "versionUpgradeOption": "[tryGet(coalesce(parameters('deployments'), createArray())[copyIndex()], 'versionUpgradeOption')]"
               },
-              "sku": "[coalesce(tryGet(coalesce(parameters('deployments'), createArray())[copyIndex()], 'sku'), createObject('name', parameters('sku'), 'capacity', tryGet(parameters('sku'), 'capacity'), 'tier', tryGet(parameters('sku'), 'tier'), 'size', tryGet(parameters('sku'), 'size'), 'family', tryGet(parameters('sku'), 'family')))]"
+              "sku": "[coalesce(tryGet(coalesce(parameters('deployments'), createArray())[copyIndex()], 'sku'), createObject('name', parameters('sku')))]"
             },
             "cognitiveService_roleAssignments": {
               "copy": {
@@ -22725,9 +22725,6 @@
           },
           "customSubDomainName": {
             "value": "[variables('aiFoundryAiServicesResourceName')]"
-          },
-          "apiProperties": {
-            "value": {}
           },
           "deployments": {
             "value": [
@@ -25338,9 +25335,9 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "logAnalyticsWorkspace",
         "userAssignedIdentity",
         "virtualNetwork"
@@ -32486,7 +32483,7 @@
                   "DUMMY_TEST": "True",
                   "SOLUTION_NAME": "[variables('solutionSuffix')]",
                   "APP_ENV": "Prod",
-                  "ALLOWED_ORIGINS_STR": "*",
+                  "ALLOWED_ORIGINS_STR": "[format('https://app-{0}.azurewebsites.net,*', variables('solutionSuffix'))]",
                   "AZURE_FOUNDRY_ENDPOINT": "[if(variables('useExistingAiFoundryAiProject'), reference('existingAiFoundryAiServicesProject').endpoints['AI Foundry API'], reference('aiFoundryAiServicesProject').outputs.apiEndpoint.value)]",
                   "AZURE_SEARCH_ENDPOINT": "[reference('searchService').outputs.endpoint.value]",
                   "AZURE_SEARCH_INDEX": "policies",
@@ -32521,7 +32518,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "4298119334635398540"
+              "templateHash": "9457835587979301978"
             }
           },
           "definitions": {
@@ -32562,7 +32559,7 @@
                   "type": "bool",
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. The retain the current app settings. Defaults to true."
+                    "description": "Optional. Whether to retain the current app settings. Defaults to true."
                   }
                 },
                 "properties": {
@@ -33534,7 +33531,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.37.4.10188",
-                      "templateHash": "4653685834544796273"
+                      "templateHash": "16985690110908976374"
                     },
                     "name": "Site App Settings",
                     "description": "This module deploys a Site App Setting."
@@ -33576,7 +33573,7 @@
                       "type": "bool",
                       "defaultValue": false,
                       "metadata": {
-                        "description": "Optional. If the provided storage account requires Identity based authentication ('allowSharedKeyAccess' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is 'Storage Blob Data Owner'."
+                        "description": "Optional. If the provided storage account requires Identity based authentication ('allowSharedKeyAccess' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is 'Storage Blob Data Owner'. Set to true for enhanced security when the storage account disallows shared key access."
                       }
                     },
                     "storageAccountResourceId": {
@@ -34566,7 +34563,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "4298119334635398540"
+              "templateHash": "9457835587979301978"
             }
           },
           "definitions": {
@@ -34607,7 +34604,7 @@
                   "type": "bool",
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. The retain the current app settings. Defaults to true."
+                    "description": "Optional. Whether to retain the current app settings. Defaults to true."
                   }
                 },
                 "properties": {
@@ -35579,7 +35576,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.37.4.10188",
-                      "templateHash": "4653685834544796273"
+                      "templateHash": "16985690110908976374"
                     },
                     "name": "Site App Settings",
                     "description": "This module deploys a Site App Setting."
@@ -35621,7 +35618,7 @@
                       "type": "bool",
                       "defaultValue": false,
                       "metadata": {
-                        "description": "Optional. If the provided storage account requires Identity based authentication ('allowSharedKeyAccess' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is 'Storage Blob Data Owner'."
+                        "description": "Optional. If the provided storage account requires Identity based authentication ('allowSharedKeyAccess' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is 'Storage Blob Data Owner'. Set to true for enhanced security when the storage account disallows shared key access."
                       }
                     },
                     "storageAccountResourceId": {

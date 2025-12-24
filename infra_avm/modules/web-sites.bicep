@@ -358,7 +358,7 @@ type appSettingsConfigType = {
   @description('Optional. Resource ID of the application insight to leverage for this resource.')
   applicationInsightResourceId: string?
 
-  @description('Optional. The retain the current app settings. Defaults to true.')
+  @description('Optional. Whether to retain the current app settings. Defaults to true.')
   retainCurrentAppSettings: bool?
 
   @description('Optional. The app settings key-value pairs except for AzureWebJobsStorage, AzureWebJobsDashboard, APPINSIGHTS_INSTRUMENTATIONKEY and APPLICATIONINSIGHTS_CONNECTION_STRING.')
