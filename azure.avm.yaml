@@ -6,14 +6,3 @@ metadata:
 # AVM Deployment Configuration
 infra:
   path: infra_avm
-
-# hooks:
-#   postdeploy:
-#     windows:
-#       shell: pwsh
-#       run: ./scripts/search/postdeploy-upload.ps1
-#       interactive: false
-#     posix:
-#       shell: sh
-#       run: ./scripts/search/postdeploy-upload.sh
-#       interactive: false

@@ -4,17 +4,5 @@ metadata:
   template: customer-chatbot-solution-accelerator@1.0
 
 # Standard Deployment Configuration (Default)
-# Uses infra/main.bicep with main.parameters.json
 infra:
   path: infra
-
-# hooks:
-#   postdeploy:
-#     windows:
-#       shell: pwsh
-#       run: ./scripts/search/postdeploy-upload.ps1
-#       interactive: false
-#     posix:
-#       shell: sh
-#       run: ./scripts/search/postdeploy-upload.sh
-#       interactive: false
