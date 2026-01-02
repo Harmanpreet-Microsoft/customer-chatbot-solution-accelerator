@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "12229853687870925237"
+      "templateHash": "15906185140057197799"
     }
   },
   "parameters": {
@@ -187,46 +187,18 @@
         "description": "Optional. The password for the administrator account of the virtual machine. Allows to customize credentials if `enablePrivateNetworking` is set to true."
       }
     },
-    "backendContainerRegistryHostname": {
+    "containerRegistryHost": {
       "type": "string",
       "defaultValue": "ccbcontainerreg.azurecr.io",
       "metadata": {
-        "description": "Optional. The Container Registry hostname where the docker images for the backend are located."
+        "description": "Optional. The host (excluding https://) of an existing container registry. This is the `loginServer` when using Azure Container Registry."
       }
     },
-    "backendContainerImageName": {
-      "type": "string",
-      "defaultValue": "backend",
-      "metadata": {
-        "description": "Optional. The Container Image Name to deploy on the backend."
-      }
-    },
-    "backendContainerImageTag": {
+    "imageTag": {
       "type": "string",
       "defaultValue": "latest",
       "metadata": {
-        "description": "Optional. The Container Image Tag to deploy on the backend."
-      }
-    },
-    "frontendContainerRegistryHostname": {
-      "type": "string",
-      "defaultValue": "ccbcontainerreg.azurecr.io",
-      "metadata": {
-        "description": "Optional. The Container Registry hostname where the docker images for the frontend are located."
-      }
-    },
-    "frontendContainerImageName": {
-      "type": "string",
-      "defaultValue": "frontend",
-      "metadata": {
-        "description": "Optional. The Container Image Name to deploy on the frontend."
-      }
-    },
-    "frontendContainerImageTag": {
-      "type": "string",
-      "defaultValue": "latest",
-      "metadata": {
-        "description": "Optional. The Container Image Tag to deploy on the frontend."
+        "description": "Optional. The image tag to use for container images. Defaults to \"latest\"."
       }
     },
     "enableTelemetry": {
@@ -24836,9 +24808,9 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "logAnalyticsWorkspace",
         "virtualNetwork"
       ]
@@ -31867,7 +31839,7 @@
           },
           "siteConfig": {
             "value": {
-              "linuxFxVersion": "[format('DOCKER|{0}/{1}:{2}', parameters('backendContainerRegistryHostname'), parameters('backendContainerImageName'), parameters('backendContainerImageTag'))]",
+              "linuxFxVersion": "[format('DOCKER|{0}/backend:{1}', parameters('containerRegistryHost'), parameters('imageTag'))]",
               "minTlsVersion": "1.2"
             }
           },
@@ -34421,7 +34393,7 @@
           },
           "siteConfig": {
             "value": {
-              "linuxFxVersion": "[format('DOCKER|{0}/{1}:{2}', parameters('frontendContainerRegistryHostname'), parameters('frontendContainerImageName'), parameters('frontendContainerImageTag'))]",
+              "linuxFxVersion": "[format('DOCKER|{0}/frontend:{1}', parameters('containerRegistryHost'), parameters('imageTag'))]",
               "minTlsVersion": "1.2"
             }
           },
@@ -36632,14 +36604,14 @@
       "metadata": {
         "description": "Name of the Azure Container Registry"
       },
-      "value": "[split(parameters('backendContainerRegistryHostname'), '.')[0]]"
+      "value": "[split(parameters('containerRegistryHost'), '.')[0]]"
     },
     "AZURE_ENV_IMAGETAG": {
       "type": "string",
       "metadata": {
         "description": "Container image tag for the backend service"
       },
-      "value": "[parameters('backendContainerImageTag')]"
+      "value": "[parameters('imageTag')]"
     },
     "AI_SERVICE_NAME": {
       "type": "string",

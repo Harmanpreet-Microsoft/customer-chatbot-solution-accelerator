@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide walks you through deploying the Customer Chatbot Solution Accelerator to Azure. The deployment process takes approximately 10-15 minutes for the default Development/Testing configuration and includes both infrastructure provisioning and application setup.
+This guide walks you through deploying the Customer Chatbot Solution Accelerator to Azure. The deployment process takes approximately 7-10 minutes for the default Development/Testing configuration and includes both infrastructure provisioning and application setup.
 
 🆘 **Need Help?** If you encounter any issues during deployment, check our [Troubleshooting Guide](./TroubleShootingSteps.md) for solutions to common problems.
 
@@ -49,7 +49,7 @@ Ensure you have access to an [Azure subscription](https://azure.microsoft.com/fr
 - [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/) - For storing product catalogs, orders, and chat history
 - [Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/) - For hosting frontend and backend applications
 
-**Recommended Regions:** East US, East US2, West US, West Europe, North Europe
+**Recommended Regions:** East US, East US2, Australia East, UK South, France Central
 
 🔍 **Check Availability:** Use [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/) to verify service availability.
 
@@ -75,10 +75,10 @@ Select one of the following options to deploy the Customer Chatbot Solution Acce
 
 | **Option** | **Best For** | **Prerequisites** | **Setup Time** |
 |------------|--------------|-------------------|----------------|
-| **GitHub Codespaces** | Quick deployment, no local setup required | GitHub account | ~3-5 minutes |
+| **GitHub Codespaces** | Quick deployment, no local setup required | GitHub account | ~6-8 minutes |
 | **VS Code Dev Containers** | Fast deployment with local tools | Docker Desktop, VS Code | ~5-10 minutes |
-| **VS Code Web** | Quick deployment, no local setup required | Azure account | ~2-4 minutes |
-| **Local Environment** | Enterprise environments, full control | All tools individually | ~15-30 minutes |
+| **VS Code Web** | Quick deployment, no local setup required | Azure account | ~4-6 minutes |
+| **Local Environment** | Enterprise environments, full control | All tools individually | ~8-10 minutes |
 
 **💡 Recommendation:** For fastest deployment, start with **GitHub Codespaces** - no local installation required.
 
