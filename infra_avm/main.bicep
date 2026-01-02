@@ -1096,7 +1096,7 @@ module webSiteBackend 'modules/web-sites.bicep' = {
           SOLUTION_NAME: solutionSuffix
           APP_ENV: 'Prod'
 
-          ALLOWED_ORIGINS_STR: 'https://app-${solutionSuffix}.azurewebsites.net,*'
+          ALLOWED_ORIGINS_STR: 'https://app-${solutionSuffix}.azurewebsites.net'
           AZURE_FOUNDRY_ENDPOINT: aiFoundryAiProjectEndpoint
           AZURE_SEARCH_ENDPOINT: searchService.outputs.endpoint
           AZURE_SEARCH_INDEX: 'policies'

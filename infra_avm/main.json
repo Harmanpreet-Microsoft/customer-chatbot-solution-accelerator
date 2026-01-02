@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "11423716712583054684"
+      "templateHash": "8696421355506155585"
     }
   },
   "parameters": {
@@ -31863,7 +31863,7 @@
                   "DUMMY_TEST": "True",
                   "SOLUTION_NAME": "[variables('solutionSuffix')]",
                   "APP_ENV": "Prod",
-                  "ALLOWED_ORIGINS_STR": "[format('https://app-{0}.azurewebsites.net,*', variables('solutionSuffix'))]",
+                  "ALLOWED_ORIGINS_STR": "[format('https://app-{0}.azurewebsites.net', variables('solutionSuffix'))]",
                   "AZURE_FOUNDRY_ENDPOINT": "[if(variables('useExistingAiFoundryAiProject'), reference('existingAiFoundryAiServicesProject').endpoints['AI Foundry API'], reference('aiFoundryAiServicesProject').outputs.apiEndpoint.value)]",
                   "AZURE_SEARCH_ENDPOINT": "[reference('searchService').outputs.endpoint.value]",
                   "AZURE_SEARCH_INDEX": "policies",
