@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          az account set --subscription "$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --client-secret ${{ secrets.AZURE_CLIENT_SECRET }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Deploy using azd up and extract values (Linux)
@@ -100,10 +100,11 @@ jobs:
           echo "Environment created: ${{ inputs.ENV_NAME }}"
 
           echo "Setting default subscription..."
-          azd config set defaults.subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          CLEANED_SUBSCRIPTION_ID="$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
+          azd config set defaults.subscription "$CLEANED_SUBSCRIPTION_ID"
         
           # Set additional parameters
-          azd env set AZURE_SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          azd env set AZURE_SUBSCRIPTION_ID="$CLEANED_SUBSCRIPTION_ID"
           azd env set AZURE_ENV_AI_DEPLOYMENTS_LOCATION="${{ inputs.AZURE_ENV_OPENAI_LOCATION }}"
           azd env set AZURE_LOCATION="${{ inputs.AZURE_LOCATION }}"
           azd env set AZURE_RESOURCE_GROUP="${{ inputs.RESOURCE_GROUP_NAME }}"
