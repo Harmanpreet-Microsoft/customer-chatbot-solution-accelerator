@@ -145,52 +145,27 @@ jobs:
             exit 1
           }
 
-          # Export variables only after successful deploy
-          $CONTAINER_API_APPURL = "https://$($DEPLOY_OUTPUT.CONTAINER_API_APP_FQDN)"
-          "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-          $CONTAINER_API_APPNAME = $DEPLOY_OUTPUT.CONTAINER_API_APP_NAME
-          "CONTAINER_API_APPNAME=$CONTAINER_API_APPNAME" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-          $CONTAINER_WEB_APPURL = "https://$($DEPLOY_OUTPUT.CONTAINER_WEB_APP_FQDN)"
+          # Extract URLs from deployment output using correct property names
+          $CONTAINER_WEB_APPURL = $DEPLOY_OUTPUT.WEB_APP_URL
+          $CONTAINER_API_APPURL = $DEPLOY_OUTPUT.API_APP_URL
+          $CONTAINER_WEB_APPNAME = $DEPLOY_OUTPUT.API_APP_NAME
+          $CONTAINER_API_APPNAME = $DEPLOY_OUTPUT.API_APP_NAME
+          
+          Write-Host "Extracted URLs:"
+          Write-Host "CONTAINER_WEB_APPURL: $CONTAINER_WEB_APPURL"
+          Write-Host "CONTAINER_API_APPURL: $CONTAINER_API_APPURL"
+          
+          # Set environment variables for use in subsequent steps
           "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-          $CONTAINER_WEB_APPNAME = $DEPLOY_OUTPUT.CONTAINER_WEB_APP_NAME
+          "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "CONTAINER_WEB_APPNAME=$CONTAINER_WEB_APPNAME" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "CONTAINER_API_APPNAME=$CONTAINER_API_APPNAME" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          
+          # Set job outputs
+          "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Register schemas (Windows)
-        id: register_windows
-        shell: pwsh
-        run: |
-          Write-Host "Registering schemas..."
-          Start-Sleep -Seconds 40  # Wait for the API to be ready
 
-          Set-Location src/ContentProcessorAPI/samples/schemas
-          & .\register_schema.ps1 "${{ env.CONTAINER_API_APPURL }}/schemavault/" "schema_info_sh.json"
-
-      - name: Upload sample invoice and claim data (Windows)
-        shell: pwsh
-        run: |
-          Write-Host "Uploading sample data..."
-          Set-Location src/ContentProcessorAPI/samples
-          & .\upload_files.ps1 "${{ env.CONTAINER_API_APPURL }}/contentprocessor/submit" ".\invoices" "${{ steps.register_windows.outputs.invoice_schema_id }}"
-          & .\upload_files.ps1 "${{ env.CONTAINER_API_APPURL }}/contentprocessor/submit" ".\propertyclaims" "${{ steps.register_windows.outputs.propertylossdamageclaimform_schema_id }}"
-
-      - name: Disable Auth in Web App
-        shell: bash
-        run: |
-          az containerapp update --name ${{ env.CONTAINER_WEB_APPNAME }} \
-            --resource-group ${{ inputs.RESOURCE_GROUP_NAME }} \
-            --set-env-vars APP_AUTH_ENABLED=false
-
-      - name: Disable Auth in API App
-        shell: bash
-        run: |
-          sleep 30
-          az containerapp update --name ${{ env.CONTAINER_API_APPNAME }} \
-            --resource-group ${{ inputs.RESOURCE_GROUP_NAME }} \
-            --set-env-vars APP_AUTH_ENABLED=false
 
       - name: Generate Deployment Summary
         if: always()

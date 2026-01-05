@@ -155,53 +155,23 @@ jobs:
             exit 1
           fi
 
-          export CONTAINER_API_APPURL="https://$(echo "$DEPLOY_OUTPUT" | jq -r '.CONTAINER_API_APP_FQDN // empty')"
-          echo "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" >> $GITHUB_ENV
-
-          export CONTAINER_API_APPNAME=$(echo "$DEPLOY_OUTPUT" | jq -r '.CONTAINER_API_APP_NAME // empty')
-          echo "CONTAINER_API_APPNAME=$CONTAINER_API_APPNAME" >> $GITHUB_ENV
-
-          export CONTAINER_WEB_APPURL="https://$(echo "$DEPLOY_OUTPUT" | jq -r '.CONTAINER_WEB_APP_FQDN // empty')"
+          # Extract URLs from deployment output
+          CONTAINER_WEB_APPURL=$(echo "$DEPLOY_OUTPUT" | jq -r '.WEB_APP_URL // empty')
+          CONTAINER_API_APPURL=$(echo "$DEPLOY_OUTPUT" | jq -r '.API_APP_URL // empty')
+          
+          echo "Extracted URLs:"
+          echo "CONTAINER_WEB_APPURL: $CONTAINER_WEB_APPURL"
+          echo "CONTAINER_API_APPURL: $CONTAINER_API_APPURL"
+          
+          # Set environment variables for use in subsequent steps
           echo "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" >> $GITHUB_ENV
+          echo "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" >> $GITHUB_ENV
+          
+          # Set job outputs
           echo "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" >> $GITHUB_OUTPUT
+          echo "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" >> $GITHUB_OUTPUT
 
-          export CONTAINER_WEB_APPNAME=$(echo "$DEPLOY_OUTPUT" | jq -r '.CONTAINER_WEB_APP_NAME // empty')
-          echo "CONTAINER_WEB_APPNAME=$CONTAINER_WEB_APPNAME" >> $GITHUB_ENV
 
-      - name: Register schemas (Linux)
-        id: register_linux
-        shell: bash
-        run: |
-          echo "Registering schemas..."
-          sleep 40
-
-          cd src/ContentProcessorAPI/samples/schemas
-          chmod +x ./register_schema.sh
-          ./register_schema.sh ${{ env.CONTAINER_API_APPURL }}/schemavault/ schema_info_sh.json
-
-      - name: Upload sample invoice and claim data (Linux)
-        shell: bash
-        run: |
-          echo "Uploading sample data..."
-          cd src/ContentProcessorAPI/samples
-          chmod +x ./upload_files.sh
-          ./upload_files.sh ${{ env.CONTAINER_API_APPURL }}/contentprocessor/submit ./invoices '${{ steps.register_linux.outputs.invoice_schema_id }}'
-          ./upload_files.sh ${{ env.CONTAINER_API_APPURL }}/contentprocessor/submit ./propertyclaims '${{ steps.register_linux.outputs.propertylossdamageclaimform_schema_id }}'
-
-      - name: Disable Auth in Web App
-        shell: bash
-        run: |
-          az containerapp update --name ${{ env.CONTAINER_WEB_APPNAME }} \
-            --resource-group ${{ inputs.RESOURCE_GROUP_NAME }} \
-            --set-env-vars APP_AUTH_ENABLED=false
-
-      - name: Disable Auth in API App
-        shell: bash
-        run: |
-          sleep 30
-          az containerapp update --name ${{ env.CONTAINER_API_APPNAME }} \
-            --resource-group ${{ inputs.RESOURCE_GROUP_NAME }} \
-            --set-env-vars APP_AUTH_ENABLED=false
 
       - name: Generate Deployment Summary
         if: always()
