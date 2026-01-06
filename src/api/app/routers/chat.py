@@ -321,10 +321,10 @@ async def send_message_legacy(
 
         # Importing here to avoid circular imports
         from ..utils.azure_credential_utils import get_azure_credential_async
-        
+
         client_id = str(settings.azure_client_id) if settings.azure_client_id else None
         credential = await get_azure_credential_async(client_id=client_id)
-        
+
         async with (
             credential,
             AIProjectClient(

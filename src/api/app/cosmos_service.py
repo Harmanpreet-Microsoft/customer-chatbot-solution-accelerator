@@ -1,7 +1,7 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from azure.cosmos import ContainerProxy, CosmosClient, DatabaseProxy, PartitionKey
 from azure.cosmos.exceptions import CosmosResourceNotFoundError
@@ -93,7 +93,7 @@ class CosmosDatabaseService(DatabaseService):
             # In prod: uses ManagedIdentityCredential
             client_id = str(settings.azure_client_id) if settings.azure_client_id else None
             credential = get_azure_credential(client_id=client_id)
-            
+
             logger.info(f"Using Azure credential from utility (client_id: {client_id or 'system-assigned'})")
 
             # Create Cosmos client with credential (cast to Any to satisfy type checker)
