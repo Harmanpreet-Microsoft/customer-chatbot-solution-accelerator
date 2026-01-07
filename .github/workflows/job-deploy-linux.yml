@@ -55,7 +55,8 @@ jobs:
         run: |
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
             cp infra_avm/main.waf.parameters.json infra/main.parameters.json
-            echo "✅ Successfully copied WAF parameters to main parameters file"
+            cp azure.avm.yaml azure.yaml
+            echo "✅ Successfully copied WAF parameters and AVM configuration files"
           else
             echo "🔧 Configuring Non-WAF deployment - using default main.parameters.json..."
           fi
