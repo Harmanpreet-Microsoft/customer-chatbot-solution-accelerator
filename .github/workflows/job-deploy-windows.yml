@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
-            cp infra/main.waf.parameters.json infra/main.parameters.json
+            cp infra_avm/main.waf.parameters.json infra/main.parameters.json
             echo "✅ Successfully copied WAF parameters to main parameters file"
           else
             echo "🔧 Configuring Non-WAF deployment - using default main.parameters.json..."
