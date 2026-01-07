@@ -109,6 +109,7 @@ jobs:
           azd env set AZURE_LOCATION="${{ inputs.AZURE_LOCATION }}"
           azd env set AZURE_RESOURCE_GROUP="${{ inputs.RESOURCE_GROUP_NAME }}"
           azd env set AZURE_ENV_CONTAINER_IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
+          azd env set AZURE_ENV_NAME="${{ inputs.ENV_NAME }}"
           
           if [[ "${{ inputs.BUILD_DOCKER_IMAGE }}" == "true" ]]; then
             ACR_NAME=$(echo "${{ secrets.ACR_TEST_LOGIN_SERVER }}")
