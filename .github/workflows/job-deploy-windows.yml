@@ -55,7 +55,7 @@ jobs:
         run: |
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
             echo "✅ WAF Enabled - Will use infra_avm folder for deployment"
-            cp infra_avm/main.waf.fixed.parameters.json infra_avm/main.parameters.json
+            cp infra_avm/main.waf.parameters.json infra_avm/main.parameters.json
             echo "Copied fixed WAF parameters to infra_avm/main.parameters.json"
             echo "INFRA_PATH=infra_avm" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
