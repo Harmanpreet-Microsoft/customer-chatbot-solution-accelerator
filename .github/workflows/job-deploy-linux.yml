@@ -78,11 +78,6 @@ jobs:
             
             echo "INFRA_PATH=infra_avm" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
-            
-            # Set VM credentials for private networking
-            azd env set AZURE_ENV_VM_ADMIN_USERNAME="azureuser"
-            azd env set AZURE_ENV_VM_ADMIN_PASSWORD="P@ssw0rd123!"
-            echo "Set VM credentials for private networking"
           else
             echo "🔧 Non-WAF deployment - Will use infra folder for deployment"
             
@@ -93,24 +88,6 @@ jobs:
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
-          
-      - name: Validate Environment Name
-        shell: bash
-        run: |
-          if [[ -z "${{ inputs.ENV_NAME }}" ]]; then
-            echo "❌ ERROR: ENV_NAME input is required but was not provided or is empty"
-            echo "Please ensure the calling workflow provides a valid ENV_NAME input"
-            exit 1
-          fi
-          
-          # Validate environment name format (alphanumeric and hyphens only)
-          if [[ ! "${{ inputs.ENV_NAME }}" =~ ^[a-zA-Z0-9-]+$ ]]; then
-            echo "❌ ERROR: ENV_NAME '${{ inputs.ENV_NAME }}' is invalid"
-            echo "Environment name should contain only alphanumeric characters and hyphens"
-            exit 1
-          fi
-          
-          echo "✅ Environment name '${{ inputs.ENV_NAME }}' is valid"
 
       - name: Login to AZD
         id: login-azure
