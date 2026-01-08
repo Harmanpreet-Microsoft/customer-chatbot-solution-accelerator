@@ -59,6 +59,11 @@ jobs:
             echo "Copied WAF parameters to infra_avm/main.parameters.json"
             echo "INFRA_PATH=infra_avm" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
+            
+            # Set VM credentials for private networking
+            azd env set AZURE_ENV_VM_ADMIN_USERNAME="azureuser"
+            azd env set AZURE_ENV_VM_ADMIN_PASSWORD="P@ssw0rd123!"
+            echo "Set VM credentials for private networking"
           else
             echo "🔧 Non-WAF deployment - Will use infra folder for deployment"
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
@@ -115,6 +120,13 @@ jobs:
           azd env set AZURE_RESOURCE_GROUP="${{ inputs.RESOURCE_GROUP_NAME }}"
           azd env set AZURE_ENV_CONTAINER_IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
           azd env set AZURE_ENV_NAME="${{ inputs.ENV_NAME }}"
+          
+          # Set VM credentials if WAF is enabled (required for private networking)
+          if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
+            azd env set AZURE_ENV_VM_ADMIN_USERNAME="azureuser"
+            azd env set AZURE_ENV_VM_ADMIN_PASSWORD="P@ssw0rd123!"
+            echo "Set VM credentials for WAF private networking"
+          fi
           
           if [[ "${{ inputs.BUILD_DOCKER_IMAGE }}" == "true" ]]; then
             ACR_NAME=$(echo "${{ secrets.ACR_TEST_LOGIN_SERVER }}")

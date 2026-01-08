@@ -102,6 +102,13 @@ jobs:
           azd env set AZURE_ENV_CONTAINER_IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
           azd env set AZURE_ENV_NAME="${{ inputs.ENV_NAME }}"
           
+          # Set VM credentials if WAF is enabled (required for private networking)
+          if ("${{ inputs.WAF_ENABLED }}" -eq "true") {
+            azd env set AZURE_ENV_VM_ADMIN_USERNAME="azureuser"
+            azd env set AZURE_ENV_VM_ADMIN_PASSWORD="P@ssw0rd123!"
+            Write-Host "Set VM credentials for WAF private networking"
+          }
+          
           # Set ACR name only when building Docker image
           if ("${{ inputs.BUILD_DOCKER_IMAGE }}" -eq "true") {
             # Extract ACR name from login server and set as environment variable
