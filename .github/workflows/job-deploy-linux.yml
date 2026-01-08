@@ -50,6 +50,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
       
+      - name: Setup Azure CLI
+        shell: bash
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Setup Azure Developer CLI (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -fsSL https://aka.ms/install-azd.sh | sudo bash
+          azd version
+      
       - name: Configure Parameters Based on WAF Setting
         shell: bash
         run: |
@@ -81,18 +93,6 @@ jobs:
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
-      
-      - name: Setup Azure CLI
-        shell: bash
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-      - name: Setup Azure Developer CLI (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          curl -fsSL https://aka.ms/install-azd.sh | sudo bash
-          azd version
           
       - name: Login to AZD
         id: login-azure
@@ -110,9 +110,6 @@ jobs:
           echo "Starting azd deployment..."
           echo "EXP: ${{ inputs.EXP }}"
           echo "Using Docker Image Tag: ${{ inputs.IMAGE_TAG }}"
-          
-          # Install azd (Azure Developer CLI)
-          curl -fsSL https://aka.ms/install-azd.sh | bash
 
           # Generate current timestamp in desired format: YYYY-MM-DDTHH:MM:SS.SSSSSSSZ
           current_date=$(date -u +"%Y-%m-%dT%H:%M:%S.%7NZ")
