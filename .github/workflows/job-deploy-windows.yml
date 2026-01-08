@@ -27,7 +27,7 @@ on:
       WAF_ENABLED:
         required: false
         type: string
-        default: 'false'
+        default: 'true'
       AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID:
         required: false
         type: string
@@ -55,7 +55,8 @@ jobs:
         run: |
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
             cp infra_avm/main.waf.parameters.json infra/main.parameters.json
-            echo "✅ Successfully copied WAF parameters to main parameters file"
+            cp azure.avm.yaml azure.yaml
+            echo "✅ Successfully copied WAF parameters and AVM configuration files"
           else
             echo "🔧 Configuring Non-WAF deployment - using default main.parameters.json..."
           fi
@@ -95,6 +96,7 @@ jobs:
           azd env set AZURE_LOCATION="${{ inputs.AZURE_LOCATION }}"
           azd env set AZURE_RESOURCE_GROUP="${{ inputs.RESOURCE_GROUP_NAME }}"
           azd env set AZURE_ENV_CONTAINER_IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
+          azd env set AZURE_ENV_NAME="${{ inputs.ENV_NAME }}"
           
           # Set ACR name only when building Docker image
           if ("${{ inputs.BUILD_DOCKER_IMAGE }}" -eq "true") {
