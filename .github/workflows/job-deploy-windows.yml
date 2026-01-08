@@ -139,7 +139,10 @@ jobs:
           # Deploy using azd up with appropriate infrastructure path
           Write-Host "Deploying using infrastructure path: $env:INFRA_PATH"
           Write-Host "Using parameters file: $env:PARAMETERS_FILE"
-          azd up --no-prompt --path "$env:INFRA_PATH"
+          
+          # Change to the appropriate infrastructure directory and deploy
+          Set-Location "$env:INFRA_PATH"
+          azd up --no-prompt
           
           Write-Host "✅ Deployment succeeded."
 
