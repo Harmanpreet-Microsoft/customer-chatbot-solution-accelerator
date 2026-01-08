@@ -94,6 +94,24 @@ jobs:
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
           
+      - name: Validate Environment Name
+        shell: bash
+        run: |
+          if [[ -z "${{ inputs.ENV_NAME }}" ]]; then
+            echo "❌ ERROR: ENV_NAME input is required but was not provided or is empty"
+            echo "Please ensure the calling workflow provides a valid ENV_NAME input"
+            exit 1
+          fi
+          
+          # Validate environment name format (alphanumeric and hyphens only)
+          if [[ ! "${{ inputs.ENV_NAME }}" =~ ^[a-zA-Z0-9-]+$ ]]; then
+            echo "❌ ERROR: ENV_NAME '${{ inputs.ENV_NAME }}' is invalid"
+            echo "Environment name should contain only alphanumeric characters and hyphens"
+            exit 1
+          fi
+          
+          echo "✅ Environment name '${{ inputs.ENV_NAME }}' is valid"
+
       - name: Login to AZD
         id: login-azure
         shell: bash
@@ -115,6 +133,7 @@ jobs:
           current_date=$(date -u +"%Y-%m-%dT%H:%M:%S.%7NZ")
 
           echo "Creating environment..."
+          echo "Environment name to create: '${{ inputs.ENV_NAME }}'"
           azd env new ${{ inputs.ENV_NAME }} --no-prompt
           echo "Environment created: ${{ inputs.ENV_NAME }}"
 
