@@ -3,6 +3,30 @@
 # List of Azure regions to check for quota (update as needed)
 IFS=', ' read -ra REGIONS <<< "$AZURE_REGIONS"
 
+# Filter regions to only those allowed by the Bicep template
+# Based on main_custom.bicep azureAiServiceLocation parameter allowed values
+ALLOWED_REGIONS=("australiaeast" "eastus2" "francecentral" "japaneast" "norwayeast" "swedencentral" "uksouth" "westus")
+
+# Filter REGIONS to only include allowed regions
+FILTERED_REGIONS=()
+for region in "${REGIONS[@]}"; do
+    if [[ " ${ALLOWED_REGIONS[*]} " == *" $region "* ]]; then
+        FILTERED_REGIONS+=("$region")
+    else
+        echo "ℹ️  Skipping region '$region' as it's not allowed by the Bicep template"
+    fi
+done
+
+# Use filtered regions instead of original regions
+REGIONS=("${FILTERED_REGIONS[@]}")
+
+if [ ${#REGIONS[@]} -eq 0 ]; then
+    echo "❌ ERROR: No allowed regions found in AZURE_REGIONS. Allowed regions: ${ALLOWED_REGIONS[*]}"
+    exit 1
+fi
+
+echo "🔍 Checking quota in allowed regions: ${REGIONS[*]}"
+
 SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID}"
 GPT_MIN_CAPACITY="${GPT_MIN_CAPACITY:-10}"
 EMBEDDING_MIN_CAPACITY="${EMBEDDING_MIN_CAPACITY:-10}"
