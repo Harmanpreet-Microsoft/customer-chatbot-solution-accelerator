@@ -54,11 +54,15 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
-            cp infra_avm/main.waf.parameters.json infra/main.parameters.json
-            cp azure.avm.yaml azure.yaml
-            echo "✅ Successfully copied WAF parameters and AVM configuration files"
+            echo "✅ WAF Enabled - Will use infra_avm folder for deployment"
+            cp infra_avm/main.waf.parameters.json infra_avm/main.parameters.json
+            echo "Copied WAF parameters to infra_avm/main.parameters.json"
+            echo "INFRA_PATH=infra_avm" >> $GITHUB_ENV
+            echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           else
-            echo "🔧 Configuring Non-WAF deployment - using default main.parameters.json..."
+            echo "🔧 Non-WAF deployment - Will use infra folder for deployment"
+            echo "INFRA_PATH=infra" >> $GITHUB_ENV
+            echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
       
       - name: Setup Azure CLI
@@ -143,7 +147,9 @@ jobs:
             echo "❌ EXP DISABLED - Skipping EXP parameters"
           fi
 
-          azd up --no-prompt
+          echo "Deploying using infrastructure path: ${{ env.INFRA_PATH }}"
+          echo "Using parameters file: ${{ env.PARAMETERS_FILE }}"
+          azd up --no-prompt --path "${{ env.INFRA_PATH }}"
           
           echo "✅ Deployment succeeded."
           echo "$DEPLOY_OUTPUT"
