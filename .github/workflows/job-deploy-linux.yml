@@ -55,8 +55,15 @@ jobs:
         run: |
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
             echo "✅ WAF Enabled - Will use infra_avm folder for deployment"
+            
+            # Copy WAF parameters file
             cp infra_avm/main.waf.parameters.json infra_avm/main.parameters.json
             echo "Copied WAF parameters to infra_avm/main.parameters.json"
+            
+            # Copy WAF azure configuration file
+            cp azure.avm.yaml azure.yaml
+            echo "Copied azure.avm.yaml to azure.yaml for WAF deployment"
+            
             echo "INFRA_PATH=infra_avm" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
             
@@ -66,6 +73,11 @@ jobs:
             echo "Set VM credentials for private networking"
           else
             echo "🔧 Non-WAF deployment - Will use infra folder for deployment"
+            
+            # Copy standard azure configuration file
+            cp azure_custom.yaml azure.yaml
+            echo "Copied azure_custom.yaml to azure.yaml for standard deployment"
+            
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
