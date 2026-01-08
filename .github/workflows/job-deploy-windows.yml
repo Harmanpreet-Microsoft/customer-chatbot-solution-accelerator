@@ -102,6 +102,15 @@ jobs:
           azd env set AZURE_ENV_CONTAINER_IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
           azd env set AZURE_ENV_NAME="${{ inputs.ENV_NAME }}"
           
+          # Set additional required environment variables for WAF deployment
+          azd env set AZURE_ENV_OPENAI_LOCATION="${{ inputs.AZURE_ENV_OPENAI_LOCATION }}"
+          azd env set AZURE_ENV_MODEL_DEPLOYMENT_TYPE="GlobalStandard"
+          azd env set AZURE_ENV_MODEL_NAME="gpt-4o-mini"
+          azd env set AZURE_ENV_MODEL_VERSION="2024-07-18"
+          azd env set AZURE_ENV_MODEL_CAPACITY="10"
+          azd env set AZURE_ENV_ENABLE_TELEMETRY="true"
+          azd env set AZURE_ENV_IMAGETAG="${{ inputs.IMAGE_TAG }}"
+          
           # Set VM credentials if WAF is enabled (required for private networking)
           if ("${{ inputs.WAF_ENABLED }}" -eq "true") {
             azd env set AZURE_ENV_VM_ADMIN_USERNAME="azureuser"
