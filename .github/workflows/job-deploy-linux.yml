@@ -124,13 +124,6 @@ jobs:
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
-            
-            # Copy standard azure configuration file
-            echo " azure.yaml for standard deployment"
-            
-            echo "INFRA_PATH=infra" >> $GITHUB_ENV
-            echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
-          fi
 
       - name: Login to AZD
         id: login-azure
