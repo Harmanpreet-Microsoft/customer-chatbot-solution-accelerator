@@ -51,7 +51,11 @@ on:
         description: 'Run End-to-End Tests'
         required: false
         default: 'GoldenPath-Testing'
-        type: string
+        type: choice
+        options:
+          - 'GoldenPath-Testing'
+          - 'Smoke-Testing'
+          - 'None'
       
       AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID:
         description: 'Log Analytics Workspace ID (Optional)'
