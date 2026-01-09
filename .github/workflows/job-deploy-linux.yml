@@ -146,14 +146,18 @@ jobs:
           if [[ -f "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" ]]; then
             echo "✅ Parameters file exists: ${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}"
             
-            # Show monitoring configuration
-            ENABLE_MONITORING=$(grep -o '"enableMonitoring"[^}]*' "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" | grep -o '"value"[^,}]*' | cut -d':' -f2 | tr -d ' "')
+            # Show monitoring configuration - improved regex to handle multiline JSON
+            ENABLE_MONITORING=$(grep -A2 '"enableMonitoring"' "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" | grep '"value"' | grep -o 'true\|false')
             echo "📊 Monitoring enabled: $ENABLE_MONITORING"
             
             if [[ "${{ inputs.EXP }}" == "true" && "$ENABLE_MONITORING" == "false" ]]; then
               echo "✅ EXP + WAF configuration: Monitoring disabled to avoid cross-subscription permission issues"
             elif [[ "${{ inputs.WAF_ENABLED }}" == "true" && "$ENABLE_MONITORING" == "true" ]]; then
               echo "✅ WAF configuration: Full monitoring enabled"
+            elif [[ "${{ inputs.WAF_ENABLED }}" == "true" && "$ENABLE_MONITORING" == "false" ]]; then
+              echo "✅ WAF configuration: Monitoring disabled for cross-subscription compatibility"
+            else
+              echo "ℹ️  Configuration: WAF=${{ inputs.WAF_ENABLED }}, EXP=${{ inputs.EXP }}, Monitoring=$ENABLE_MONITORING"
             fi
           else
             echo "❌ Parameters file not found: ${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}"
