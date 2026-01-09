@@ -68,9 +68,46 @@ jobs:
           if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
             echo "✅ WAF Enabled - Will use infra_avm folder for deployment"
             
-            # Copy WAF parameters file
+            # Copy base WAF parameters file
             cp infra_avm/main.waf.parameters.json infra_avm/main.parameters.json
             echo "Copied WAF parameters to infra_avm/main.parameters.json"
+            
+            # Check if EXP is enabled and handle cross-subscription scenario
+            if [[ "${{ inputs.EXP }}" == "true" ]]; then
+              echo "🔧 WAF + EXP enabled - Checking for cross-subscription resource dependencies"
+              
+              # Get the current subscription ID
+              CURRENT_SUBSCRIPTION="$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
+              
+              # Get EXP Log Analytics workspace ID
+              EXP_LOG_ANALYTICS_ID=""
+              if [[ -n "${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}" ]]; then
+                EXP_LOG_ANALYTICS_ID="${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}"
+              elif [[ -n "${{ secrets.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}" ]]; then
+                EXP_LOG_ANALYTICS_ID="${{ secrets.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}"
+              fi
+              
+              # Check if using cross-subscription Log Analytics
+              if [[ -n "$EXP_LOG_ANALYTICS_ID" ]]; then
+                EXP_SUBSCRIPTION=$(echo "$EXP_LOG_ANALYTICS_ID" | cut -d'/' -f3)
+                if [[ "$EXP_SUBSCRIPTION" != "$CURRENT_SUBSCRIPTION" ]]; then
+                  echo "⚠️  Cross-subscription Log Analytics detected:"
+                  echo "   Current subscription: $CURRENT_SUBSCRIPTION"
+                  echo "   Log Analytics subscription: $EXP_SUBSCRIPTION"
+                  echo "   Disabling monitoring to avoid permission issues"
+                  
+                  # Dynamically disable monitoring in the parameters file
+                  sed -i 's/"enableMonitoring": {[^}]*"value": true[^}]*}/"enableMonitoring": {\n      "value": false\n    }/g' infra_avm/main.parameters.json
+                  echo "✅ Disabled monitoring in WAF parameters for cross-subscription compatibility"
+                else
+                  echo "✅ Same-subscription Log Analytics detected - keeping full monitoring enabled"
+                fi
+              else
+                echo "✅ No existing Log Analytics specified - keeping full monitoring enabled"
+              fi
+            else
+              echo "🔧 WAF without EXP - Full monitoring enabled"
+            fi
             
             # Copy WAF azure configuration file
             cp azure.avm.yaml azure.yaml
@@ -87,6 +124,13 @@ jobs:
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
           fi
+            
+            # Copy standard azure configuration file
+            echo " azure.yaml for standard deployment"
+            
+            echo "INFRA_PATH=infra" >> $GITHUB_ENV
+            echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
+          fi
 
       - name: Login to AZD
         id: login-azure
@@ -95,6 +139,33 @@ jobs:
           az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
           az account set --subscription "$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --client-secret ${{ secrets.AZURE_CLIENT_SECRET }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Validate Configuration
+        shell: bash
+        run: |
+          echo "🔍 Validating deployment configuration..."
+          echo "Infrastructure Path: ${{ env.INFRA_PATH }}"
+          echo "Parameters File: ${{ env.PARAMETERS_FILE }}"
+          echo "WAF Enabled: ${{ inputs.WAF_ENABLED }}"
+          echo "EXP Enabled: ${{ inputs.EXP }}"
+          
+          # Check if the selected parameters file exists
+          if [[ -f "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" ]]; then
+            echo "✅ Parameters file exists: ${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}"
+            
+            # Show monitoring configuration
+            ENABLE_MONITORING=$(grep -o '"enableMonitoring"[^}]*' "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" | grep -o '"value"[^,}]*' | cut -d':' -f2 | tr -d ' "')
+            echo "📊 Monitoring enabled: $ENABLE_MONITORING"
+            
+            if [[ "${{ inputs.EXP }}" == "true" && "$ENABLE_MONITORING" == "false" ]]; then
+              echo "✅ EXP + WAF configuration: Monitoring disabled to avoid cross-subscription permission issues"
+            elif [[ "${{ inputs.WAF_ENABLED }}" == "true" && "$ENABLE_MONITORING" == "true" ]]; then
+              echo "✅ WAF configuration: Full monitoring enabled"
+            fi
+          else
+            echo "❌ Parameters file not found: ${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}"
+            exit 1
+          fi
 
       - name: Deploy using azd up and extract values (Linux)
         id: get_output_linux
@@ -222,7 +293,8 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| **Job Status** | ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Resource Group** | \`${{ inputs.RESOURCE_GROUP_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Configuration Type** | \`${{ inputs.WAF_ENABLED == 'true' && inputs.EXP == 'true' && 'WAF + EXP' || inputs.WAF_ENABLED == 'true' && inputs.EXP != 'true' && 'WAF + Non-EXP' || inputs.WAF_ENABLED != 'true' && inputs.EXP == 'true' && 'Non-WAF + EXP' || 'Non-WAF + Non-EXP' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Configuration Type** | \`${{ inputs.WAF_ENABLED == 'true' && inputs.EXP == 'true' && 'WAF + EXP (Cross-Subscription Compatible)' || inputs.WAF_ENABLED == 'true' && inputs.EXP != 'true' && 'WAF + Full Monitoring' || inputs.WAF_ENABLED != 'true' && inputs.EXP == 'true' && 'Non-WAF + EXP' || 'Non-WAF Standard' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Infrastructure Path** | \`${{ env.INFRA_PATH }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Azure Region (Infrastructure)** | \`${{ inputs.AZURE_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Azure OpenAI Region** | \`${{ inputs.AZURE_ENV_OPENAI_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Docker Image Tag** | \`${{ inputs.IMAGE_TAG }}\` |" >> $GITHUB_STEP_SUMMARY
