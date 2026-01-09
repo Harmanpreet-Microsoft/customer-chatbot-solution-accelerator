@@ -32,6 +32,7 @@ class TestBYOCCGoldenPath:
             return None
     """Test class for BYOCC Customer Chatbot Golden Path demo script"""
 
+    @pytest.mark.gp
     def test_28907_golden_path_demo_script(self, page):
         """
         Test ID: 28907 

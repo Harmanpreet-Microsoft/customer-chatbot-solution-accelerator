@@ -1,0 +1,316 @@
+name: Deploy Steps - Linux
+
+on:
+  workflow_call:
+    inputs:
+      ENV_NAME:
+        required: true
+        type: string
+      AZURE_ENV_OPENAI_LOCATION:
+        required: true
+        type: string
+      AZURE_LOCATION:
+        required: true
+        type: string
+      RESOURCE_GROUP_NAME:
+        required: true
+        type: string
+      IMAGE_TAG:
+        required: true
+        type: string
+      BUILD_DOCKER_IMAGE:
+        required: true
+        type: string
+      EXP:
+        required: true
+        type: string
+      WAF_ENABLED:
+        required: false
+        type: string
+        default: 'false'
+      AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID:
+        required: false
+        type: string
+      AZURE_EXISTING_AI_PROJECT_RESOURCE_ID:
+        required: false
+        type: string
+    outputs:
+      CONTAINER_WEB_APPURL:
+        description: "Container Web App URL"
+        value: ${{ jobs.deploy-linux.outputs.CONTAINER_WEB_APPURL }}
+
+jobs:
+  deploy-linux:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_DEV_COLLECT_TELEMETRY: ${{ vars.AZURE_DEV_COLLECT_TELEMETRY }}
+    outputs:
+      CONTAINER_WEB_APPURL: ${{ steps.get_output_linux.outputs.CONTAINER_WEB_APPURL }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Azure CLI
+        shell: bash
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Setup Azure Developer CLI (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -fsSL https://aka.ms/install-azd.sh | sudo bash
+          azd version
+      
+      - name: Configure Parameters Based on WAF Setting
+        shell: bash
+        run: |
+          if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
+            echo "✅ WAF Enabled - Will use infra_avm folder for deployment"
+            
+            # Copy base WAF parameters file
+            cp infra_avm/main.waf.parameters.json infra_avm/main.parameters.json
+            echo "Copied WAF parameters to infra_avm/main.parameters.json"
+            
+            # Check if EXP is enabled and handle cross-subscription scenario
+            if [[ "${{ inputs.EXP }}" == "true" ]]; then
+              echo "🔧 WAF + EXP enabled - Checking for cross-subscription resource dependencies"
+              
+              # Get the current subscription ID
+              CURRENT_SUBSCRIPTION="$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
+              
+              # Get EXP Log Analytics workspace ID
+              EXP_LOG_ANALYTICS_ID=""
+              if [[ -n "${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}" ]]; then
+                EXP_LOG_ANALYTICS_ID="${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}"
+              elif [[ -n "${{ secrets.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}" ]]; then
+                EXP_LOG_ANALYTICS_ID="${{ secrets.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}"
+              fi
+              
+              # Check if using cross-subscription Log Analytics
+              if [[ -n "$EXP_LOG_ANALYTICS_ID" ]]; then
+                EXP_SUBSCRIPTION=$(echo "$EXP_LOG_ANALYTICS_ID" | cut -d'/' -f3)
+                if [[ "$EXP_SUBSCRIPTION" != "$CURRENT_SUBSCRIPTION" ]]; then
+                  echo "⚠️  Cross-subscription Log Analytics detected:"
+                  echo "   Current subscription: $CURRENT_SUBSCRIPTION"
+                  echo "   Log Analytics subscription: $EXP_SUBSCRIPTION"
+                  echo "   Disabling monitoring to avoid permission issues"
+                  
+                  # Dynamically disable monitoring in the parameters file
+                  sed -i 's/"enableMonitoring": {[^}]*"value": true[^}]*}/"enableMonitoring": {\n      "value": false\n    }/g' infra_avm/main.parameters.json
+                  echo "✅ Disabled monitoring in WAF parameters for cross-subscription compatibility"
+                else
+                  echo "✅ Same-subscription Log Analytics detected - keeping full monitoring enabled"
+                fi
+              else
+                echo "✅ No existing Log Analytics specified - keeping full monitoring enabled"
+              fi
+            else
+              echo "🔧 WAF without EXP - Full monitoring enabled"
+            fi
+            
+            # Copy WAF azure configuration file
+            cp azure.avm.yaml azure.yaml
+            echo "Copied azure.avm.yaml to azure.yaml for WAF deployment"
+            
+            echo "INFRA_PATH=infra_avm" >> $GITHUB_ENV
+            echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
+          else
+            echo "🔧 Non-WAF deployment - Will use infra folder for deployment"
+            
+            # Copy standard azure configuration file
+            echo " azure.yaml for standard deployment"
+            
+            echo "INFRA_PATH=infra" >> $GITHUB_ENV
+            echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
+          fi
+
+      - name: Login to AZD
+        id: login-azure
+        shell: bash
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          az account set --subscription "$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --client-secret ${{ secrets.AZURE_CLIENT_SECRET }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Validate Configuration
+        shell: bash
+        run: |
+          echo "🔍 Validating deployment configuration..."
+          echo "Infrastructure Path: ${{ env.INFRA_PATH }}"
+          echo "Parameters File: ${{ env.PARAMETERS_FILE }}"
+          echo "WAF Enabled: ${{ inputs.WAF_ENABLED }}"
+          echo "EXP Enabled: ${{ inputs.EXP }}"
+          
+          # Check if the selected parameters file exists
+          if [[ -f "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" ]]; then
+            echo "✅ Parameters file exists: ${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}"
+            
+            # Show monitoring configuration - improved regex to handle multiline JSON
+            ENABLE_MONITORING=$(grep -A2 '"enableMonitoring"' "${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}" | grep '"value"' | grep -o 'true\|false')
+            echo "📊 Monitoring enabled: $ENABLE_MONITORING"
+            
+            if [[ "${{ inputs.EXP }}" == "true" && "$ENABLE_MONITORING" == "false" ]]; then
+              echo "✅ EXP + WAF configuration: Monitoring disabled to avoid cross-subscription permission issues"
+            elif [[ "${{ inputs.WAF_ENABLED }}" == "true" && "$ENABLE_MONITORING" == "true" ]]; then
+              echo "✅ WAF configuration: Full monitoring enabled"
+            elif [[ "${{ inputs.WAF_ENABLED }}" == "true" && "$ENABLE_MONITORING" == "false" ]]; then
+              echo "✅ WAF configuration: Monitoring disabled for cross-subscription compatibility"
+            else
+              echo "ℹ️  Configuration: WAF=${{ inputs.WAF_ENABLED }}, EXP=${{ inputs.EXP }}, Monitoring=$ENABLE_MONITORING"
+            fi
+          else
+            echo "❌ Parameters file not found: ${{ env.INFRA_PATH }}/${{ env.PARAMETERS_FILE }}"
+            exit 1
+          fi
+
+      - name: Deploy using azd up and extract values (Linux)
+        id: get_output_linux
+        shell: bash
+        run: |
+          set -e          
+          echo "Starting azd deployment..."
+          echo "EXP: ${{ inputs.EXP }}"
+          echo "Using Docker Image Tag: ${{ inputs.IMAGE_TAG }}"
+
+          # Generate current timestamp in desired format: YYYY-MM-DDTHH:MM:SS.SSSSSSSZ
+          current_date=$(date -u +"%Y-%m-%dT%H:%M:%S.%7NZ")
+
+          echo "Creating environment..."
+          echo "Environment name to create: '${{ inputs.ENV_NAME }}'"
+          azd env new ${{ inputs.ENV_NAME }} --no-prompt
+          echo "Environment created: ${{ inputs.ENV_NAME }}"
+
+          echo "Setting default subscription..."
+          CLEANED_SUBSCRIPTION_ID="$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
+          azd config set defaults.subscription "$CLEANED_SUBSCRIPTION_ID"
+        
+          # Set additional parameters
+          azd env set AZURE_SUBSCRIPTION_ID="$CLEANED_SUBSCRIPTION_ID"
+          azd env set AZURE_ENV_AI_DEPLOYMENTS_LOCATION="${{ inputs.AZURE_ENV_OPENAI_LOCATION }}"
+          azd env set AZURE_LOCATION="${{ inputs.AZURE_LOCATION }}"
+          azd env set AZURE_RESOURCE_GROUP="${{ inputs.RESOURCE_GROUP_NAME }}"
+          azd env set AZURE_ENV_CONTAINER_IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
+          azd env set AZURE_ENV_NAME="${{ inputs.ENV_NAME }}"
+          
+          # Set additional required environment variables for WAF deployment
+          azd env set AZURE_ENV_OPENAI_LOCATION="${{ inputs.AZURE_ENV_OPENAI_LOCATION }}"
+          azd env set AZURE_ENV_MODEL_DEPLOYMENT_TYPE="GlobalStandard"
+          azd env set AZURE_ENV_MODEL_NAME="gpt-4o-mini"
+          azd env set AZURE_ENV_MODEL_VERSION="2024-07-18"
+          azd env set AZURE_ENV_MODEL_CAPACITY="10"
+          azd env set AZURE_ENV_ENABLE_TELEMETRY="true"
+          azd env set AZURE_ENV_IMAGETAG="${{ inputs.IMAGE_TAG }}"
+          azd env set AZURE_CONTAINER_REGISTRY_HOST=""
+          azd env set AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID=""
+          azd env set AZURE_EXISTING_AI_PROJECT_RESOURCE_ID=""
+          
+          # Set VM credentials if WAF is enabled (required for private networking)
+          if [[ "${{ inputs.WAF_ENABLED }}" == "true" ]]; then
+            azd env set AZURE_ENV_VM_ADMIN_USERNAME="azureuser"
+            azd env set AZURE_ENV_VM_ADMIN_PASSWORD="P@ssw0rd123!"
+            echo "Set VM credentials for WAF private networking"
+          fi
+          
+          if [[ "${{ inputs.BUILD_DOCKER_IMAGE }}" == "true" ]]; then
+            ACR_NAME=$(echo "${{ secrets.ACR_TEST_LOGIN_SERVER }}")
+            azd env set AZURE_ENV_CONTAINER_REGISTRY_ENDPOINT="$ACR_NAME"
+            echo "Set ACR name to: $ACR_NAME"
+          else
+            echo "Skipping ACR name configuration (using existing image)"
+          fi
+
+          if [[ "${{ inputs.EXP }}" == "true" ]]; then
+            echo "✅ EXP ENABLED - Setting EXP parameters..."
+            
+            if [[ -n "${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}" ]]; then
+              EXP_LOG_ANALYTICS_ID="${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}"
+            else
+              EXP_LOG_ANALYTICS_ID="${{ secrets.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}"
+            fi
+            
+            if [[ -n "${{ inputs.AZURE_EXISTING_AI_PROJECT_RESOURCE_ID }}" ]]; then
+              EXP_AI_PROJECT_ID="${{ inputs.AZURE_EXISTING_AI_PROJECT_RESOURCE_ID }}"
+            else
+              EXP_AI_PROJECT_ID="${{ secrets.AZURE_ENV_FOUNDRY_PROJECT_ID }}"
+            fi
+            
+            echo "AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID: $EXP_LOG_ANALYTICS_ID"
+            echo "AZURE_ENV_FOUNDRY_PROJECT_ID: $EXP_AI_PROJECT_ID"
+            azd env set AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID="$EXP_LOG_ANALYTICS_ID"
+            azd env set AZURE_ENV_FOUNDRY_PROJECT_ID="$EXP_AI_PROJECT_ID"
+          else
+            echo "❌ EXP DISABLED - Skipping EXP parameters"
+          fi
+
+          echo "Deploying using infrastructure path: ${{ env.INFRA_PATH }}"
+          echo "Using parameters file: ${{ env.PARAMETERS_FILE }}"
+          
+          # Change to the appropriate infrastructure directory and deploy
+          cd "${{ env.INFRA_PATH }}"
+          azd up --no-prompt
+          
+          echo "✅ Deployment succeeded."
+          echo "$DEPLOY_OUTPUT"
+
+          echo "Extracting deployment outputs..."
+          DEPLOY_OUTPUT=$(azd env get-values --output json)
+          echo "Deployment output: $DEPLOY_OUTPUT"
+          
+          if [[ -z "$DEPLOY_OUTPUT" ]]; then
+            echo "Error: Deployment output is empty. Please check the deployment logs."
+            exit 1
+          fi
+
+          # Extract URLs from deployment output
+          CONTAINER_WEB_APPURL=$(echo "$DEPLOY_OUTPUT" | jq -r '.WEB_APP_URL // empty')
+          CONTAINER_API_APPURL=$(echo "$DEPLOY_OUTPUT" | jq -r '.API_APP_URL // empty')
+          
+          echo "Extracted URLs:"
+          echo "CONTAINER_WEB_APPURL: $CONTAINER_WEB_APPURL"
+          echo "CONTAINER_API_APPURL: $CONTAINER_API_APPURL"
+          
+          # Set environment variables for use in subsequent steps
+          echo "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" >> $GITHUB_ENV
+          echo "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" >> $GITHUB_ENV
+          
+          # Set job outputs
+          echo "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" >> $GITHUB_OUTPUT
+          echo "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" >> $GITHUB_OUTPUT
+
+
+
+      - name: Generate Deployment Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## 🚀 Deploy Job Summary (Linux)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Job Status** | ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Resource Group** | \`${{ inputs.RESOURCE_GROUP_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Configuration Type** | \`${{ inputs.WAF_ENABLED == 'true' && inputs.EXP == 'true' && 'WAF + EXP (Cross-Subscription Compatible)' || inputs.WAF_ENABLED == 'true' && inputs.EXP != 'true' && 'WAF + Full Monitoring' || inputs.WAF_ENABLED != 'true' && inputs.EXP == 'true' && 'Non-WAF + EXP' || 'Non-WAF Standard' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Infrastructure Path** | \`${{ env.INFRA_PATH }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Azure Region (Infrastructure)** | \`${{ inputs.AZURE_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Azure OpenAI Region** | \`${{ inputs.AZURE_ENV_OPENAI_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Docker Image Tag** | \`${{ inputs.IMAGE_TAG }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "### ✅ Deployment Details" >> $GITHUB_STEP_SUMMARY
+            echo "- **Container Web App URL**: [${{ env.CONTAINER_WEB_APPURL }}](${{ env.CONTAINER_WEB_APPURL }})" >> $GITHUB_STEP_SUMMARY
+            echo "- **Container API App URL**: [${{ env.CONTAINER_API_APPURL }}](${{ env.CONTAINER_API_APPURL }})" >> $GITHUB_STEP_SUMMARY
+            echo "- Successfully deployed to Azure with all resources configured" >> $GITHUB_STEP_SUMMARY
+            echo "- Schemas registered and sample data uploaded successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+            echo "- Deployment process encountered an error" >> $GITHUB_STEP_SUMMARY
+            echo "- Check the deployment steps above for detailed error information" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Logout from Azure
+        if: always()
+        shell: bash
+        run: |
+          az logout || true
+          echo "Logged out from Azure."

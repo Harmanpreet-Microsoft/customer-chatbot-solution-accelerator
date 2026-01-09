@@ -6,6 +6,7 @@ on:
         - main
         - dev
         - demo
+        - PSL-US-27776
     schedule:
       - cron: '0 5,17 * * *'  # Runs at 5:00 AM and 5:00 PM GMT
     workflow_dispatch:
@@ -86,7 +87,7 @@ jobs:
         id: generate_rg_name
         run: |
           echo "Generating a unique resource group name..."
-          ACCL_NAME="ccb"
+          ACCL_NAME="byocc"
           SHORT_UUID=$(uuidgen | cut -d'-' -f1)
           UNIQUE_RG_NAME="arg-${ACCL_NAME}-${SHORT_UUID}"
           echo "RESOURCE_GROUP_NAME=${UNIQUE_RG_NAME}" >> $GITHUB_ENV
@@ -184,7 +185,7 @@ jobs:
       - name: Login to Azure
         run: |
             az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-            az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            az account set --subscription "$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
           
 
       - name: Get Azure Resources from Resource Group
