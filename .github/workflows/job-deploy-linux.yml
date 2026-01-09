@@ -82,8 +82,7 @@ jobs:
             echo "🔧 Non-WAF deployment - Will use infra folder for deployment"
             
             # Copy standard azure configuration file
-            cp azure_custom.yaml azure.yaml
-            echo "Copied azure_custom.yaml to azure.yaml for standard deployment"
+            echo " azure.yaml for standard deployment"
             
             echo "INFRA_PATH=infra" >> $GITHUB_ENV
             echo "PARAMETERS_FILE=main.parameters.json" >> $GITHUB_ENV
