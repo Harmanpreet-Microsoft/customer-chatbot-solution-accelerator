@@ -58,6 +58,8 @@ else
 fi
 
 echo "Getting principal id (user or service principal)"
+# Temporarily disable exit on error for principal detection
+set +e
 # Try to get signed-in user first (for interactive logins)
 signed_user_id=$(az ad signed-in-user show --query id -o tsv 2>/dev/null)
 
@@ -86,6 +88,8 @@ if [ -z "$signed_user_id" ]; then
 else
     echo "Logged in as user: $signed_user_id"
 fi
+# Re-enable exit on error
+set -e
 
 echo "Checking if the principal has Azure AI User role on the AI Foundry"
 
