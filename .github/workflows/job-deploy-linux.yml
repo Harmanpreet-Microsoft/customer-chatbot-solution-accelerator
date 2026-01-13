@@ -321,7 +321,52 @@ jobs:
           # Navigate to workspace root
           cd $GITHUB_WORKSPACE
           
-          # Run the agent creation script (it will pull parameters from azd env and install its own requirementstion" >> $GITHUB_STEP_SUMMARY
+          # Run the agent creation script (it will pull parameters from azd env and install its own requirements)
+          bash ./infra/scripts/agent_scripts/run_create_agents_scripts.sh
+          
+          if [[ $? -eq 0 ]]; then
+            echo "✅ Agent creation completed successfully"
+          else
+            echo "❌ Agent creation failed"
+            exit 1
+          fi
+
+
+
+      - name: Generate Deployment Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## 🚀 Deploy Job Summary (Linux)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Job Status** | ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Resource Group** | \`${{ inputs.RESOURCE_GROUP_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Configuration Type** | \`${{ inputs.WAF_ENABLED == 'true' && inputs.EXP == 'true' && 'WAF + EXP (Cross-Subscription Compatible)' || inputs.WAF_ENABLED == 'true' && inputs.EXP != 'true' && 'WAF + Full Monitoring' || inputs.WAF_ENABLED != 'true' && inputs.EXP == 'true' && 'Non-WAF + EXP' || 'Non-WAF Standard' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Infrastructure Path** | \`${{ env.INFRA_PATH }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Azure Region (Infrastructure)** | \`${{ inputs.AZURE_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Azure OpenAI Region** | \`${{ inputs.AZURE_ENV_OPENAI_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Docker Image Tag** | \`${{ inputs.IMAGE_TAG }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "### ✅ Deployment Details" >> $GITHUB_STEP_SUMMARY
+            echo "- **Container Web App URL**: [${{ env.CONTAINER_WEB_APPURL }}](${{ env.CONTAINER_WEB_APPURL }})" >> $GITHUB_STEP_SUMMARY
+            echo "- **Container API App URL**: [${{ env.CONTAINER_API_APPURL }}](${{ env.CONTAINER_API_APPURL }})" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📋 Post-Deployment Steps Completed" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Product catalogs populated and search indexes created" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Azure AI Foundry agents configured and deployed" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ All infrastructure resources provisioned successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🎯 Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "1. Configure App Authentication (see [App Authentication](../documents/AppAuthentication.md))" >> $GITHUB_STEP_SUMMARY
+            echo "2. Allow up to 10 minutes for authentication changes to propagate" >> $GITHUB_STEP_SUMMARY
+            echo "3. Access the application at the Container Web App URL above" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+            echo "- Deployment process encountered an error" >> $GITHUB_STEP_SUMMARY
+            echo "- Check the deployment steps above for detailed error information" >> $GITHUB_STEP_SUMMARY
             echo "- If post-deployment scripts failed, verify Azure permissions and quota" >> $GITHUB_STEP_SUMMARY
           fi
 
