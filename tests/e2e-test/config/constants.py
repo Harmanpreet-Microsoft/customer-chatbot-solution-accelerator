@@ -4,7 +4,9 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-WEB_URL = os.getenv("web_url")
+WEB_URL = os.getenv("url") or os.getenv("web_url")
+if not WEB_URL:
+    raise ValueError("WEB_URL environment variable is not set. Please set 'url' or 'web_url' environment variable.")
 if WEB_URL.endswith("/"):
     WEB_URL = WEB_URL[:-1]
 
@@ -16,7 +18,7 @@ repo_root = os.getenv("GITHUB_WORKSPACE", os.getcwd())
 # Construct the absolute path to the JSON file
 # note: may have to remove 'tests/e2e-test' from below when running locally
 json_file_path = os.path.join(
-    repo_root, "testdata", "golden_path_data.json"
+    repo_root,"tests/e2e-test","testdata", "golden_path_data.json"
     )
 
 # Load questions from JSON file
