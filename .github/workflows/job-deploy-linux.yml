@@ -285,7 +285,21 @@ jobs:
           echo "CONTAINER_WEB_APPURL=$CONTAINER_WEB_APPURL" >> $GITHUB_OUTPUT
           echo "CONTAINER_API_APPURL=$CONTAINER_API_APPURL" >> $GITHUB_OUTPUT
 
+      - name: Run Post-Deployment Data Upload Scripts
+        shell: bash
+        run: |
+          echo "Running data upload scripts..."
+          cd "${{ env.INFRA_PATH }}"
+          bash ./scripts/data_scripts/run_upload_data_scripts.sh
+          echo "✅ Data upload completed successfully"
 
+      - name: Run Post-Deployment Agent Creation Scripts
+        shell: bash
+        run: |
+          echo "Running agent creation scripts..."
+          cd "${{ env.INFRA_PATH }}"
+          bash ./scripts/agent_scripts/run_create_agents_scripts.sh
+          echo "✅ Agent creation completed successfully"
 
       - name: Generate Deployment Summary
         if: always()
