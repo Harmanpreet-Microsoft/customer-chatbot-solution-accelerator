@@ -289,6 +289,15 @@ jobs:
         shell: bash
         run: |
           echo "Running data upload scripts..."
+          
+          # Get service principal object ID for role assignments
+          SP_OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
+          echo "Service Principal Object ID: $SP_OBJECT_ID"
+          
+          # Export for scripts to use
+          export AZURE_PRINCIPAL_ID="$SP_OBJECT_ID"
+          export AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}"
+          
           cd "${{ env.INFRA_PATH }}"
           bash ./scripts/data_scripts/run_upload_data_scripts.sh
           echo "✅ Data upload completed successfully"
@@ -297,6 +306,15 @@ jobs:
         shell: bash
         run: |
           echo "Running agent creation scripts..."
+          
+          # Get service principal object ID for role assignments
+          SP_OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
+          echo "Service Principal Object ID: $SP_OBJECT_ID"
+          
+          # Export for scripts to use
+          export AZURE_PRINCIPAL_ID="$SP_OBJECT_ID"
+          export AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}"
+          
           cd "${{ env.INFRA_PATH }}"
           bash ./scripts/agent_scripts/run_create_agents_scripts.sh
           echo "✅ Agent creation completed successfully"

@@ -210,6 +210,15 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Running data upload scripts..."
+          
+          # Get service principal object ID for role assignments
+          $SP_OBJECT_ID = az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv
+          Write-Host "Service Principal Object ID: $SP_OBJECT_ID"
+          
+          # Export for scripts to use
+          $env:AZURE_PRINCIPAL_ID = $SP_OBJECT_ID
+          $env:AZURE_CLIENT_ID = "${{ secrets.AZURE_CLIENT_ID }}"
+          
           Set-Location "$env:INFRA_PATH"
           bash ./scripts/data_scripts/run_upload_data_scripts.sh
           Write-Host "✅ Data upload completed successfully"
@@ -218,6 +227,15 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Running agent creation scripts..."
+          
+          # Get service principal object ID for role assignments
+          $SP_OBJECT_ID = az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv
+          Write-Host "Service Principal Object ID: $SP_OBJECT_ID"
+          
+          # Export for scripts to use
+          $env:AZURE_PRINCIPAL_ID = $SP_OBJECT_ID
+          $env:AZURE_CLIENT_ID = "${{ secrets.AZURE_CLIENT_ID }}"
+          
           Set-Location "$env:INFRA_PATH"
           bash ./scripts/agent_scripts/run_create_agents_scripts.sh
           Write-Host "✅ Agent creation completed successfully"
