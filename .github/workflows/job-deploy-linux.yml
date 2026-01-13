@@ -292,27 +292,18 @@ jobs:
           python3 --version
           pip3 --version
           
-          # Install dependencies for data upload scripts
-          if [[ -f "infra/scripts/data_scripts/requirements.txt" ]]; then
-            echo "Installing data scripts dependencies..."
-            pip3 install -r infra/scripts/data_scripts/requirements.txt
-          fi
-          
-          # Install dependencies for agent creation scripts
-          if [[ -f "infra/scripts/agent_scripts/requirements.txt" ]]; then
-            echo "Installing agent scripts dependencies..."
-            pip3 install -r infra/scripts/agent_scripts/requirements.txt
-          fi
+          # Upgrade pip
+          python3 -m pip install --upgrade pip
 
       - name: Run Data Upload Scripts
         shell: bash
         run: |
           echo "📊 Running data upload scripts to populate product catalogs and create search indexes..."
           
-          # Navigate back to root if we're still in infra directory
-          cd /home/runner/work/customer-chatbot-solution-accelerator/customer-chatbot-solution-accelerator
+          # Navigate to workspace root
+          cd $GITHUB_WORKSPACE
           
-          # Run the data upload script (it will pull parameters from azd env)
+          # Run the data upload script (it will pull parameters from azd env and install its own requirements)
           bash ./infra/scripts/data_scripts/run_upload_data_scripts.sh
           
           if [[ $? -eq 0 ]]; then
@@ -327,47 +318,11 @@ jobs:
         run: |
           echo "🤖 Running agent creation scripts to set up Azure AI Foundry agents..."
           
-          # Navigate back to root if needed
-          cd /home/runner/work/customer-chatbot-solution-accelerator/customer-chatbot-solution-accelerator
+          # Navigate to workspace root
+          cd $GITHUB_WORKSPACE
           
-          # Run the agent creation script (it will pull parameters from azd env)
-          bash ./infra/scripts/agent_scripts/run_create_agents_scripts.sh
-          
-          if [[ $? -eq 0 ]]; then
-            echo "✅ Agent creation completed successfully"
-          else
-            echo "❌ Agent creation failed"
-            exit 1
-          fi
-
-
-
-      - name: Generate Deployment Summary
-        if: always()
-        shell: bash
-        run: |
-          echo "## 🚀 Deploy Job Summary (Linux)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Job Status** | ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Resource Group** | \`${{ inputs.RESOURCE_GROUP_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Configuration Type** | \`${{ inputs.WAF_ENABLED == 'true' && inputs.EXP == 'true' && 'WAF + EXP (Cross-Subscription Compatible)' || inputs.WAF_ENABLED == 'true' && inputs.EXP != 'true' && 'WAF + Full Monitoring' || inputs.WAF_ENABLED != 'true' && inputs.EXP == 'true' && 'Non-WAF + EXP' || 'Non-WAF Standard' }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Infrastructure Path** | \`${{ env.INFRA_PATH }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Azure Region (Infrastructure)** | \`${{ inputs.AZURE_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Azure OpenAI Region** | \`${{ inputs.AZURE_ENV_OPENAI_LOCATION }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Docker Image Tag** | \`${{ inputs.IMAGE_TAG }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ job.status }}" == "success" ]]; then
-            echo "### ✅ Deployment Details" >> $GITHUB_STEP_SUMMARY
-            echo "- **Container Web App URL**: [${{ env.CONTAINER_WEB_APPURL }}](${{ env.CONTAINER_WEB_APPURL }})" >> $GITHUB_STEP_SUMMARY
-            echo "- **Container API App URL**: [${{ env.CONTAINER_API_APPURL }}](${{ env.CONTAINER_API_APPURL }})" >> $GITHUB_STEP_SUMMARY
-            echo "- Successfully deployed to Azure with all resources configured" >> $GITHUB_STEP_SUMMARY
-            echo "- Schemas registered and sample data uploaded successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
-            echo "- Deployment process encountered an error" >> $GITHUB_STEP_SUMMARY
-            echo "- Check the deployment steps above for detailed error information" >> $GITHUB_STEP_SUMMARY
+          # Run the agent creation script (it will pull parameters from azd env and install its own requirementstion" >> $GITHUB_STEP_SUMMARY
+            echo "- If post-deployment scripts failed, verify Azure permissions and quota" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Logout from Azure
