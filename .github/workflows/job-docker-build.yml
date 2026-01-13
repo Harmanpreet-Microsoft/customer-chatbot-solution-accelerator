@@ -46,6 +46,8 @@ jobs:
             echo "tagname=demo" >> $GITHUB_OUTPUT
           elif [[ "$BRANCH_NAME" == "dependabotchanges" ]]; then
             echo "tagname=dependabotchanges" >> $GITHUB_OUTPUT
+          elif [[ "$BRANCH_NAME" == "PSL-US-27776" ]]; then
+            echo "tagname=prerelease" >> $GITHUB_OUTPUT
           else
             # Clean branch name for use as Docker tag
             CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')

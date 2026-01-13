@@ -47,6 +47,11 @@ on:
         required: false
         default: false
         type: boolean
+      run_e2e_tests:
+        description: 'Run End-to-End Tests'
+        required: false
+        default: 'GoldenPath-Testing'
+        type: string
 
 
       AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID:
@@ -75,6 +80,7 @@ jobs:
       EXP: ${{ github.event.inputs.EXP == 'true' }}
       build_docker_image: ${{ github.event.inputs.build_docker_image == 'true' }}
       cleanup_resources: ${{ github.event.inputs.cleanup_resources == 'true' }}
+      run_e2e_tests: ${{ github.event.inputs.run_e2e_tests || 'GoldenPath-Testing' }}
       AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID: ${{ github.event.inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID || '' }}
       AZURE_EXISTING_AI_PROJECT_RESOURCE_ID: ${{ github.event.inputs.AZURE_EXISTING_AI_PROJECT_RESOURCE_ID || '' }}
       trigger_type: ${{ github.event_name }}

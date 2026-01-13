@@ -37,7 +37,11 @@ on:
         required: false
         default: false
         type: boolean
-      
+      run_e2e_tests:
+        description: 'Run End-to-End Tests'
+        required: false
+        default: 'GoldenPath-Testing'
+        type: string
       AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID:
         description: 'Log Analytics Workspace ID (Optional)'
         required: false
@@ -98,7 +102,14 @@ jobs:
       QUOTA_FAILED: ${{ needs.deploy.outputs.QUOTA_FAILED }}
 
     secrets: inherit
-
+  e2e-test:
+    if: always() && ((needs.deploy.result == 'success' && needs.deploy.outputs.CONTAINER_WEB_APPURL != '') || (inputs.existing_webapp_url != '' && inputs.existing_webapp_url != null)) && (inputs.trigger_type != 'workflow_dispatch' || (inputs.run_e2e_tests != 'None' && inputs.run_e2e_tests != '' && inputs.run_e2e_tests != null))
+    needs: [docker-build, deploy]
+    uses: ./.github/workflows/test-automation-v2.yml
+    with:
+      CP_WEB_URL: ${{ needs.deploy.outputs.CONTAINER_WEB_APPURL || inputs.existing_webapp_url }}
+      TEST_SUITE: ${{ inputs.trigger_type == 'workflow_dispatch' && inputs.run_e2e_tests || 'GoldenPath-Testing' }}
+    secrets: inherit
   cleanup-deployment:
     if: always() && (inputs.trigger_type != 'workflow_dispatch' || inputs.cleanup_resources)
     needs: [docker-build, deploy]
