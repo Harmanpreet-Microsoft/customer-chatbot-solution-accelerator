@@ -84,24 +84,12 @@ jobs:
       AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID: ${{ inputs.AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID }}
       AZURE_EXISTING_AI_PROJECT_RESOURCE_ID: ${{ inputs.AZURE_EXISTING_AI_PROJECT_RESOURCE_ID }}
       docker_image_tag: ${{ needs.docker-build.outputs.IMAGE_TAG }}
+      run_e2e_tests: ${{ inputs.run_e2e_tests }}
       cleanup_resources: ${{ inputs.cleanup_resources }}
     secrets: inherit
 
 
-  send-notification:
-    if: always()
-    needs: [docker-build, deploy]
-    uses: ./.github/workflows/job-send-notification.yml
-    with:
-      trigger_type: ${{ inputs.trigger_type }}
-      waf_enabled: ${{ inputs.waf_enabled }}
-      EXP: ${{ inputs.EXP }}
-      deploy_result: ${{ needs.deploy.result }}
 
-      RESOURCE_GROUP_NAME: ${{ needs.deploy.outputs.RESOURCE_GROUP_NAME }}
-      QUOTA_FAILED: ${{ needs.deploy.outputs.QUOTA_FAILED }}
-
-    secrets: inherit
   e2e-test:
     if: always() && ((needs.deploy.result == 'success' && needs.deploy.outputs.CONTAINER_WEB_APPURL != '') || (inputs.existing_webapp_url != '' && inputs.existing_webapp_url != null)) && (inputs.trigger_type != 'workflow_dispatch' || (inputs.run_e2e_tests != 'None' && inputs.run_e2e_tests != '' && inputs.run_e2e_tests != null))
     needs: [docker-build, deploy]
@@ -112,7 +100,7 @@ jobs:
     secrets: inherit
   cleanup-deployment:
     if: always() && (inputs.trigger_type != 'workflow_dispatch' || inputs.cleanup_resources)
-    needs: [docker-build, deploy]
+    needs: [docker-build, deploy,e2e-test]
     uses: ./.github/workflows/job-cleanup-deployment.yml
     with:
       runner_os: ${{ inputs.runner_os }}
@@ -123,4 +111,22 @@ jobs:
       AZURE_ENV_OPENAI_LOCATION: ${{ needs.deploy.outputs.AZURE_ENV_OPENAI_LOCATION }}
       ENV_NAME: ${{ needs.deploy.outputs.ENV_NAME }}
       IMAGE_TAG: ${{ needs.deploy.outputs.IMAGE_TAG }}
+    secrets: inherit
+  send-notification:
+    if: always()
+    needs: [docker-build, deploy, e2e-test]
+    uses: ./.github/workflows/job-send-notification.yml
+    with:
+      trigger_type: ${{ inputs.trigger_type }}
+      waf_enabled: ${{ inputs.waf_enabled }}
+      EXP: ${{ inputs.EXP }}
+      run_e2e_tests: ${{ inputs.run_e2e_tests }}
+      existing_webapp_url: ${{ inputs.existing_webapp_url }}
+      deploy_result: ${{ needs.deploy.result }}
+      e2e_test_result: ${{ needs.e2e-test.result }}
+      CONTAINER_WEB_APPURL: ${{ needs.deploy.outputs.CONTAINER_WEB_APPURL }}
+      RESOURCE_GROUP_NAME: ${{ needs.deploy.outputs.RESOURCE_GROUP_NAME }}
+      QUOTA_FAILED: ${{ needs.deploy.outputs.QUOTA_FAILED }}
+      TEST_SUCCESS: ${{ needs.e2e-test.outputs.TEST_SUCCESS }}
+      TEST_REPORT_URL: ${{ needs.e2e-test.outputs.TEST_REPORT_URL }}
     secrets: inherit
