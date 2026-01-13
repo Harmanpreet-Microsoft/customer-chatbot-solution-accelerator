@@ -222,6 +222,11 @@ jobs:
           bash ./$env:INFRA_PATH/scripts/data_scripts/run_upload_data_scripts.sh
           Write-Host "✅ Data upload completed successfully"
 
+      - name: Setup Python 3.11 for Agent Scripts
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Run Post-Deployment Agent Creation Scripts
         shell: pwsh
         run: |
