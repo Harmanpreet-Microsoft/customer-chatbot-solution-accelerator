@@ -126,7 +126,7 @@ jobs:
       e2e_test_result: ${{ needs.e2e-test.result }}
       CONTAINER_WEB_APPURL: ${{ needs.deploy.outputs.CONTAINER_WEB_APPURL }}
       RESOURCE_GROUP_NAME: ${{ needs.deploy.outputs.RESOURCE_GROUP_NAME }}
-      QUOTA_FAILED: ${{ needs.deploy.outputs.QUOTA_FAILED }}
+      QUOTA_FAILED: ${{ needs.deploy.outputs.QUOTA_FAILED || 'false' }}
       TEST_SUCCESS: ${{ needs.e2e-test.outputs.TEST_SUCCESS }}
       TEST_REPORT_URL: ${{ needs.e2e-test.outputs.TEST_REPORT_URL }}
     secrets: inherit
