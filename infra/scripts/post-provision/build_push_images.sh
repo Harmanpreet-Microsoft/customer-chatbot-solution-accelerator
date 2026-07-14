@@ -101,6 +101,11 @@ SCENARIO_FRONTEND_DOCKERFILE="$REPO_ROOT/scenario-app/frontend/Dockerfile"
 # ---------------------------------------------------------------------------
 command -v az >/dev/null 2>&1 || { echo "ERROR: Azure CLI ('az') is required." >&2; exit 1; }
 
+if ! az account show --only-show-errors >/dev/null 2>&1; then
+    echo "ERROR: You are not signed in to the Azure CLI. Run 'az login' (or 'az login --use-device-code' in restricted environments) and try again." >&2
+    exit 1
+fi
+
 azd_available() { command -v azd >/dev/null 2>&1; }
 
 azd_get() {
