@@ -24,13 +24,13 @@ param solutionUniqueText string = take(uniqueString(subscription().id, resourceG
 ])
 param location string
 
-// Restricting deployment to regions that support all deployed models: gpt-4.1-mini, text-embedding-3-small, and gpt-realtime-mini (GlobalStandard)
-@allowed(['eastus2', 'francecentral', 'swedencentral'])
+// Restricting deployment to regions that support all deployed models: gpt-5.4-mini, text-embedding-3-small, and gpt-realtime-mini (GlobalStandard)
+@allowed(['eastus2', 'francecentral', 'swedencentral', 'centralus', 'southindia'])
 @metadata({
   azd:{
     type: 'location'
     usageName: [
-      'OpenAI.GlobalStandard.gpt4.1-mini,50'
+      'OpenAI.GlobalStandard.gpt-5.4-mini,50'
       'OpenAI.GlobalStandard.gpt-realtime-mini,1'
     ]
   }
@@ -43,10 +43,10 @@ param secondaryLocation string = 'canadacentral'
 
 @minLength(1)
 @description('Optional. Name of the GPT model to deploy:')
-param gptModelName string = 'gpt-4.1-mini'
+param gptModelName string = 'gpt-5.4-mini'
 
-@description('Optional. Version of the GPT model to deploy. Defaults to 2025-04-14.')
-param gptModelVersion string = '2025-04-14'
+@description('Optional. Version of the GPT model to deploy. Defaults to 2026-03-17.')
+param gptModelVersion string = '2026-03-17'
 
 @description('Optional. Version of the OpenAI API.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
@@ -105,13 +105,6 @@ param vmAdminPassword string?
 
 @description('Optional. Size of the Jumpbox Virtual Machine. Allows to customize VM size if `enablePrivateNetworking` is set to true. See https://learn.microsoft.com/azure/virtual-machines/sizes for available sizes.')
 param vmSize string = 'Standard_D2s_v5'
-
-// These parameters are changed for testing - please reset as part of publication
-@description('Optional. The host (excluding https://) of an existing container registry. This is the `loginServer` when using Azure Container Registry.')
-param containerRegistryEndpoint string = 'ccbcontainerreg.azurecr.io'
-
-@description('Optional. The image tag to use for container images. Defaults to "latest_v2".')
-param imageTag string = 'latest_v2'
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
@@ -301,6 +294,7 @@ module applicationInsights 'br/public:avm/res/insights/component:0.7.1' = if (en
     flowType: 'Bluefield'
     // WAF aligned configuration for Monitoring
     workspaceResourceId: enableMonitoring ? logAnalyticsWorkspaceResourceId : ''
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
   }
 }
 
@@ -611,6 +605,7 @@ var privateDnsZones = [
   'privatelink.documents.azure.com'
   'privatelink.search.windows.net'
   'privatelink.azurewebsites.net'
+  'privatelink.azurecr.io'
 ]
 
 // DNS Zone Index Constants
@@ -621,6 +616,7 @@ var dnsZoneIndex = {
   cosmosDb: 3
   search: 4
   webApp: 5
+  containerRegistry: 4
 }
 
 // List of DNS zone indices that correspond to AI-related services.
@@ -1082,6 +1078,61 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.19.0' = {
   }
 }
 
+// ========== Container Registry ========== //
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.12.1' = {
+  name: take('avm.res.container-registry.registry.cr${solutionSuffix}', 64)
+  params: {
+    name: 'cr${solutionSuffix}'
+    acrAdminUserEnabled: false
+    // Premium is required for private endpoints and network rules
+    acrSku: (enableScalability || enablePrivateNetworking) ? 'Premium' : 'Basic'
+    azureADAuthenticationAsArmPolicyStatus: 'enabled'
+    exportPolicyStatus: 'enabled'
+    location: location
+    softDeletePolicyDays: 7
+    softDeletePolicyStatus: 'disabled'
+    tags: tags
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
+    privateEndpoints: enablePrivateNetworking
+      ? [
+          {
+            name: 'pep-cr${solutionSuffix}'
+            customNetworkInterfaceName: 'nic-cr${solutionSuffix}'
+            privateDnsZoneGroup: {
+              privateDnsZoneGroupConfigs: [
+                { privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.containerRegistry]!.outputs.resourceId }
+              ]
+            }
+            service: 'registry'
+            subnetResourceId: virtualNetwork!.outputs.backendSubnetResourceId
+          }
+        ]
+      : []
+    // networkRuleBypassOptions and networkRuleSet are Premium-only; suppress them on Basic.
+    // The AVM module emits a networkRuleSet whenever defaultAction is 'Deny' (its default) with public access enabled,
+    // which ARM rejects with 'NetworkRuleNotSupported' on the Basic SKU.
+    networkRuleBypassOptions: (enableScalability || enablePrivateNetworking) ? 'AzureServices' : null
+    networkRuleSetDefaultAction: (enableScalability || enablePrivateNetworking) ? 'Deny' : 'Allow'
+    roleAssignments: [
+      {
+        roleDefinitionIdOrName: acrPullRole
+        principalType: 'ServicePrincipal'
+        principalId: webSiteBackend.outputs.systemAssignedMIPrincipalId!
+      }
+      {
+        roleDefinitionIdOrName: acrPullRole
+        principalType: 'ServicePrincipal'
+        principalId: webSite.outputs.systemAssignedMIPrincipalId!
+      }
+    ]
+  }
+}
+
+var acrPullRole = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+)
+
 // ========== Web server farm ========== //
 // WAF best practices for Web Application Services: https://learn.microsoft.com/en-us/azure/well-architected/service-guides/app-service-web-apps
 // PSRule for Web Server Farm: https://azure.github.io/PSRule.Rules.Azure/en/rules/resource/#app-service
@@ -1128,11 +1179,13 @@ module webSiteBackend 'modules/web-sites.bicep' = {
       systemAssigned: true
     }
     siteConfig: {
-      linuxFxVersion: 'DOCKER|${containerRegistryEndpoint}/backend:${imageTag}'
+      linuxFxVersion: 'DOCKER|mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
       minTlsVersion: '1.2'
       healthCheckPath: '/health'
       webSocketsEnabled: true
+      acrUseManagedIdentityCreds: true
     }
+    e2eEncryptionEnabled: true
     configs: [
       {
         name: 'appsettings'
@@ -1215,7 +1268,7 @@ module webSiteBackend 'modules/web-sites.bicep' = {
   }
 }
 
-// ========== Additional Cosmos DB Role Assignment for Backend App Service ==========//
+// ========== Additional Cosmos DB Role Assignment for Backend App Service ========== //
 // Add the backend App Service's system-assigned managed identity to Cosmos DB role
 resource cosmosDbBackendRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2025-11-01-preview' = {
   name: '${cosmosDbResourceName}/${guid(subscription().id, resourceGroup().id, backendWebSiteResourceName, 'CosmosDBDataContributor')}'
@@ -1318,10 +1371,14 @@ module webSite 'modules/web-sites.bicep' = {
     tags: tags
     location: location
     kind: 'app,linux,container'
+    managedIdentities: {
+      systemAssigned: true
+    }
     serverFarmResourceId: webServerFarm.?outputs.resourceId
     siteConfig: {
-      linuxFxVersion: 'DOCKER|${containerRegistryEndpoint}/frontend:${imageTag}'
+      linuxFxVersion: 'DOCKER|mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
       minTlsVersion: '1.2'
+      acrUseManagedIdentityCreds: true
     }
     configs: [
       {
@@ -1428,12 +1485,6 @@ output AZURE_FOUNDRY_ENDPOINT string = aiFoundryAiProjectEndpoint
 @description('Azure AI Agent model deployment name')
 output AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME string = gptModelName
 
-@description('Name of the Azure Container Registry')
-output ACR_NAME string = split(containerRegistryEndpoint, '.')[0]
-
-@description('Container image tag for the backend service')
-output AZURE_ENV_IMAGETAG string = imageTag
-
 @description('Name of the Azure AI Services resource')
 output AI_SERVICE_NAME string = aiFoundryAiServicesResourceName
 
@@ -1472,3 +1523,9 @@ output AI_SEARCH_SERVICE_RESOURCE_ID string = searchService.id
 
 @description('Application environment (Production)')
 output APP_ENV string = 'Prod'
+
+@description('Azure Container Registry endpoint URL')
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
+
+@description('Azure Container Registry name')
+output AZURE_CONTAINER_REGISTRY_NAME string = containerRegistry.outputs.name

@@ -194,8 +194,16 @@ export function parseProductsFromText(text: string): { products: Product[], intr
   
   let introText = '';
   let outroText = '';
-  
-  if (parts.length > 0) {
+
+  // JS String.split with a zero-width lookahead at position 0 does NOT emit
+  // an empty leading element, so parts[0] can itself be the first product
+  // rather than the intro text. Detect that case so the first product isn't
+  // rendered as raw markdown.
+  const productHeadingRegex = /^\s*(?:\d+\.\s*\*\*[^*]+\*\*|\*\*\d+\.\s*[^*]+\*\*)/;
+  const firstPartIsProduct = parts.length > 0 && productHeadingRegex.test(parts[0]);
+  const productStartIndex = firstPartIsProduct ? 0 : 1;
+
+  if (parts.length > 0 && !firstPartIsProduct) {
     introText = parts[0].trim();
     
     introText = introText.replace(/^###\s*[^\n]*\n?/gm, '').trim();
@@ -213,14 +221,14 @@ export function parseProductsFromText(text: string): { products: Product[], intr
     }
   }
   
-  for (let i = 1; i < parts.length; i++) {
+  for (let i = productStartIndex; i < parts.length; i++) {
     const product = parseProductSection(parts[i]);
     if (product) {
       products.push(product);
     }
   }
   
-  const hasImageOrLink = parts.length === 1 && (parts[0].includes('![') || /\[[^\]]+\]\([^)]+\.(jpg|jpeg|png|gif|webp|svg)/i.test(parts[0]));
+  const hasImageOrLink = parts.length === 1 && !firstPartIsProduct && (parts[0].includes('![') || /\[[^\]]+\]\([^)]+\.(jpg|jpeg|png|gif|webp|svg)/i.test(parts[0]));
   if (hasImageOrLink) {
     const product = parseProductSection(parts[0]);
     if (product) {
