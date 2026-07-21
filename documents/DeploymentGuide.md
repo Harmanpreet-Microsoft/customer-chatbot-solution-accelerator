@@ -68,7 +68,7 @@ Ensure you have access to an [Azure subscription](https://azure.microsoft.com/fr
 - **Minimum:** 50k tokens for Global Standard GPT-5.4-mini
 - **Optimal:** More than 50k tokens (for best performance)
 
-> **Note:** When you run `azd up`, the deployment will automatically show you regions with available quota, so this pre-check is optional but helpful for planning purposes. You can customize these settings later in [Step 3.3: Advanced Configuration](#33-advanced-configuration-optional).
+> **Note:** When you run `azd up`, the deployment will automatically show you regions with available quota, so this pre-check is optional but helpful for planning purposes. You can customize these settings later in [Step 3.4: Advanced Configuration](#34-advanced-configuration-optional).
 
 📖 **Adjust Quota:** Follow [Azure AI Model Quota Settings](./AzureGPTQuotaSettings.md) if needed.
 
@@ -182,16 +182,24 @@ Review the configuration options below. You can customize any settings that meet
 
 ### 3.1 Choose Deployment Type (Optional)
 
-| **Aspect** | **Development/Testing (Default)** | **Production** |
-|------------|----------------------------|-------------------------|
-| **Configuration File** | `main.parameters.json` (sandbox) | Copy `main.waf.parameters.json` to `main.parameters.json` |
-| **Security Controls** | Minimal (for rapid iteration) | Enhanced (production best practices) |
-| **Cost** | Lower costs | Cost optimized |
-| **Use Case** | POCs, development, testing | Production workloads |
-| **Framework** | Basic configuration | [Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/) |
-| **Features** | Core functionality | Reliability, security, operational excellence |
+| **Aspect** | **Development/Testing (Default)** | **Production (Basic)** | **Production (WAF-aligned)** |
+|------------|-----------------------------------|------------------------|------------------------------|
+| **Deployment Flavor** | `bicep` (Vanilla Bicep) | `avm` (AVM non-WAF) | `avm-waf` (AVM WAF) |
+| **Configuration File** | `main.parameters.json` (default) | Modify `deploymentFlavor` to `avm` | Copy `main.waf.parameters.json` to `main.parameters.json` |
+| **Infrastructure Mode** | Vanilla Bicep modules | AVM modules (no private networking) | AVM modules with WAF features |
+| **Security Controls** | Minimal (for rapid iteration) | Standard (production-ready) | Enhanced (best practices + private networking) |
+| **Cost** | Lowest costs | Moderate costs | Higher costs (includes VMs, private endpoints) |
+| **Use Case** | POCs, development, testing | Production without private networking | Enterprise production with private networking |
+| **Framework** | Basic configuration | AVM-compliant | [Well-Architected Framework](https://learn.microsoft.com/en-us/azure/well-architected/) |
+| **Features** | Core functionality | Reliability, security, AVM standards | Reliability, security, operational excellence, private networking, VMs, redundancy |
 
-**To use production configuration:**
+**How to switch deployment flavors:**
+```bash
+# For AVM production without private networking
+azd env set AZURE_ENV_DEPLOYMENT_FLAVOR avm
+```
+
+**To use production(WAF-aligned) configuration:**
 
 Copy the contents from the production configuration file to your main parameters file:
 
@@ -202,20 +210,52 @@ Copy the contents from the production configuration file to your main parameters
 5. Select all existing content (Ctrl+A) and paste the copied content (Ctrl+V)
 6. Save the file (Ctrl+S)
 
-> **Note:** For a simpler infrastructure setup without Azure Verified Modules, see the [Basic Deployment Guide](./BasicDeployment.md).
+> **Note:** The `deploymentFlavor` parameter in `main.parameters.json` controls which modules are used. Set to `bicep` (default), `avm`, or `avm-waf` depending on your requirements. See [Parameter Customization Guide](./CustomizingAzdParameters.md) for details.
 
-### 3.2 Set VM Credentials (Optional - Production Deployment Only)
+### 3.2 Choose Deployment Scenario (Optional)
 
-> **Note:** This section only applies if you selected **Production** deployment type in section 3.1. VMs are not deployed in the default Development/Testing configuration.
+The accelerator ships with three industry scenarios that change the host UI, host API, seed catalog/policy data, and Foundry agent instructions. The default is **ecommerce** (Contoso Paints).
 
-By default, random GUIDs are generated for VM credentials. To set custom credentials:
+| **Scenario** | **AZURE_ENV_SCENARIO** | **Description** |
+|--------------|------------------------|-----------------|
+| Ecommerce *(default)* | `ecommerce` | Contoso Paints retail host + embedded chat widget |
+| Healthcare | `healthcare` | Contoso Health services and appointments |
+| Banking | `banking` | Contoso Bank accounts and transactions |
+
+**Set the scenario before the first `azd up` on a new environment:**
+
+```shell
+# Healthcare
+azd env set AZURE_ENV_SCENARIO healthcare
+
+# Banking
+azd env set AZURE_ENV_SCENARIO banking
+```
+
+> **Important:** Use a **separate `azd` environment per scenario** (e.g., `azd env new contoso-health`) to avoid cross-contamination of Cosmos and Search indexes. Switching scenarios on an existing environment requires re-running `azd up` so the seed data, agents, and frontend image are rebuilt.
+
+📖 **Full Guide:** See [Scenario-based Deployment](./scenario-deployment-guide.md) for what changes per scenario, scenario pack layout (`scenarios/{scenario}/`), and CI examples.
+
+### 3.3 VM Authentication (Optional - Production (AVM-WAF) Deployment Only)
+
+> **Note:** This section only applies if you selected **`avm-waf`** deployment flavor in section 3.1. VMs (jumpbox) are only deployed in the WAF-aligned configuration for private networking access.
+
+**Default Authentication: Microsoft Entra ID (Recommended)**
+
+By default, the jumpbox VM uses **Microsoft Entra ID authentication** for secure, passwordless access. This is the recommended approach.
+
+**Optional: Username/Password Authentication**
+
+If you prefer to use username/password authentication instead of Entra ID, you can optionally set custom credentials:
 
 ```shell
 azd env set AZURE_ENV_VM_ADMIN_USERNAME <your-username>
 azd env set AZURE_ENV_VM_ADMIN_PASSWORD <your-password>
 ```
 
-### 3.3 Advanced Configuration (Optional)
+> **Security Note:** Using Entra ID authentication is strongly recommended over username/password for production deployments.
+
+### 3.4 Advanced Configuration (Optional)
 
 <details>
 <summary><b>Configurable Parameters</b></summary>
@@ -271,7 +311,7 @@ azd auth login --tenant-id <tenant-id>
    > 3. Under the **Overview** section, locate the **Tenant ID** field. Copy the value displayed.
 
 ### 4.2 Start Deployment
-**NOTE:** If you are running the latest azd version (version 1.23.9), please run the following command. 
+**NOTE:** If you are running azd version **1.23.9 or above**, please run the following command first to disable the built-in preflight check:
 ```bash 
 azd config set provision.preflight off
 ```
@@ -283,29 +323,51 @@ azd up
 **During deployment, you'll be prompted for:**
 1. **Environment name** (e.g., "chatbot") - Must be 3-16 characters long, alphanumeric only
 2. **Azure subscription** selection
-3. **Azure AI Foundry deployment region** - Select a region with available o3 model quota for AI operations
+3. **Azure AI Foundry deployment region** - Select a region with available `gpt-5.4-mini` model quota for AI operations
 4. **Primary location** - Select the region where your infrastructure resources will be deployed
 5. **Resource group** selection (create new or use existing)
+
+> **Note:** A scenario preflight validation runs automatically before provisioning (as an `azd` preprovision hook) to verify the selected `AZURE_ENV_SCENARIO`. See [Scenario-based Deployment](./scenario-deployment-guide.md) for details.
 
 **Expected Duration:** 4-6 minutes for default configuration
 
 **⚠️ Deployment Issues:** If you encounter errors or timeouts, try a different region as there may be capacity constraints. For detailed error solutions, see our [Troubleshooting Guide](./TroubleShootingSteps.md).
 
-### 4.3 Get Application URL
+### 4.3 Get Application URLs
 
-After successful deployment:
+This solution deploys **two** web apps — the embeddable chat host (`chat`) and the scenario host UI (`scenario`). Both URLs are printed at the end of a successful `azd up` (via the postdeploy hook) as `CHAT_WEB_APP_URL` and `SCENARIO_WEB_APP_URL`.
+
+If you missed the terminal output, you can also find them in the Azure Portal:
 1. Open [Azure Portal](https://portal.azure.com/)
 2. Navigate to your resource group
-3. Find the App Service with "app" in the name
-4. Copy the **Application URI**
+3. Look for the two App Services named `app-chat-<suffix>` and `app-scenario-<suffix>`
+4. Copy the **Default domain** / **Application URI** from each
 
-⚠️ **Important:** Complete [Post-Deployment Steps](#step-5-post-deployment-configuration) before accessing the application.
+⚠️ **Important:** Complete [Post-Deployment Steps](#step-5-post-deployment-configuration) before accessing the applications.
 
 ## Step 5: Post-Deployment Configuration
 
 After successful deployment, complete these essential steps to set up your chatbot application:
 
-### 5.1 Create and activate a virtual environment
+### 5.1 Sign in to the Azure CLI
+
+The post-provision scripts below use the `az` CLI, which uses a **separate credential store** from `azd`. Even if `azd auth login` succeeded earlier, you still need to sign in to `az` before running the scripts in §5.3:
+
+```shell
+az login
+```
+
+> **VS Code Web / restricted environments:** use `az login --use-device-code` and follow the prompts.
+
+Confirm the correct subscription is selected:
+
+```shell
+az account show
+# If needed, switch to the subscription that owns the resource group:
+az account set --subscription "<your-subscription-id>"
+```
+
+### 5.2 Create and activate a virtual environment
 
 **1. Create a virtual environment:**
 
@@ -333,7 +395,7 @@ source .venv/Scripts/activate
 source .venv/bin/activate
 ```
 
-### 5.2 Initialize Data and Agents
+### 5.3 Build Container Images and Initialize Data and Agents
 
 **Step 1: Build and push container images**
 
@@ -341,102 +403,85 @@ The initial deployment configures the App Services with a placeholder container.
 
 - **For PowerShell (Windows/Linux/macOS):**
     ```shell
-    infra\scripts\build_push_images.ps1
+    infra\scripts\post-provision\build_push_images.ps1
     ```
 - **For Bash (Linux/macOS/WSL):**
     ```bash
-    bash ./infra/scripts/build_push_images.sh
-    ```
-
-**If you deployed using `AVM`:**
-
-- **For PowerShell (Windows/Linux/macOS):**
-    ```shell
-    infra\scripts\build_push_images.ps1 -ResourceGroup "<your-resource-group-name>"
-    ```
-- **For Bash (Linux/macOS/WSL):**
-    ```bash
-    bash ./infra/scripts/build_push_images.sh --resource-group "<your-resource-group-name>"
+    bash ./infra/scripts/post-provision/build_push_images.sh
     ```
 
 This script will:
-- Build the backend (`src/api`) and frontend (`src/App`) images remotely using `az acr build` (no local Docker required)
+- Build four images (`chat-backend`, `chat-frontend`, `scenario-backend`, `scenario-frontend`) remotely using `az acr build` (no local Docker required)
 - Push them to your Azure Container Registry
-- Update both App Services (`api-<suffix>` and `app-<suffix>`) to run the new image and restart them
+- Update all four App Services to run the new images and restart them
 
 > **Tip:** Pass `-ImageTag <tag>` (PowerShell) or `--image-tag <tag>` (bash) to publish a specific tag. Pass `-ShowLogs` / `--show-logs` to stream the full build output. Each run generates a fresh timestamp tag by default.
 
-**Step 2: Populate Product Catalogs and Search Indexes**
+**Step 2: Load Data and Create AI Foundry Agents**
 
-Run the data setup script to load sample product data
+#### Option A — Run both stages at once (recommended)
 
-- **For PowerShell (Windows/Linux/macOS):**
-    ```shell
-    infra\scripts\data_scripts\run_upload_data_scripts.ps1
-    ```
-- **For Bash (Linux/macOS/WSL):**
-     ```bash
-     bash ./infra/scripts/data_scripts/run_upload_data_scripts.sh
-     ```
-**If you deployed using `AVM`:**
+The consolidated script runs data upload **and** agent creation in sequence. It reads all required values from the `azd` environment.
 
 - **For PowerShell (Windows/Linux/macOS):**
     ```shell
-    infra\scripts\data_scripts\run_upload_data_scripts.ps1 -resource_group "<your-resource-group-name>"
+    infra\scripts\post-provision\postprovision_data_agents.ps1
     ```
 - **For Bash (Linux/macOS/WSL):**
-     ```bash
-     bash ./infra/scripts/data_scripts/run_upload_data_scripts.sh --resource-group "<your-resource-group-name>"
-     ```
+    ```bash
+    bash ./infra/scripts/post-provision/postprovision_data_agents.sh
+    ```
 
+> **Note:** If a stage fails, the wrapper prints the exact command to re-run only that failed stage.
 
-This script will:
-- Upload sample product catalog data to Azure Cosmos DB
-- Create and configure Azure AI Search indexes
-- Populate search indexes with product and policy documents
+#### Option B — Run each stage individually
 
-**Step 3: Create AI Foundry Agents**
-Run the data setup script to load sample product data and create search indexes in Azure AI Search:
+**Stage 1: Populate Product Catalogs and Search Indexes**
 
 - **For PowerShell (Windows/Linux/macOS):**
     ```shell
-    infra\scripts\agent_scripts\run_create_agents_scripts.ps1
+    infra\scripts\post-provision\data_scripts\run_upload_data_scripts.ps1
     ```
 - **For Bash (Linux/macOS/WSL):**
-     ```bash
-     bash ./infra/scripts/agent_scripts/run_create_agents_scripts.sh
-     ```  
-**If you deployed using `AVM`:**
+    ```bash
+    bash ./infra/scripts/post-provision/data_scripts/run_upload_data_scripts.sh
+    ```
+
+This stage:
+- Uploads sample product catalog data to Azure Cosmos DB
+- Creates and configures Azure AI Search indexes
+- Populates search indexes with product and policy documents
+
+**Stage 2: Create AI Foundry Agents**
 
 - **For PowerShell (Windows/Linux/macOS):**
     ```shell
-    infra\scripts\agent_scripts\run_create_agents_scripts.ps1 -resourceGroup "<your-resource-group-name>"
+    infra\scripts\post-provision\agent_scripts\run_create_agents_scripts.ps1
     ```
 - **For Bash (Linux/macOS/WSL):**
-     ```bash
-     bash ./infra/scripts/agent_scripts/run_create_agents_scripts.sh --resource-group "<your-resource-group-name>"
-     ```
+    ```bash
+    bash ./infra/scripts/post-provision/agent_scripts/run_create_agents_scripts.sh
+    ```
 
-This script creates:
-
+This stage creates:
 - **Orchestrator Agent:** Routes customer queries to appropriate specialist agents
 - **Product Lookup Agent:** Handles product search and recommendations
 - **Policy/Knowledge Agent:** Answers questions about policies and general information
 
-   > **Note**: Replace `<your-resource-group-name>` with the actual name of the resource group containing your deployed Azure resources.
+> **Note:** You can also invoke the underlying scripts directly from `infra/scripts/post-provision/data_scripts/` and `infra/scripts/post-provision/agent_scripts/` if you need to re-run one without the other.
 
-### 5.3 Configure Authentication (Optional)
+### 5.4 Configure Authentication (Optional)
 
 1. Follow [App Authentication Configuration](./AppAuthentication.md)
 2. Wait up to 10 minutes for authentication changes to take effect
 
-### 5.4 Verify Deployment
+### 5.5 Verify Deployment
 
 1. Access your application using the URL from Step 4.3
 2. Confirm the application loads successfully
 3. Verify you can sign in with your authenticated account
 
-### 5.5 Test the Application
+### 5.6 Test the Application
 
 To help you get started, here are some **Sample Questions** you can ask in the chatbot:
 
@@ -572,32 +617,3 @@ Now that your deployment is complete and tested, explore these resources to enha
 - 🐛 **Issues:** Check [Troubleshooting Guide](./TroubleShootingSteps.md)
 - 💬 **Support:** Review [Support Guidelines](../SUPPORT.md)
 - 🔧 **Development:** See [Contributing Guide](../CONTRIBUTING.md)
-
----
-
-## Advanced: Deploy Local Changes
-
-If you've made local modifications to the code and want to deploy them to Azure, follow these steps to swap the configuration files:
-
-> **Note:** To set up and run the application locally for development, see the [Local Development Setup Guide](./LocalDevelopmentSetup.md).
-
-### Step 1: Rename Azure Configuration Files
-
-**In the root directory:**
-1. Rename `azure.yaml` to `azure_custom2.yaml`
-2. Rename `azure_custom.yaml` to `azure.yaml`
-
-### Step 2: Rename Infrastructure Files
-
-**In the `infra` directory:**
-1. Rename `main.bicep` to `main_custom2.bicep`
-2. Rename `main_custom.bicep` to `main.bicep`
-
-### Step 3: Deploy Changes
-
-Run the deployment command:
-```shell
-azd up
-```
-
-> **Note:** These custom files are configured to deploy your local code changes instead of pulling from the GitHub repository.
