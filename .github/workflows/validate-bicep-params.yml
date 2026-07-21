@@ -37,7 +37,7 @@ jobs:
           ACCELERATOR_NAME: ${{ env.accelerator_name }}
         run: |
           set +e
-          python infra/scripts/validate_bicep_params.py --dir infra --strict --no-color \
+          python infra/scripts/pre-provision/validate_bicep_params.py --dir infra --strict --no-color \
             --json-output infra_results.json 2>&1 | tee infra_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           set -e
@@ -64,7 +64,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           RUN_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          python infra/scripts/validate_bicep_params.py \
+          python infra/scripts/pre-provision/validate_bicep_params.py \
             --dir infra --no-color \
             --html-output email_body.html \
             --accelerator-name "${ACCELERATOR_NAME}" \
