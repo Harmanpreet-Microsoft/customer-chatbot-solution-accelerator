@@ -1,8 +1,0 @@
-node_modules
-.git
-*.md
-README*
-dist
-.env
-.env.*
-!.env.example

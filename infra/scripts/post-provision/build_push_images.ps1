@@ -302,6 +302,11 @@ if (-not (Test-CommandAvailable 'az')) {
     throw "Azure CLI ('az') is required but was not found on PATH."
 }
 
+az account show --only-show-errors 2>$null | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "You are not signed in to the Azure CLI. Run 'az login' (or 'az login --use-device-code' in restricted environments) and try again."
+}
+
 # ---------------------------------------------------------------------------
 # Resolve inputs
 # ---------------------------------------------------------------------------

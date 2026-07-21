@@ -349,7 +349,25 @@ If you missed the terminal output, you can also find them in the Azure Portal:
 
 After successful deployment, complete these essential steps to set up your chatbot application:
 
-### 5.1 Create and activate a virtual environment
+### 5.1 Sign in to the Azure CLI
+
+The post-provision scripts below use the `az` CLI, which uses a **separate credential store** from `azd`. Even if `azd auth login` succeeded earlier, you still need to sign in to `az` before running the scripts in §5.3:
+
+```shell
+az login
+```
+
+> **VS Code Web / restricted environments:** use `az login --use-device-code` and follow the prompts.
+
+Confirm the correct subscription is selected:
+
+```shell
+az account show
+# If needed, switch to the subscription that owns the resource group:
+az account set --subscription "<your-subscription-id>"
+```
+
+### 5.2 Create and activate a virtual environment
 
 **1. Create a virtual environment:**
 
@@ -377,7 +395,7 @@ source .venv/Scripts/activate
 source .venv/bin/activate
 ```
 
-### 5.2 Build Container Images and Initialize Data and Agents
+### 5.3 Build Container Images and Initialize Data and Agents
 
 **Step 1: Build and push container images**
 
@@ -452,18 +470,18 @@ This stage creates:
 
 > **Note:** You can also invoke the underlying scripts directly from `infra/scripts/post-provision/data_scripts/` and `infra/scripts/post-provision/agent_scripts/` if you need to re-run one without the other.
 
-### 5.3 Configure Authentication (Optional)
+### 5.4 Configure Authentication (Optional)
 
 1. Follow [App Authentication Configuration](./AppAuthentication.md)
 2. Wait up to 10 minutes for authentication changes to take effect
 
-### 5.4 Verify Deployment
+### 5.5 Verify Deployment
 
 1. Access your application using the URL from Step 4.3
 2. Confirm the application loads successfully
 3. Verify you can sign in with your authenticated account
 
-### 5.5 Test the Application
+### 5.6 Test the Application
 
 To help you get started, here are some **Sample Questions** you can ask in the chatbot:
 

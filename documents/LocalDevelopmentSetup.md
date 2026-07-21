@@ -198,7 +198,7 @@ FOUNDRY_POLICY_AGENT=<policy-agent-name>
 
 > **⚠️ Set `APP_ENV=dev`.** If you copied values from `.azure/<env-name>/.env`, `APP_ENV` will be set for the deployed environment. You **must** change it to `dev` locally — this switches the backend to `DefaultAzureCredential` so it uses your `az login` identity instead of the App Service managed identity.
 
-> `FOUNDRY_*` values are **not** populated automatically by `azd up`. Run the post-provision agent creation script (see Deployment Guide § 5.2) and copy the resulting names into `.env`.
+> `FOUNDRY_*` values are **not** populated automatically by `azd up`. Run the post-provision agent creation script (see Deployment Guide § 5.3) and copy the resulting names into `.env`.
 
 ### 5.2 Scenario backend — `scenario-app/backend/.env`
 
