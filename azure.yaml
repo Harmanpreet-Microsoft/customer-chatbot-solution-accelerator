@@ -16,12 +16,26 @@ hooks:
   preprovision:
     windows:
       shell: pwsh
-      run: ./infra/scripts/pre-provision/preflight_scenario.ps1
+      run: |
+        ./infra/scripts/pre-provision/preflight_scenario.ps1
+        Write-Host ""
+        Write-Host "  ---------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
+        Write-Host "  Note: If deployment fails or you encounter an issue, please open an issue with the deployment logs." -ForegroundColor Yellow
+        Write-Host "  https://github.com/microsoft/customer-chatbot-solution-accelerator/issues" -ForegroundColor Cyan
+        Write-Host "  ---------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
+        Write-Host ""
       continueOnError: false
       interactive: false
     posix:
       shell: sh
-      run: bash ./infra/scripts/pre-provision/preflight_scenario.sh
+      run: |
+        bash ./infra/scripts/pre-provision/preflight_scenario.sh
+        printf '\n'
+        printf '\033[33m  ---------------------------------------------------------------------------------------------------\033[0m\n'
+        printf '\033[33m  Note: If deployment fails or you encounter an issue, please open an issue with the deployment logs.\033[0m\n'
+        printf '\033[36m  https://github.com/microsoft/customer-chatbot-solution-accelerator/issues\033[0m\n'
+        printf '\033[33m  ---------------------------------------------------------------------------------------------------\033[0m\n'
+        printf '\n'
       continueOnError: false
       interactive: false
 
