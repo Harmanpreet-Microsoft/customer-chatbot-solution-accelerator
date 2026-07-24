@@ -7,7 +7,7 @@ FastAPI backend for the e-commerce chat application with AI-powered customer sup
 - **Product Management**: CRUD operations for products with filtering and search
 - **AI Chat**: Azure OpenAI integration with fallback responses
 - **Shopping Cart**: Full cart management functionality
-- **Database Support**: Cosmos DB integration with mock data fallback
+- **Database Support**: Azure Cosmos DB integration with mock data fallback
 - **Authentication**: Microsoft Entra ID integration (ready for implementation)
 - **API Documentation**: Interactive Swagger/OpenAPI docs
 - **Testing**: Comprehensive unit tests
@@ -23,7 +23,7 @@ backend/
 │   ├── config.py            # Configuration management
 │   ├── models.py            # Pydantic models
 │   ├── database.py          # Database abstraction layer
-│   ├── cosmos_service.py    # Cosmos DB implementation
+│   ├── cosmos_service.py    # Azure Cosmos DB implementation
 │   ├── ai_service.py        # Azure OpenAI integration
 │   └── routers/
 │       ├── products.py      # Product endpoints
@@ -140,7 +140,7 @@ The backend supports two database modes:
 - No external dependencies
 - Perfect for local development and testing
 
-### 2. Cosmos DB (Production)
+### 2. Azure Cosmos DB (Production)
 - Azure Cosmos DB integration
 - Persistent storage
 - Scalable and production-ready
@@ -163,7 +163,7 @@ The backend supports two database modes:
 
 The application uses environment-based configuration with sensible defaults:
 
-- **Database**: Automatically detects Cosmos DB configuration
+- **Database**: Automatically detects Azure Cosmos DB configuration
 - **AI Service**: Automatically detects Azure OpenAI configuration
 - **Authentication**: Ready for Microsoft Entra ID integration
 - **CORS**: Configurable allowed origins
@@ -180,7 +180,7 @@ The application uses environment-based configuration with sensible defaults:
 
 - CORS configuration
 - Input validation with Pydantic
-- SQL injection prevention (Cosmos DB)
+- SQL injection prevention (Azure Cosmos DB)
 - Rate limiting ready (can be added)
 - Authentication ready (Microsoft Entra ID)
 
@@ -205,7 +205,7 @@ The application uses environment-based configuration with sensible defaults:
 
 1. Update models in `app/models.py`
 2. Update database service in `app/database.py`
-3. Update Cosmos DB service in `app/cosmos_service.py`
+3. Update Azure Cosmos DB service in `app/cosmos_service.py`
 4. Add migration scripts if needed
 
 ## Deployment

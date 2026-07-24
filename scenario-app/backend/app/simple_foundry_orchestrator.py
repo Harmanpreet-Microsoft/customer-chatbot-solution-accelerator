@@ -79,7 +79,7 @@ async def _resolve_foundry_agent_definition(agent_id: str):
 async def _build_foundry_agent(
     agent_id: str, name: str, plugins: Optional[List] = None
 ) -> Optional[Any]:
-    """Build a Foundry agent using direct OpenAI API calls"""
+    """Build a Foundry agent using direct Azure OpenAI API calls"""
     try:
         logger.info(f"Building {name} (ID: {agent_id}) using Azure AI Foundry...")
 
@@ -87,7 +87,7 @@ async def _build_foundry_agent(
         client = get_foundry_client()
 
         try:
-            # Get the OpenAI client from Foundry with proper API version
+            # Get the Azure OpenAI client from Foundry with proper API version
             openai_client = await client.get_openai_client(  # type: ignore
                 api_version=settings.azure_openai_api_version
             )
@@ -98,7 +98,7 @@ async def _build_foundry_agent(
                 f"✅ Successfully connected to Foundry assistant: {assistant.name or name}"
             )
 
-            # Create a custom agent that uses the OpenAI client directly
+            # Create a custom agent that uses the Azure OpenAI client directly
             class FoundryAgent:
                 def __init__(self, assistant_id: str, name: str, openai_client):
                     self.id = assistant_id

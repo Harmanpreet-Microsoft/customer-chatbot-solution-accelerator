@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: Cosmos DB
+// Module: Azure Cosmos DB
 // Description: Creates an Azure Cosmos DB (NoSQL) account with database/container
 // API: Microsoft.DocumentDB/databaseAccounts@2025-10-15
 // ============================================================================
@@ -7,7 +7,7 @@
 @description('Solution name suffix used to derive the resource name.')
 param solutionName string
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 param name string = 'cosmos-${solutionName}'
 
 @description('Azure region for the resource.')
@@ -78,13 +78,13 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2025-10-15
 // ============================================================================
 // Outputs
 // ============================================================================
-@description('Resource ID of the Cosmos DB account.')
+@description('Resource ID of the Azure Cosmos DB account.')
 output resourceId string = cosmos.id
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 output name string = cosmos.name
 
-@description('Endpoint of the Cosmos DB account.')
+@description('Endpoint of the Azure Cosmos DB account.')
 output endpoint string = 'https://${name}.documents.azure.com:443/'
 
 @description('Database name.')

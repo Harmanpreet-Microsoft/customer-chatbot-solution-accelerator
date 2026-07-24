@@ -11,11 +11,9 @@ _env_file_path = _backend_dir / ".env"
 _scenario_app_dir = _backend_dir.parent
 _repo_root_env = _scenario_app_dir.parent / ".env"
 
-for _p in (_repo_root_env, _scenario_app_dir / ".env"):
+for _p in (_env_file_path, _scenario_app_dir / ".env", _repo_root_env):
     if _p.is_file():
         load_dotenv(_p, override=False)
-if _env_file_path.is_file():
-    load_dotenv(_env_file_path, override=True)
 
 
 class Settings(BaseSettings):
@@ -82,7 +80,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-# Check if we have Cosmos DB configuration
+# Check if we have Azure Cosmos DB configuration
 def has_cosmos_db_config() -> bool:
     v = settings.cosmos_db_endpoint
     return v is not None and str(v).strip() != ""

@@ -24,7 +24,7 @@ def run_async_sync(coro):
 
 
 class OrdersPlugin:
-    """Plugin for order management using Cosmos DB"""
+    """Plugin for order management using Azure Cosmos DB"""
 
     @kernel_function(description="Get order by ID and return JSON")
     def get_order(self, order_id: str) -> str:

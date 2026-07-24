@@ -16,7 +16,7 @@ async def call_foundry_agent(
     azure_client_id: Optional[str] = None,
 ) -> str:
     """
-    Call the Foundry multi-agent pipeline (chat → product/policy agents → Azure AI Search).
+    Call the Foundry multi-agent pipeline (chat → product/policy agents → Azure Azure AI Serach).
     Returns the grounded text response.
     """
     try:

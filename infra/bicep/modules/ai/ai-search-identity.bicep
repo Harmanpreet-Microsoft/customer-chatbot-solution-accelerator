@@ -1,13 +1,13 @@
 // ============================================================================
-// Module: AI Search Identity Update
+// Module: Azure AI Serach Identity Update
 // Description: Separate deployment that enables managed identity and applies
-//              full configuration on an existing AI Search service.
+//              full configuration on an existing Azure AI Serach service.
 //              Called by ai-search.bicep as Step 2 of the two-step pattern.
 // ============================================================================
 
 targetScope = 'resourceGroup'
 
-@description('The name of the existing AI Search service.')
+@description('The name of the existing Azure AI Serach service.')
 param name string
 
 @description('The Azure region of the search service.')
@@ -67,5 +67,5 @@ resource searchServiceUpdate 'Microsoft.Search/searchServices@2025-05-01' = {
   }
 }
 
-@description('The principal ID of the AI Search system-assigned managed identity.')
+@description('The principal ID of the Azure AI Serach system-assigned managed identity.')
 output systemAssignedMIPrincipalId string = searchServiceUpdate.identity.principalId

@@ -219,7 +219,7 @@ jobs:
             echo "Log Analytics workspace name: ${log_analytics_workspace_name}" 
           fi
           
-          echo "Fetching AI Services (OpenAI) resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
+          echo "Fetching AI Services (Azure OpenAI) resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
           
           # Run the az resource list command to get the AI Services resource name
           ai_services_name=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --resource-type "Microsoft.CognitiveServices/accounts" --query "[0].name" -o tsv)
@@ -231,16 +231,16 @@ jobs:
             echo "AI Services resource name: ${ai_services_name}" 
           fi
 
-          echo "Fetching AI Search resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
+          echo "Fetching Azure AI Serach resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
           
-          # Run the az resource list command to get the AI Search resource name
+          # Run the az resource list command to get the Azure AI Serach resource name
           ai_search_name=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --resource-type "Microsoft.Search/searchServices" --query "[0].name" -o tsv)
 
           if [ -z "$ai_search_name" ]; then
-            echo "No AI Search resource found in resource group ${{ env.RESOURCE_GROUP_NAME }}."
+            echo "No Azure AI Serach resource found in resource group ${{ env.RESOURCE_GROUP_NAME }}."
           else
             echo "AI_SEARCH_NAME=${ai_search_name}" >> $GITHUB_ENV
-            echo "AI Search resource name: ${ai_search_name}" 
+            echo "Azure AI Serach resource name: ${ai_search_name}" 
           fi
 
       - name: List KeyVaults and Store in Array
@@ -384,7 +384,7 @@ jobs:
         run: |
           set -e
 
-          # Purge AI Services Resource (includes OpenAI)
+          # Purge AI Services Resource (includes Azure OpenAI)
           if [ ! -z "${{ env.AI_SERVICES_NAME }}" ]; then
             echo "AI Services: ${{ env.AI_SERVICES_NAME }}"
             echo "Purging the AI Services Resource..."

@@ -145,7 +145,7 @@ def get_database_service() -> EcommerceDatabaseService:
 
             return EcommerceMemoryService()
     else:
-        print("No Cosmos DB configuration found, using in-memory service")
+        print("No Azure Cosmos DB configuration found, using in-memory service")
         from .memory_service import EcommerceMemoryService
         return EcommerceMemoryService()
 

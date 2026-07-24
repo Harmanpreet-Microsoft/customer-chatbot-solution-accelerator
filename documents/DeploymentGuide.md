@@ -19,7 +19,7 @@ Ensure you have access to an [Azure subscription](https://azure.microsoft.com/fr
 | **Contributor** | Subscription level | Create and manage Azure resources |
 | **User Access Administrator** | Subscription level | Manage user access and role assignments |
 | **Role Based Access Control Admin** | Subscription/Resource Group level | Configure RBAC permissions |
-| **App Registration Creation** | Azure Active Directory | Create and configure authentication |
+| **App Registration Creation** | Microsoft Entra ID | Create and configure authentication |
 
 **🔍 How to Check Your Permissions:**
 
@@ -47,7 +47,7 @@ Ensure you have access to an [Azure subscription](https://azure.microsoft.com/fr
 **Required Azure Services:**
 - [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/) - For Agent Framework orchestration and AI project management
 - [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/) - For GPT-5.4-mini model deployments
-- [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) - For hybrid search across product catalogs and policy documents
+- [Azure Azure AI Serach](https://learn.microsoft.com/en-us/azure/search/) - For hybrid search across product catalogs and policy documents
 - [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/) - For storing product catalogs, orders, and chat history
 - [Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/) - For hosting frontend and backend applications
 
@@ -127,7 +127,7 @@ Select one of the following options to deploy the Customer Chatbot Solution Acce
 2. Sign in with your Azure account when prompted
 3. Select the subscription where you want to deploy the solution
 4. Wait for the environment to initialize (includes all deployment tools)
-5. Once the solution opens, the **AI Foundry terminal** will automatically start running the following command to install the required dependencies:
+5. Once the solution opens, the **Azure AI Foundry terminal** will automatically start running the following command to install the required dependencies:
 
     ```shell
     sh install.sh
@@ -275,7 +275,7 @@ To optimize costs and integrate with your existing Azure infrastructure, you can
 
 - **Log Analytics Workspace:** Integrate with your existing monitoring infrastructure by reusing an established Log Analytics workspace for centralized logging and monitoring. [Configuration Guide](./ReuseLogAnalytics.md)
 
-- **Azure AI Foundry Project:** Leverage your existing AI Foundry project and deployed models to avoid duplication and reduce provisioning time. [Configuration Guide](./ReuseFoundryProject.md)
+- **Azure AI Foundry Project:** Leverage your existing Azure AI Foundry project and deployed models to avoid duplication and reduce provisioning time. [Configuration Guide](./ReuseFoundryProject.md)
 
 **Key Benefits:**
 - **Cost Optimization:** Eliminate duplicate resource charges
@@ -417,7 +417,7 @@ This script will:
 
 > **Tip:** Pass `-ImageTag <tag>` (PowerShell) or `--image-tag <tag>` (bash) to publish a specific tag. Pass `-ShowLogs` / `--show-logs` to stream the full build output. Each run generates a fresh timestamp tag by default.
 
-**Step 2: Load Data and Create AI Foundry Agents**
+**Step 2: Load Data and Create Azure AI Foundry Agents**
 
 #### Option A — Run both stages at once (recommended)
 
@@ -449,10 +449,10 @@ The consolidated script runs data upload **and** agent creation in sequence. It 
 
 This stage:
 - Uploads sample product catalog data to Azure Cosmos DB
-- Creates and configures Azure AI Search indexes
+- Creates and configures Azure Azure AI Serach indexes
 - Populates search indexes with product and policy documents
 
-**Stage 2: Create AI Foundry Agents**
+**Stage 2: Create Azure AI Foundry Agents**
 
 - **For PowerShell (Windows/Linux/macOS):**
     ```shell

@@ -46,7 +46,7 @@ param solutionUniqueText string = substring(uniqueString(subscription().id, reso
 param location string
 
 @description('Optional. Tags to apply to all resources.')
-param tags object = {}
+param tags object = {  }
 
 @allowed([
   'eastus2'
@@ -59,13 +59,13 @@ param tags object = {}
   azd: {
     type: 'location'
     usageName: [
-      'OpenAI.GlobalStandard.gpt-5.4-mini,50'
-      'OpenAI.GlobalStandard.text-embedding-3-small,10'
-      'OpenAI.GlobalStandard.gpt-realtime-mini,1'
+      'Azure OpenAI.GlobalStandard.gpt-5.4-mini,50'
+      'Azure OpenAI.GlobalStandard.text-embedding-3-small,10'
+      'Azure OpenAI.GlobalStandard.gpt-realtime-mini,1'
     ]
   }
 })
-@description('Required. Location for AI Foundry and model deployments.')
+@description('Required. Location for Azure AI Foundry and model deployments.')
 param azureAiServiceLocation string
 
 @description('Deployment scenario: ecommerce, healthcare, or banking')
@@ -141,7 +141,7 @@ param appServicePlanSku string = 'B2'
 @description('Optional. Resource ID of an existing Log Analytics workspace. Empty creates a new one when monitoring is enabled.')
 param existingLogAnalyticsWorkspaceId string = ''
 
-@description('Optional. Resource ID of an existing AI Foundry project. Empty creates a new one.')
+@description('Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one.')
 param existingFoundryProjectResourceId string = ''
 
 // ============================================================================
@@ -172,10 +172,10 @@ param enablePrivateNetworking bool = false
 @description('Optional. Enable scalability features (zone redundant App Service Plan).')
 param enableScalability bool = false
 
-@description('Optional. Enable redundancy (zone redundant Cosmos DB, multi-region failover).')
+@description('Optional. Enable redundancy (zone redundant Azure Cosmos DB, multi-region failover).')
 param enableRedundancy bool = false
 
-@description('Optional. Secondary CosmosDB location for high availability.')
+@description('Optional. Secondary Azure Cosmos DB location for high availability.')
 param secondaryLocation string = 'canadacentral'
 
 @secure()

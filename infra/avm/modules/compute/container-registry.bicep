@@ -54,7 +54,7 @@ param enableTelemetry bool = true
 @description('Optional. Managed identities for the resource.')
 param managedIdentities object = { systemAssigned: true }
 
-@description('Azure AD authentication as ARM policy status.')
+@description('Microsoft Entra ID authentication as ARM policy status.')
 param azureADAuthenticationAsArmPolicyStatus string = 'enabled'
 
 // ============================================================================

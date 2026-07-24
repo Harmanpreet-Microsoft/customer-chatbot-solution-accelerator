@@ -51,16 +51,16 @@ fi
 echo "✅ Azure subscription set successfully."
 
 declare -A MIN_CAPACITY=(
-    ["OpenAI.GlobalStandard.gpt-5.4-mini"]="${GPT_MIN_CAPACITY}"
-    ["OpenAI.GlobalStandard.text-embedding-3-small"]="${EMBEDDING_MIN_CAPACITY}"
-    ["OpenAI.GlobalStandard.gpt-realtime-mini"]="${GPT_REALTIME_MIN_CAPACITY}"
+    ["Azure OpenAI.GlobalStandard.gpt-5.4-mini"]="${GPT_MIN_CAPACITY}"
+    ["Azure OpenAI.GlobalStandard.text-embedding-3-small"]="${EMBEDDING_MIN_CAPACITY}"
+    ["Azure OpenAI.GlobalStandard.gpt-realtime-mini"]="${GPT_REALTIME_MIN_CAPACITY}"
 )
 
 echo "----------------------------------------"
 echo "📋 Required quota minimums for this deployment:"
-echo "   - OpenAI.GlobalStandard.gpt-5.4-mini: ${GPT_MIN_CAPACITY}"
-echo "   - OpenAI.GlobalStandard.text-embedding-3-small: ${EMBEDDING_MIN_CAPACITY}"
-echo "   - OpenAI.GlobalStandard.gpt-realtime-mini: ${GPT_REALTIME_MIN_CAPACITY}"
+echo "   - Azure OpenAI.GlobalStandard.gpt-5.4-mini: ${GPT_MIN_CAPACITY}"
+echo "   - Azure OpenAI.GlobalStandard.text-embedding-3-small: ${EMBEDDING_MIN_CAPACITY}"
+echo "   - Azure OpenAI.GlobalStandard.gpt-realtime-mini: ${GPT_REALTIME_MIN_CAPACITY}"
 
 # Iterate through ALL regions and select the one with the highest available GPT quota.
 VALID_REGION=""
@@ -93,7 +93,7 @@ for REGION in "${REGIONS[@]}"; do
 
         echo "✅ Model: $MODEL | Used: $CURRENT_VALUE | Limit: $LIMIT | Available: $AVAILABLE"
 
-        if [[ "$MODEL" == "OpenAI.GlobalStandard.gpt-5.4-mini" ]]; then
+        if [[ "$MODEL" == "Azure OpenAI.GlobalStandard.gpt-5.4-mini" ]]; then
             REGION_GPT_AVAILABLE="$AVAILABLE"
         fi
 

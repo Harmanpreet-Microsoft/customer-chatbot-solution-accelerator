@@ -143,7 +143,7 @@ az account show
 
 ## Step 4: Deploy Azure Resources
 
-The backends talk to real Azure services (AI Foundry, OpenAI, AI Search, Cosmos DB). Provision them first:
+The backends talk to real Azure services (Azure AI Foundry, Azure OpenAI, Azure AI Serach, Azure Cosmos DB). Provision them first:
 
 ```bash
 azd auth login
@@ -152,7 +152,7 @@ azd up
 
 📖 See the [Deployment Guide](./DeploymentGuide.md) for the full deployment flow (including scenario selection and post-provision data/agent scripts).
 
-After `azd up` completes, run the post-provision data upload and agent creation scripts described in the Deployment Guide — the backends need the AI Foundry agent names in order to serve requests.
+After `azd up` completes, run the post-provision data upload and agent creation scripts described in the Deployment Guide — the backends need the Azure AI Foundry agent names in order to serve requests.
 
 ---
 
@@ -179,12 +179,12 @@ Populate the file with the endpoints/keys from your provisioned resources. Minim
 APP_ENV=dev
 ALLOWED_ORIGINS_STR=http://localhost:3001,http://localhost:5173
 
-# Azure AI Foundry / OpenAI
+# Azure AI Foundry / Azure OpenAI
 AZURE_AI_AGENT_ENDPOINT=https://<your-ai-services>.services.ai.azure.com/api/projects/<project>
 AZURE_OPENAI_ENDPOINT=https://<your-openai>.openai.azure.com/
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
-# Azure AI Search
+# Azure Azure AI Serach
 AZURE_AI_SEARCH_ENDPOINT=https://<your-search>.search.windows.net
 
 # Azure Cosmos DB
@@ -212,7 +212,7 @@ cp scenario-app/backend/env.sample scenario-app/backend/.env
 Copy-Item scenario-app/backend/env.sample scenario-app/backend/.env
 ```
 
-The scenario backend needs Cosmos + OpenAI (and Application Insights, optionally). Fill in the same Azure endpoints as above.
+The scenario backend needs Cosmos + Azure OpenAI (and Application Insights, optionally). Fill in the same Azure endpoints as above.
 
 > **Port note:** Both backends default to port `8000`. For local dev, run the chat backend on `8001` (matches its Dockerfile) so the two do not collide. See Step 6.
 
@@ -243,15 +243,15 @@ If the post-provision hook already assigned roles, skip this. Otherwise grant yo
 ```bash
 PRINCIPAL_ID=$(az ad signed-in-user show --query id -o tsv)
 
-# Cosmos DB data plane access
+# Azure Cosmos DB data plane access
 az cosmosdb sql role assignment create \
   --account-name <cosmos-account> \
   --resource-group <resource-group> \
-  --role-definition-name "Cosmos DB Built-in Data Contributor" \
+  --role-definition-name "Azure Cosmos DB Built-in Data Contributor" \
   --principal-id "$PRINCIPAL_ID" \
   --scope "/"
 
-# AI Search data plane access
+# Azure AI Serach data plane access
 az role assignment create \
   --assignee "$PRINCIPAL_ID" \
   --role "Search Index Data Contributor" \

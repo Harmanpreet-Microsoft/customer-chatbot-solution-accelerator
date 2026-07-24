@@ -65,12 +65,12 @@
         "azd": {
           "type": "location",
           "usageName": [
-            "OpenAI.GlobalStandard.gpt-5.4-mini,50",
-            "OpenAI.GlobalStandard.text-embedding-3-small,10",
-            "OpenAI.GlobalStandard.gpt-realtime-mini,1"
+            "Azure OpenAI.GlobalStandard.gpt-5.4-mini,50",
+            "Azure OpenAI.GlobalStandard.text-embedding-3-small,10",
+            "Azure OpenAI.GlobalStandard.gpt-realtime-mini,1"
           ]
         },
-        "description": "Required. Location for AI Foundry and model deployments."
+        "description": "Required. Location for Azure AI Foundry and model deployments."
       }
     },
     "deploymentScenario": {
@@ -215,7 +215,7 @@
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Optional. Resource ID of an existing AI Foundry project. Empty creates a new one."
+        "description": "Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one."
       }
     },
     "deployingUserPrincipalType": {
@@ -636,7 +636,7 @@
               "type": "string",
               "defaultValue": "[format('proj-{0}', parameters('solutionName'))]",
               "metadata": {
-                "description": "Optional. Override name for the AI Foundry project. Defaults to proj-{solutionName}."
+                "description": "Optional. Override name for the Azure AI Foundry project. Defaults to proj-{solutionName}."
               }
             },
             "location": {
@@ -670,7 +670,7 @@
               "type": "bool",
               "defaultValue": true,
               "metadata": {
-                "description": "Optional. Whether to allow project management (AI Foundry hub)."
+                "description": "Optional. Whether to allow project management (Azure AI Foundry hub)."
               }
             },
             "publicNetworkAccess": {
@@ -756,9 +756,9 @@
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint of the AI Services account (OpenAI Language Model Instance API)."
+                "description": "Endpoint of the AI Services account (Azure OpenAI Language Model Instance API)."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['OpenAI Language Model Instance API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Azure OpenAI Language Model Instance API']]"
             },
             "cognitiveServicesEndpoint": {
               "type": "string",
@@ -784,23 +784,23 @@
             "projectResourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the AI Foundry project."
+                "description": "Resource ID of the Azure AI Foundry project."
               },
               "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
             },
             "projectName": {
               "type": "string",
               "metadata": {
-                "description": "Name of the AI Foundry project."
+                "description": "Name of the Azure AI Foundry project."
               },
               "value": "[parameters('projectName')]"
             },
             "projectEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "AI Foundry project endpoint."
+                "description": "Azure AI Foundry project endpoint."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['AI Foundry API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['Azure AI Foundry API']]"
             },
             "projectIdentityPrincipalId": {
               "type": "string",
@@ -876,9 +876,9 @@
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint of the AI Services account (OpenAI Language Model Instance API)."
+                "description": "Endpoint of the AI Services account (Azure OpenAI Language Model Instance API)."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['OpenAI Language Model Instance API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Azure OpenAI Language Model Instance API']]"
             },
             "cognitiveServicesEndpoint": {
               "type": "string",
@@ -904,23 +904,23 @@
             "projectResourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the AI Foundry project."
+                "description": "Resource ID of the Azure AI Foundry project."
               },
               "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
             },
             "projectName": {
               "type": "string",
               "metadata": {
-                "description": "Name of the AI Foundry project."
+                "description": "Name of the Azure AI Foundry project."
               },
               "value": "[parameters('projectName')]"
             },
             "projectEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "AI Foundry project endpoint."
+                "description": "Azure AI Foundry project endpoint."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['AI Foundry API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['Azure AI Foundry API']]"
             },
             "projectIdentityPrincipalId": {
               "type": "string",
@@ -996,9 +996,9 @@
             },
             "modelFormat": {
               "type": "string",
-              "defaultValue": "OpenAI",
+              "defaultValue": "Azure OpenAI",
               "metadata": {
-                "description": "Optional. Model format (e.g., OpenAI)."
+                "description": "Optional. Model format (e.g., Azure OpenAI)."
               }
             },
             "modelName": {
@@ -1312,7 +1312,7 @@
                     "name": {
                       "type": "string",
                       "metadata": {
-                        "description": "The name of the existing AI Search service."
+                        "description": "The name of the existing Azure AI Serach service."
                       }
                     },
                     "location": {
@@ -1432,7 +1432,7 @@
                     "systemAssignedMIPrincipalId": {
                       "type": "string",
                       "metadata": {
-                        "description": "The principal ID of the AI Search system-assigned managed identity."
+                        "description": "The principal ID of the Azure AI Serach system-assigned managed identity."
                       },
                       "value": "[reference(resourceId('Microsoft.Search/searchServices', parameters('name')), '2025-05-01', 'full').identity.principalId]"
                     }
@@ -1448,21 +1448,21 @@
             "resourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the AI Search service."
+                "description": "Resource ID of the Azure AI Serach service."
               },
               "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
             },
             "name": {
               "type": "string",
               "metadata": {
-                "description": "Name of the AI Search service."
+                "description": "Name of the Azure AI Serach service."
               },
               "value": "[parameters('name')]"
             },
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint URL of the AI Search service."
+                "description": "Endpoint URL of the Azure AI Serach service."
               },
               "value": "[format('https://{0}.search.windows.net', parameters('name'))]"
             },
@@ -1533,7 +1533,7 @@
             "projectName": {
               "type": "string",
               "metadata": {
-                "description": "Required. Name of the AI Foundry project."
+                "description": "Required. Name of the Azure AI Foundry project."
               }
             },
             "solutionName": {
@@ -1716,7 +1716,7 @@
               "type": "string",
               "defaultValue": "[format('cosmos-{0}', parameters('solutionName'))]",
               "metadata": {
-                "description": "Name of the Cosmos DB account."
+                "description": "Name of the Azure Cosmos DB account."
               }
             },
             "location": {
@@ -1833,21 +1833,21 @@
             "resourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the Cosmos DB account."
+                "description": "Resource ID of the Azure Cosmos DB account."
               },
               "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
             },
             "name": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB account."
+                "description": "Name of the Azure Cosmos DB account."
               },
               "value": "[parameters('name')]"
             },
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint of the Cosmos DB account."
+                "description": "Endpoint of the Azure Cosmos DB account."
               },
               "value": "[format('https://{0}.documents.azure.com:443/', parameters('name'))]"
             },
@@ -3620,7 +3620,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Principal ID of the AI Search identity."
+                "description": "Principal ID of the Azure AI Serach identity."
               }
             },
             "appServicePrincipalIds": {
@@ -3652,21 +3652,21 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Resource ID of the AI Foundry account (empty if not deployed — new project path)."
+                "description": "Resource ID of the Azure AI Foundry account (empty if not deployed — new project path)."
               }
             },
             "aiSearchResourceId": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Resource ID of the AI Search service (empty if not deployed)."
+                "description": "Resource ID of the Azure AI Serach service (empty if not deployed)."
               }
             },
             "cosmosDbAccountName": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Name of the Cosmos DB account (empty if not deployed)."
+                "description": "Name of the Azure Cosmos DB account (empty if not deployed)."
               }
             },
             "containerRegistryResourceId": {
@@ -4207,35 +4207,35 @@
     "AZURE_COSMOSDB_ACCOUNT": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB account."
+        "description": "Name of the Azure Cosmos DB account."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.name.value]"
     },
     "COSMOS_DB_ENDPOINT": {
       "type": "string",
       "metadata": {
-        "description": "Cosmos DB endpoint URL."
+        "description": "Azure Cosmos DB endpoint URL."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.endpoint.value]"
     },
     "COSMOS_DB_DATABASE_NAME": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB database."
+        "description": "Name of the Azure Cosmos DB database."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.databaseName.value]"
     },
     "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB container for chat conversations."
+        "description": "Name of the Azure Cosmos DB container for chat conversations."
       },
       "value": "chat_sessions"
     },
     "AZURE_COSMOSDB_DATABASE": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB database (alias)."
+        "description": "Name of the Azure Cosmos DB database (alias)."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.databaseName.value]"
     },
@@ -4277,7 +4277,7 @@
     "AZURE_AI_SEARCH_ENDPOINT": {
       "type": "string",
       "metadata": {
-        "description": "Azure AI Search service endpoint URL."
+        "description": "Azure Azure AI Serach service endpoint URL."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.ai-search.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.endpoint.value]"
     },
@@ -4480,7 +4480,7 @@
     "AI_SEARCH_SERVICE_RESOURCE_ID": {
       "type": "string",
       "metadata": {
-        "description": "Resource ID of the Azure AI Search service."
+        "description": "Resource ID of the Azure Azure AI Serach service."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.ai-search.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.resourceId.value]"
     },

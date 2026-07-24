@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: Existing AI Foundry Project Reference — Vanilla Bicep
+// Module: Existing Azure AI Foundry Project Reference — Vanilla Bicep
 // Description: References an existing AI Services account and project to
 //              retrieve their identities. No deployments, no connections.
 //              Use generic ai-foundry-connection and ai-foundry-model-deployment
@@ -35,8 +35,8 @@ output resourceId string = aiServices.id
 @description('Name of the AI Services account.')
 output name string = aiServices.name
 
-@description('Endpoint of the AI Services account (OpenAI Language Model Instance API).')
-output endpoint string = aiServices.properties.endpoints['OpenAI Language Model Instance API']
+@description('Endpoint of the AI Services account (Azure OpenAI Language Model Instance API).')
+output endpoint string = aiServices.properties.endpoints['Azure OpenAI Language Model Instance API']
 
 @description('Endpoint of the AI Services account (Cognitive Services).')
 output cognitiveServicesEndpoint string = aiServices.properties.endpoint
@@ -47,14 +47,14 @@ output azureOpenAiCuEndpoint string = aiServices.properties.endpoints['Content U
 @description('System-assigned identity principal ID of the AI Services account (empty if none).')
 output principalId string = contains(aiServices, 'identity') && contains(aiServices.identity, 'principalId') ? aiServices.identity.principalId : ''
 
-@description('Resource ID of the AI Foundry project.')
+@description('Resource ID of the Azure AI Foundry project.')
 output projectResourceId string = aiProject.id
 
-@description('Name of the AI Foundry project.')
+@description('Name of the Azure AI Foundry project.')
 output projectName string = aiProject.name
 
-@description('AI Foundry project endpoint.')
-output projectEndpoint string = aiProject.properties.endpoints['AI Foundry API']
+@description('Azure AI Foundry project endpoint.')
+output projectEndpoint string = aiProject.properties.endpoints['Azure AI Foundry API']
 
 @description('System-assigned identity principal ID of the project (empty if none).')
 output projectIdentityPrincipalId string = contains(aiProject, 'identity') && contains(aiProject.identity, 'principalId') ? aiProject.identity.principalId : ''

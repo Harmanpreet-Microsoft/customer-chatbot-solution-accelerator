@@ -20,7 +20,7 @@ param tags object = {}
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
 
-@description('Azure AD administrators for the server. Each entry requires objectId, principalName, and principalType (User, Group, or ServicePrincipal).')
+@description('Microsoft Entra ID administrators for the server. Each entry requires objectId, principalName, and principalType (User, Group, or ServicePrincipal).')
 param administrators array
 
 @description('The PostgreSQL version to deploy.')

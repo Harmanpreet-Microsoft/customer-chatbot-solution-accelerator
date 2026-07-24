@@ -66,7 +66,7 @@ def _prepare_query_parameters(params: List[Dict[str, Any]]) -> List[Dict[str, ob
 
 
 class CosmosDatabaseService(DatabaseService):
-    """Cosmos DB implementation of the database service"""
+    """Azure Cosmos DB implementation of the database service"""
 
     def __init__(self):
         # Type annotations for instance variables
@@ -78,14 +78,14 @@ class CosmosDatabaseService(DatabaseService):
         self.cart_container: ContainerProxy
         self.transactions_container: ContainerProxy
 
-        # Use Azure credential authentication for AAD-enabled Cosmos DB
+        # Use Azure credential authentication for AAD-enabled Azure Cosmos DB
         try:
             # Ensure we have the endpoint
             if not settings.cosmos_db_endpoint:
-                raise Exception("Cosmos DB endpoint is required")
+                raise Exception("Azure Cosmos DB endpoint is required")
 
             logger.info(
-                "Attempting to authenticate to Cosmos DB with Azure credentials..."
+                "Attempting to authenticate to Azure Cosmos DB with Azure credentials..."
             )
 
             # Use the centralized credential utility that handles dev vs prod environments
@@ -108,17 +108,17 @@ class CosmosDatabaseService(DatabaseService):
             if "RBAC permissions" in error_msg or "principal" in error_msg:
                 raise Exception(
                     f"""
-❌ RBAC Permission Error: Your service principal lacks Cosmos DB permissions.
+❌ RBAC Permission Error: Your service principal lacks Azure Cosmos DB permissions.
 
 To fix this, run these Azure CLI commands:
 
-1. Assign Cosmos DB Data Contributor role:
+1. Assign Azure Cosmos DB Data Contributor role:
    az cosmosdb sql role assignment create \\
        --account-name ecommerce-prod-cosmos-202510211322 \\
        --resource-group [YOUR_RESOURCE_GROUP] \\
        --scope "/" \\
        --principal-id 137b5924-bb10-4c28-9a9b-06e8227fb28e \\
-       --role-definition-name "Cosmos DB Built-in Data Contributor"
+       --role-definition-name "Azure Cosmos DB Built-in Data Contributor"
 
 2. Or assign custom role with required permissions:
    az role assignment create \\
@@ -134,11 +134,11 @@ Original error: {error_msg}
             if "Local Authorization is disabled" in error_msg:
                 raise Exception(
                     f"""
-❌ Authentication Error: This Cosmos DB requires AAD authentication and your credentials don't have proper permissions.
+❌ Authentication Error: This Azure Cosmos DB requires AAD authentication and your credentials don't have proper permissions.
 
 Solutions:
 1. Grant RBAC permissions (see commands above)
-2. Ask your Azure admin to assign "Cosmos DB Built-in Data Contributor" role
+2. Ask your Microsoft Entra IDmin to assign "Azure Cosmos DB Built-in Data Contributor" role
 3. Or temporarily enable local auth: az cosmosdb update --name ecommerce-prod-cosmos-202510211322 --resource-group [RESOURCE_GROUP] --disable-key-based-metadata-write-access false
 
 Original error: {error_msg}
@@ -147,7 +147,7 @@ Original error: {error_msg}
 
             # Generic authentication error
             raise Exception(
-                f"Cannot authenticate to Cosmos DB with Azure credentials. Check your Azure login and permissions. Error: {error_msg}"
+                f"Cannot authenticate to Azure Cosmos DB with Azure credentials. Check your Azure login and permissions. Error: {error_msg}"
             )
 
         self.database = self.client.get_database_client(
@@ -156,7 +156,7 @@ Original error: {error_msg}
         self._initialize_containers()
 
     def _serialize_datetime_fields(self, data: dict) -> dict:
-        """Convert datetime objects to ISO format for Cosmos DB serialization"""
+        """Convert datetime objects to ISO format for Azure Cosmos DB serialization"""
         serialized_data = data.copy()
         for key, value in serialized_data.items():
             if isinstance(value, datetime):
@@ -182,7 +182,7 @@ Original error: {error_msg}
         return deserialized_data
 
     def _initialize_containers(self):
-        """Initialize Cosmos DB containers"""
+        """Initialize Azure Cosmos DB containers"""
         try:
             # Create database if it doesn't exist
             self.database = self.client.create_database_if_not_exists(
@@ -220,10 +220,10 @@ Original error: {error_msg}
                 offer_throughput=400,
             )
 
-            logger.info("Cosmos DB containers initialized successfully")
+            logger.info("Azure Cosmos DB containers initialized successfully")
 
         except Exception as e:
-            logger.error(f"Error initializing Cosmos DB containers: {str(e)}")
+            logger.error(f"Error initializing Azure Cosmos DB containers: {str(e)}")
             raise
 
     async def get_products(
@@ -324,11 +324,11 @@ Original error: {error_msg}
             return products
 
         except Exception as e:
-            logger.error(f"Error fetching products from Cosmos DB: {str(e)}")
+            logger.error(f"Error fetching products from Azure Cosmos DB: {str(e)}")
             raise
 
     async def get_product(self, product_id: str) -> Optional[Product]:
-        """Get a single product by ID - optimized for Cosmos DB"""
+        """Get a single product by ID - optimized for Azure Cosmos DB"""
         try:
             # Use direct read for better performance (if we know the partition key)
             # For now, use cross-partition query since products might be in different partitions
@@ -352,7 +352,7 @@ Original error: {error_msg}
                             item[field].replace("Z", "+00:00")
                         )
 
-                # Map Cosmos DB fields to Product model fields
+                # Map Azure Cosmos DB fields to Product model fields
                 product = Product(
                     id=item.get("id"),
                     title=item.get("title", ""),
@@ -373,7 +373,7 @@ Original error: {error_msg}
             return None
 
         except Exception as e:
-            logger.error(f"Error fetching product from Cosmos DB: {str(e)}")
+            logger.error(f"Error fetching product from Azure Cosmos DB: {str(e)}")
             raise
 
     async def create_product(self, product: ProductCreate) -> Product:
@@ -381,13 +381,13 @@ Original error: {error_msg}
         try:
             new_product = Product(id=str(uuid.uuid4()), **product.model_dump())
 
-            # Serialize datetime fields for Cosmos DB
+            # Serialize datetime fields for Azure Cosmos DB
             product_dict = self._serialize_datetime_fields(new_product.model_dump())
             self.products_container.create_item(product_dict)  # type: ignore
             return new_product
 
         except Exception as e:
-            logger.error(f"Error creating product in Cosmos DB: {str(e)}")
+            logger.error(f"Error creating product in Azure Cosmos DB: {str(e)}")
             raise
 
     async def update_product(
@@ -407,7 +407,7 @@ Original error: {error_msg}
 
             existing_product.updated_at = datetime.utcnow()
 
-            # Replace in Cosmos DB - serialize datetime fields
+            # Replace in Azure Cosmos DB - serialize datetime fields
             product_dict = self._serialize_datetime_fields(
                 existing_product.model_dump()
             )
@@ -418,7 +418,7 @@ Original error: {error_msg}
             return existing_product
 
         except Exception as e:
-            logger.error(f"Error updating product in Cosmos DB: {str(e)}")
+            logger.error(f"Error updating product in Azure Cosmos DB: {str(e)}")
             raise
 
     async def delete_product(self, product_id: str) -> bool:
@@ -437,7 +437,7 @@ Original error: {error_msg}
             return True
 
         except Exception as e:
-            logger.error(f"Error deleting product from Cosmos DB: {str(e)}")
+            logger.error(f"Error deleting product from Azure Cosmos DB: {str(e)}")
             raise
 
     async def get_product_by_sku(self, sku: str) -> Optional[Product]:
@@ -488,9 +488,9 @@ Original error: {error_msg}
     async def search_products_hybrid(
         self, query: str, limit: int = 10
     ) -> List[Product]:
-        """Hybrid search: Azure AI Search first (fast), then Cosmos DB fallback"""
+        """Hybrid search: Azure Azure AI Serach first (fast), then Azure Cosmos DB fallback"""
         try:
-            # Strategy 1: Try Azure AI Search first (fastest, most accurate)
+            # Strategy 1: Try Azure Azure AI Serach first (fastest, most accurate)
             try:
                 from services.search import search_products_fast
 
@@ -498,19 +498,19 @@ Original error: {error_msg}
 
                 if ai_search_results:
                     logger.info(
-                        f"Azure AI Search returned {len(ai_search_results)} products for query: {query}"
+                        f"Azure Azure AI Serach returned {len(ai_search_results)} products for query: {query}"
                     )
 
-                    # Convert AI Search results to Product objects
+                    # Convert Azure AI Serach results to Product objects
                     products = []
                     for hit in ai_search_results:
-                        # Try to get full product data from Cosmos DB
+                        # Try to get full product data from Azure Cosmos DB
                         try:
                             full_product = await self.get_product_by_sku(hit["id"])
                             if full_product:
                                 products.append(full_product)
                             else:
-                                # Create Product from AI Search data
+                                # Create Product from Azure AI Serach data
                                 product = Product(
                                     id=hit["id"],
                                     title=hit.get("title", ""),
@@ -534,21 +534,21 @@ Original error: {error_msg}
 
                     if products:
                         logger.info(
-                            f"Hybrid search (AI Search) returned {len(products)} products"
+                            f"Hybrid search (Azure AI Serach) returned {len(products)} products"
                         )
                         return products[:limit]
 
             except ImportError:
                 logger.warning(
-                    "Azure AI Search not available, falling back to Cosmos DB"
+                    "Azure Azure AI Serach not available, falling back to Azure Cosmos DB"
                 )
             except Exception as e:
                 logger.warning(
-                    f"Azure AI Search failed: {e}, falling back to Cosmos DB"
+                    f"Azure Azure AI Serach failed: {e}, falling back to Azure Cosmos DB"
                 )
 
-            # Strategy 2: Fallback to enhanced Cosmos DB search
-            logger.info(f"Falling back to enhanced Cosmos DB search for query: {query}")
+            # Strategy 2: Fallback to enhanced Azure Cosmos DB search
+            logger.info(f"Falling back to enhanced Azure Cosmos DB search for query: {query}")
             return await self.search_products_enhanced(query, limit)
 
         except Exception as e:
@@ -559,7 +559,7 @@ Original error: {error_msg}
     async def search_products_ai_search(
         self, query: str, limit: int = 10
     ) -> List[Product]:
-        """Search products using Azure AI Search only"""
+        """Search products using Azure Azure AI Serach only"""
         try:
             from services.search import search_products  # type: ignore
 
@@ -568,16 +568,16 @@ Original error: {error_msg}
             if not ai_search_results:
                 return []
 
-            # Convert AI Search results to Product objects
+            # Convert Azure AI Serach results to Product objects
             products = []
             for hit in ai_search_results:
                 try:
-                    # Try to get full product data from Cosmos DB
+                    # Try to get full product data from Azure Cosmos DB
                     full_product = await self.get_product_by_sku(hit["id"])
                     if full_product:
                         products.append(full_product)
                     else:
-                        # Create Product from AI Search data
+                        # Create Product from Azure AI Serach data
                         product = Product(
                             id=hit["id"],
                             title=hit.get("title", ""),
@@ -595,17 +595,17 @@ Original error: {error_msg}
                         products.append(product)
                 except Exception as e:
                     logger.warning(
-                        f"Failed to process AI Search result {hit['id']}: {e}"
+                        f"Failed to process Azure AI Serach result {hit['id']}: {e}"
                     )
                     continue
 
             logger.info(
-                f"AI Search returned {len(products)} products for query: {query}"
+                f"Azure AI Serach returned {len(products)} products for query: {query}"
             )
             return products[:limit]
 
         except Exception as e:
-            logger.error(f"AI Search error: {e}")
+            logger.error(f"Azure AI Serach error: {e}")
             return []
 
     async def search_products_enhanced(
@@ -878,14 +878,14 @@ Original error: {error_msg}
         try:
             new_user = User(id=str(uuid.uuid4()), email=user.email, name=user.name)
 
-            # Convert datetime objects to ISO format for Cosmos DB
+            # Convert datetime objects to ISO format for Azure Cosmos DB
             user_dict = self._serialize_datetime_fields(new_user.model_dump())
 
             self.users_container.create_item(user_dict)  # type: ignore
             return new_user
 
         except Exception as e:
-            logger.error(f"Error creating user in Cosmos DB: {str(e)}")
+            logger.error(f"Error creating user in Azure Cosmos DB: {str(e)}")
             raise
 
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
@@ -924,7 +924,7 @@ Original error: {error_msg}
             raise
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
-        """Get user by email - optimized for Cosmos DB"""
+        """Get user by email - optimized for Azure Cosmos DB"""
         try:
             # Use a simple, efficient query
             query = "SELECT * FROM c WHERE c.email = @email"
@@ -960,7 +960,7 @@ Original error: {error_msg}
     async def create_user_with_password(
         self, email: str, name: str, password: str, user_id: Optional[str] = None
     ) -> User:
-        """Create a new user - simplified for Cosmos DB"""
+        """Create a new user - simplified for Azure Cosmos DB"""
         try:
             # Use provided user_id (from Easy Auth) or generate UUID
             new_user = User(id=user_id or str(uuid.uuid4()), email=email, name=name)
@@ -975,7 +975,7 @@ Original error: {error_msg}
                     else:
                         user_dict[field] = dt.isoformat()
 
-            # Create in Cosmos DB using user ID as partition key
+            # Create in Azure Cosmos DB using user ID as partition key
             self.users_container.create_item(user_dict)  # type: ignore
             return new_user
 
@@ -984,7 +984,7 @@ Original error: {error_msg}
             raise
 
     async def update_user(self, user_id: str, user: UserUpdate) -> Optional[User]:
-        """Update user - simplified for Cosmos DB"""
+        """Update user - simplified for Azure Cosmos DB"""
         try:
             # Get existing user
             existing_user = await self.get_user(user_id)
@@ -1008,7 +1008,7 @@ Original error: {error_msg}
                     else:
                         user_dict[field] = dt.isoformat()
 
-            # Replace in Cosmos DB
+            # Replace in Azure Cosmos DB
             self.users_container.replace_item(  # type: ignore
                 item=user_id, body=user_dict
             )
@@ -1063,7 +1063,7 @@ Original error: {error_msg}
             return ChatSession(**session_data)
 
         except Exception as e:
-            logger.error(f"Error fetching chat session from Cosmos DB: {str(e)}")
+            logger.error(f"Error fetching chat session from Azure Cosmos DB: {str(e)}")
             raise
 
     async def get_chat_sessions_by_user(self, user_id: str) -> List[ChatSession]:
@@ -1103,7 +1103,7 @@ Original error: {error_msg}
             return sessions
 
         except Exception as e:
-            logger.error(f"Error fetching chat sessions from Cosmos DB: {str(e)}")
+            logger.error(f"Error fetching chat sessions from Azure Cosmos DB: {str(e)}")
             raise
 
     async def create_chat_session(self, session: ChatSessionCreate) -> ChatSession:
@@ -1137,7 +1137,7 @@ Original error: {error_msg}
             return new_session
 
         except Exception as e:
-            logger.error(f"Error creating chat session in Cosmos DB: {str(e)}")
+            logger.error(f"Error creating chat session in Azure Cosmos DB: {str(e)}")
             raise
 
     async def add_message_to_session(
@@ -1215,7 +1215,7 @@ Original error: {error_msg}
                 if "created_at" in msg and isinstance(msg["created_at"], datetime):
                     msg["created_at"] = msg["created_at"].isoformat()
 
-            # Update session in Cosmos DB
+            # Update session in Azure Cosmos DB
             self.chat_container.upsert_item(session_dict)  # type: ignore
 
             # Return the updated session (re-fetch to ensure consistency)
@@ -1225,7 +1225,7 @@ Original error: {error_msg}
             return updated_session
 
         except Exception as e:
-            logger.error(f"Error adding message to chat session in Cosmos DB: {str(e)}")
+            logger.error(f"Error adding message to chat session in Azure Cosmos DB: {str(e)}")
             raise
 
     async def update_chat_session(
@@ -1261,13 +1261,13 @@ Original error: {error_msg}
                 if "created_at" in msg and isinstance(msg["created_at"], datetime):
                     msg["created_at"] = msg["created_at"].isoformat()
 
-            # Update in Cosmos DB
+            # Update in Azure Cosmos DB
             self.chat_container.upsert_item(session_dict)  # type: ignore
 
             return session
 
         except Exception as e:
-            logger.error(f"Error updating chat session in Cosmos DB: {str(e)}")
+            logger.error(f"Error updating chat session in Azure Cosmos DB: {str(e)}")
             raise
 
     async def delete_chat_session(
@@ -1291,7 +1291,7 @@ Original error: {error_msg}
             return True
 
         except Exception as e:
-            logger.error(f"Error deleting chat session from Cosmos DB: {str(e)}")
+            logger.error(f"Error deleting chat session from Azure Cosmos DB: {str(e)}")
             raise
 
     async def get_cart(self, user_id: str) -> Optional[Cart]:
@@ -1331,11 +1331,11 @@ Original error: {error_msg}
             return Cart(**cart_data)
 
         except Exception as e:
-            logger.error(f"Error fetching cart from Cosmos DB: {str(e)}")
+            logger.error(f"Error fetching cart from Azure Cosmos DB: {str(e)}")
             raise
 
     async def update_cart(self, user_id: str, cart: Cart) -> Cart:
-        """Update user's cart - optimized for Cosmos DB"""
+        """Update user's cart - optimized for Azure Cosmos DB"""
         try:
             # Set the cart ID to user_id for direct access
             cart.id = user_id
@@ -1366,7 +1366,7 @@ Original error: {error_msg}
             return cart
 
         except Exception as e:
-            logger.error(f"Error updating cart in Cosmos DB: {str(e)}")
+            logger.error(f"Error updating cart in Azure Cosmos DB: {str(e)}")
             raise
 
     async def create_transaction(
@@ -1396,7 +1396,7 @@ Original error: {error_msg}
                 + new_transaction.shipping
             )
 
-            # Serialize datetime fields for Cosmos DB
+            # Serialize datetime fields for Azure Cosmos DB
             transaction_dict = self._serialize_datetime_fields(
                 new_transaction.model_dump()
             )
@@ -1405,7 +1405,7 @@ Original error: {error_msg}
             return new_transaction
 
         except Exception as e:
-            logger.error(f"Error creating transaction in Cosmos DB: {str(e)}")
+            logger.error(f"Error creating transaction in Azure Cosmos DB: {str(e)}")
             raise
 
     # Additional methods required by DatabaseService interface

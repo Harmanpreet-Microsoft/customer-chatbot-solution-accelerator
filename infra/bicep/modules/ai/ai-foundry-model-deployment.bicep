@@ -13,8 +13,8 @@ param aiServicesAccountName string
 @description('Required. Name for this model deployment.')
 param deploymentName string
 
-@description('Optional. Model format (e.g., OpenAI).')
-param modelFormat string = 'OpenAI'
+@description('Optional. Model format (e.g., Azure OpenAI).')
+param modelFormat string = 'Azure OpenAI'
 
 @description('Required. Model name (e.g., gpt-4o, text-embedding-ada-002).')
 param modelName string

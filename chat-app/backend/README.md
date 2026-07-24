@@ -7,7 +7,7 @@ AI-powered chat application backend built with FastAPI, designed to integrate wi
 - **Multiple AI Agents**: Customer support, sales assistant, and technical support agents
 - **Conversation Management**: Create, manage, and track chat conversations
 - **Streaming Responses**: Real-time AI responses with Server-Sent Events
-- **Azure AI Integration**: Connects to Azure OpenAI and AI Search for enhanced capabilities
+- **Azure AI Integration**: Connects to Azure OpenAI and Azure AI Serach for enhanced capabilities
 - **Session-based Authentication**: Guest user sessions for development
 - **Flexible Storage**: In-memory storage for development, Azure Cosmos DB for production
 
@@ -167,12 +167,12 @@ flake8 app/
 
 ### Data Service
 - **In-Memory**: Fast development storage
-- **Cosmos DB**: Production-ready document storage
+- **Azure Cosmos DB**: Production-ready document storage
 - **Session Management**: Guest user sessions with conversation tracking
 
 ### Authentication
 - Session-based authentication for guest users
-- Extensible for Azure AD integration
+- Extensible for Microsoft Entra ID integration
 - Per-session conversation isolation
 
 ## Deployment

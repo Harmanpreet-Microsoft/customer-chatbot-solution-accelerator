@@ -12,7 +12,7 @@ After deploying the infrastructure using AVM, you'll need to complete the applic
 
 - Configuring team agent configurations
 - Processing and uploading sample datasets
-- Setting up Azure AI Search indexes
+- Setting up Azure Azure AI Serach indexes
 - Configuring blob storage containers
 - Setting up application authentication
 
@@ -97,10 +97,10 @@ Run the data setup script to load sample product data:
 
 This script will:
 - Upload sample product catalog data to Azure Cosmos DB
-- Create and configure Azure AI Search indexes
+- Create and configure Azure Azure AI Serach indexes
 - Populate search indexes with product and policy documents
 
-**Step 2: Create AI Foundry Agents**
+**Step 2: Create Azure AI Foundry Agents**
 
 Run the agent creation script to set up specialized AI agents:
 

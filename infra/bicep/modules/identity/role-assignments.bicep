@@ -22,7 +22,7 @@ param existingFoundryProjectResourceId string = ''
 @description('Principal ID of the AI project identity (works for both new and existing projects).')
 param aiProjectPrincipalId string = ''
 
-@description('Principal ID of the AI Search identity.')
+@description('Principal ID of the Azure AI Serach identity.')
 param aiSearchPrincipalId string = ''
 
 @description('Principal IDs of the all App Service system-assigned identities (empty if not deployed).')
@@ -37,13 +37,13 @@ param deployerPrincipalType string = 'User'
 
 // --- Resource References ---
 
-@description('Resource ID of the AI Foundry account (empty if not deployed — new project path).')
+@description('Resource ID of the Azure AI Foundry account (empty if not deployed — new project path).')
 param aiFoundryResourceId string = ''
 
-@description('Resource ID of the AI Search service (empty if not deployed).')
+@description('Resource ID of the Azure AI Serach service (empty if not deployed).')
 param aiSearchResourceId string = ''
 
-@description('Name of the Cosmos DB account (empty if not deployed).')
+@description('Name of the Azure Cosmos DB account (empty if not deployed).')
 param cosmosDbAccountName string = ''
 
 @description('Resource ID of the container registry (empty if not deployed).')
@@ -90,7 +90,7 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2025-10-15' existi
 
 resource cosmosContributorRoleDefinition 'Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions@2025-10-15' existing = if (!empty(cosmosDbAccountName)) {
   parent: cosmosAccount
-  name: '00000000-0000-0000-0000-000000000002' // Cosmos DB Built-in Data Contributor
+  name: '00000000-0000-0000-0000-000000000002' // Azure Cosmos DB Built-in Data Contributor
 }
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = if (!empty(containerRegistryResourceId)) {
@@ -99,10 +99,10 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2025-04-01' e
 
 // ============================================================================
 // 1. AI SERVICES ROLE ASSIGNMENTS
-//    Cross-service roles scoped to AI Foundry account
+//    Cross-service roles scoped to Azure AI Foundry account
 // ============================================================================
 
-// AI Search → Cognitive Services OpenAI User on AI Foundry (new project, same RG)
+// Azure AI Serach → Cognitive Services Azure OpenAI User on Azure AI Foundry (new project, same RG)
 resource assignOpenAIRoleToAISearch 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useExistingAIProject && !empty(aiSearchPrincipalId) && !empty(aiFoundryResourceId)) {
   name: guid(solutionName, aiFoundryAccount.id, aiSearchPrincipalId, roleDefinitions.cognitiveServicesOpenAIUser)
   scope: aiFoundryAccount
@@ -113,7 +113,7 @@ resource assignOpenAIRoleToAISearch 'Microsoft.Authorization/roleAssignments@202
   }
 }
 
-// AI Search → Cognitive Services OpenAI User on existing AI Foundry (cross-scope)
+// Azure AI Serach → Cognitive Services Azure OpenAI User on existing Azure AI Foundry (cross-scope)
 module assignOpenAIToSearchExisting './cross-scope-role-assignment.bicep' = if (useExistingAIProject && !empty(aiSearchPrincipalId)) {
   name: 'assignOpenAIRoleToAISearchExisting'
   scope: resourceGroup(existingAIFoundrySubscription, existingAIFoundryResourceGroup)
@@ -125,7 +125,7 @@ module assignOpenAIToSearchExisting './cross-scope-role-assignment.bicep' = if (
   }
 }
 
-// Chat Backend App Service → Cognitive Services User on AI Foundry (new project — required for Voice Live and agents)
+// Chat Backend App Service → Cognitive Services User on Azure AI Foundry (new project — required for Voice Live and agents)
 resource backendAppCogServicesUserAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useExistingAIProject && !empty(aiFoundryResourceId) && !empty(appServicePrincipalIds.chatBackendApp)) {
   name: guid(solutionName, aiFoundryAccount.id, appServicePrincipalIds.chatBackendApp, roleDefinitions.cognitiveServicesUser)
   scope: aiFoundryAccount
@@ -136,7 +136,7 @@ resource backendAppCogServicesUserAssignment 'Microsoft.Authorization/roleAssign
   }
 }
 
-// Chat Backend App Service → Cognitive Services User on existing AI Foundry (cross-scope — Voice Live and agents)
+// Chat Backend App Service → Cognitive Services User on existing Azure AI Foundry (cross-scope — Voice Live and agents)
 module backendAppCogServicesUserExisting './cross-scope-role-assignment.bicep' = if (useExistingAIProject && !empty(appServicePrincipalIds.chatBackendApp)) {
   name: 'assignCogServicesUserRoleToBackendExisting'
   scope: resourceGroup(existingAIFoundrySubscription, existingAIFoundryResourceGroup)
@@ -150,10 +150,10 @@ module backendAppCogServicesUserExisting './cross-scope-role-assignment.bicep' =
 
 // ============================================================================
 // 2. SEARCH SERVICE ROLE ASSIGNMENTS
-//    AI Project and Backend identities → AI Search
+//    AI Project and Backend identities → Azure AI Serach
 // ============================================================================
 
-// AI Project → Search Index Data Reader on AI Search
+// AI Project → Search Index Data Reader on Azure AI Serach
 resource projectSearchReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiSearchResourceId) && !empty(aiProjectPrincipalId)) {
   name: guid(solutionName, aiSearchService.id, aiProjectPrincipalId, roleDefinitions.searchIndexDataReader)
   scope: aiSearchService
@@ -164,7 +164,7 @@ resource projectSearchReader 'Microsoft.Authorization/roleAssignments@2022-04-01
   }
 }
 
-// AI Project → Search Service Contributor on AI Search
+// AI Project → Search Service Contributor on Azure AI Serach
 resource projectSearchContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiSearchResourceId) && !empty(aiProjectPrincipalId)) {
   name: guid(solutionName, aiSearchService.id, aiProjectPrincipalId, roleDefinitions.searchServiceContributor)
   scope: aiSearchService
@@ -175,7 +175,7 @@ resource projectSearchContributor 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-// Chat Backend App Service → Search Index Data Contributor on AI Search
+// Chat Backend App Service → Search Index Data Contributor on Azure AI Serach
 resource chatBackendAppSearchContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiSearchResourceId) && !empty(appServicePrincipalIds.chatBackendApp)) {
   name: guid(solutionName, aiSearchService.id, appServicePrincipalIds.chatBackendApp, roleDefinitions.searchIndexDataContributor)
   scope: aiSearchService
@@ -187,8 +187,8 @@ resource chatBackendAppSearchContributorAssignment 'Microsoft.Authorization/role
 }
 
 // ============================================================================
-// 3. COSMOS DB ROLE ASSIGNMENTS
-//    Backend App Service → Cosmos DB (data-plane, uses sqlRoleAssignments)
+// 3. Azure Cosmos DB ROLE ASSIGNMENTS
+//    Backend App Service → Azure Cosmos DB (data-plane, uses sqlRoleAssignments)
 // ============================================================================
 
 resource chatBackendAppCosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2025-10-15' = if (!empty(cosmosDbAccountName) && !empty(appServicePrincipalIds.chatBackendApp)) {
@@ -213,7 +213,7 @@ resource scenarioBackendAppCosmosRoleAssignment 'Microsoft.DocumentDB/databaseAc
 
 // ============================================================================
 // 4. DEPLOYER (USER) ROLE ASSIGNMENTS
-//    Deploying user → AI Services, Search, Cosmos DB (Bicep-only)
+//    Deploying user → AI Services, Search, Azure Cosmos DB (Bicep-only)
 // ============================================================================
 
 // Deploying User → Foundry User on AI Services
@@ -238,7 +238,7 @@ resource deployerAzureAIDeveloper 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-// Deploying User → Search Service Contributor on AI Search
+// Deploying User → Search Service Contributor on Azure AI Serach
 resource deployerSearchServiceContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(deployerPrincipalId) && !empty(aiSearchResourceId)) {
   scope: aiSearchService
   name: guid(solutionName, aiSearchService.id, deployerPrincipalId, roleDefinitions.searchServiceContributor)
@@ -249,7 +249,7 @@ resource deployerSearchServiceContributor 'Microsoft.Authorization/roleAssignmen
   }
 }
 
-// Deploying User → Search Index Data Contributor on AI Search
+// Deploying User → Search Index Data Contributor on Azure AI Serach
 resource deployerSearchIndexContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(deployerPrincipalId) && !empty(aiSearchResourceId)) {
   scope: aiSearchService
   name: guid(solutionName, aiSearchService.id, deployerPrincipalId, roleDefinitions.searchIndexDataContributor)
@@ -260,7 +260,7 @@ resource deployerSearchIndexContributor 'Microsoft.Authorization/roleAssignments
   }
 }
 
-// Deploying User → Search Index Data Reader on AI Search
+// Deploying User → Search Index Data Reader on Azure AI Serach
 resource deployerSearchIndexReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(deployerPrincipalId) && !empty(aiSearchResourceId)) {
   scope: aiSearchService
   name: guid(solutionName, aiSearchService.id, deployerPrincipalId, roleDefinitions.searchIndexDataReader)
@@ -271,7 +271,7 @@ resource deployerSearchIndexReader 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-// Deploying User → Cosmos DB Data Contributor
+// Deploying User → Azure Cosmos DB Data Contributor
 resource deployerCosmosDbContributor 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2025-10-15' = if (!empty(cosmosDbAccountName) && !empty(deployerPrincipalId)) {
   parent: cosmosAccount
   name: guid(solutionName, cosmosContributorRoleDefinition.id, cosmosAccount.id, deployerPrincipalId)

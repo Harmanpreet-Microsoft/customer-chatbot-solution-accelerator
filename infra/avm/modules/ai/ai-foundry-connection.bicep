@@ -1,6 +1,6 @@
 // ============================================================================
-// Module: AI Foundry Project Connection (Single)
-// Description: Creates a single connection on an AI Foundry project.
+// Module: Azure AI Foundry Project Connection (Single)
+// Description: Creates a single connection on an Azure AI Foundry project.
 //              Generic, reusable — call once per connection type from main.bicep.
 //              Supports any connection category (CognitiveSearch, AzureBlob,
 //              AppInsights, RemoteTool, etc.) via parameterized properties.
@@ -11,7 +11,7 @@ targetScope = 'resourceGroup'
 @description('Required. Name of the parent AI Services account.')
 param aiServicesAccountName string
 
-@description('Required. Name of the AI Foundry project.')
+@description('Required. Name of the Azure AI Foundry project.')
 param projectName string
 
 @description('Required. Solution name suffix used to generate the connection name.')

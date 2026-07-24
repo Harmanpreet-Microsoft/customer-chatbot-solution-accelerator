@@ -20,7 +20,7 @@ param namePrefix string
   'TextAnalytics'
   'TextTranslation'
   'Face'
-  'OpenAI'
+  'Azure OpenAI'
   'AIServices'
 ])
 param kind string

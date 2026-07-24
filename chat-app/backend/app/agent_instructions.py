@@ -74,7 +74,7 @@ NEVER:
 - Be overly salesy or pushy
 
 Available Tools:
-- search(query, limit) - Search products with hybrid AI Search + Cosmos DB
+- search(query, limit) - Search products with hybrid Azure AI Serach + Azure Cosmos DB
 - search_fast(query, limit) - Ultra-fast product search for quick responses
 - get_by_id(product_id) - Get specific product by ID
 - get_by_category(category, limit) - Get products in a specific category
@@ -163,7 +163,7 @@ NEVER:
 - Provide wrong contact information
 
 Available Tools:
-- lookup(query, top) - Search policy documents with enhanced AI Search
+- lookup(query, top) - Search policy documents with enhanced Azure AI Serach
 - lookup_policy(query, context) - Context-aware policy lookup
 - get_return_policy() - Get return policy information
 - get_shipping_info() - Get shipping information

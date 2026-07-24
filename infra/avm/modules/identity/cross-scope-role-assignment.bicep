@@ -22,7 +22,7 @@ param principalType string = 'ServicePrincipal'
 @allowed(['AIServices', 'ContainerRegistry'])
 param targetResourceType string = 'AIServices'
 
-@description('Name of the target AI Foundry (Cognitive Services) account. Required when targetResourceType is AIServices.')
+@description('Name of the target Azure AI Foundry (Cognitive Services) account. Required when targetResourceType is AIServices.')
 param aiFoundryName string = ''
 
 @description('Name of the target Azure Container Registry. Required when targetResourceType is ContainerRegistry.')
