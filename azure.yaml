@@ -6,54 +6,67 @@ metadata:
 requiredVersions:
   azd: ">= 1.18.0 != 1.23.9"
 
+
+infra:
+  provider: bicep
+  path: infra
+
+
 hooks:
   preprovision:
     windows:
+      shell: pwsh
       run: |
+        ./infra/scripts/pre-provision/preflight_scenario.ps1
         Write-Host ""
         Write-Host "  ---------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
         Write-Host "  Note: If deployment fails or you encounter an issue, please open an issue with the deployment logs." -ForegroundColor Yellow
         Write-Host "  https://github.com/microsoft/customer-chatbot-solution-accelerator/issues" -ForegroundColor Cyan
         Write-Host "  ---------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
         Write-Host ""
-      shell: pwsh
-      interactive: true
+      continueOnError: false
+      interactive: false
     posix:
+      shell: sh
       run: |
+        bash ./infra/scripts/pre-provision/preflight_scenario.sh
         printf '\n'
         printf '\033[33m  ---------------------------------------------------------------------------------------------------\033[0m\n'
         printf '\033[33m  Note: If deployment fails or you encounter an issue, please open an issue with the deployment logs.\033[0m\n'
         printf '\033[36m  https://github.com/microsoft/customer-chatbot-solution-accelerator/issues\033[0m\n'
         printf '\033[33m  ---------------------------------------------------------------------------------------------------\033[0m\n'
         printf '\n'
-      shell: sh
-      interactive: true
-  postprovision:
+      continueOnError: false
+      interactive: false
+
+  postdeploy:
     windows:
+      shell: pwsh
       run: |
         Write-Host "`n========================================" -ForegroundColor Green
         Write-Host " Deployment Complete!" -ForegroundColor Green
         Write-Host "========================================`n" -ForegroundColor Green
 
-        Write-Host "Web app URL:"
-        Write-Host "$env:WEB_APP_URL" -ForegroundColor Cyan
+        Write-Host "Chat Web App URL: $env:CHAT_WEB_APP_URL`n"
+        Write-Host "Scenario Web App URL: $env:SCENARIO_WEB_APP_URL`n"
 
         Write-Host "`n----------------------------------------" -ForegroundColor Yellow
         Write-Host " Post-Deployment Steps" -ForegroundColor Yellow
         Write-Host "----------------------------------------`n" -ForegroundColor Yellow
 
         Write-Host "1. Build and push the backend/frontend container images to ACR, then point the web apps at them:`n"
-        Write-Host "   infra\scripts\build_push_images.ps1`n" -ForegroundColor Cyan
+        Write-Host "   infra\scripts\post-provision\build_push_images.ps1`n" -ForegroundColor Cyan
 
-        Write-Host "2. Run the data setup script to load sample product data:`n"
-        Write-Host "   infra\scripts\data_scripts\run_upload_data_scripts.ps1`n" -ForegroundColor Cyan
-
-        Write-Host "3. Run the agent setup script to create AI Foundry agents:`n"
-        Write-Host "   infra\scripts\agent_scripts\run_create_agents_scripts.ps1`n" -ForegroundColor Cyan
-      shell: pwsh
+        Write-Host "2. Load data and create AI Foundry agents:`n"
+        Write-Host "   Option A - Run both stages at once (recommended):`n" -ForegroundColor White
+        Write-Host "     infra\scripts\post-provision\postprovision_data_agents.ps1`n" -ForegroundColor Cyan
+        Write-Host "   Option B - Run each stage individually:`n" -ForegroundColor White
+        Write-Host "     Data:   infra\scripts\post-provision\data_scripts\run_upload_data_scripts.ps1" -ForegroundColor Cyan
+        Write-Host "     Agents: infra\scripts\post-provision\agent_scripts\run_create_agents_scripts.ps1`n" -ForegroundColor Cyan
       continueOnError: false
       interactive: true
     posix:
+      shell: sh
       run: |
         echo ""
         echo "========================================"
@@ -61,10 +74,10 @@ hooks:
         echo "========================================"
         echo ""
 
-        echo "Web app URL:"
-        echo "$WEB_APP_URL"
-
+        echo "Chat Web App URL: $CHAT_WEB_APP_URL"
+        echo "Scenario Web App URL: $SCENARIO_WEB_APP_URL"
         echo ""
+
         echo "----------------------------------------"
         echo " Post-Deployment Steps"
         echo "----------------------------------------"
@@ -72,22 +85,17 @@ hooks:
 
         echo "1. Build and push the backend/frontend container images to ACR, then point the web apps at them:"
         echo ""
-        echo "   bash ./infra/scripts/build_push_images.sh"
+        echo "   bash ./infra/scripts/post-provision/build_push_images.sh"
         echo ""
 
-        echo "2. Run the data setup script to load sample product data:"
+        echo "2. Load data and create AI Foundry agents:"
         echo ""
-        echo "   bash ./infra/scripts/data_scripts/run_upload_data_scripts.sh"
+        echo "   Option A - Run both stages at once (recommended):"
+        echo "     bash ./infra/scripts/post-provision/postprovision_data_agents.sh"
         echo ""
-
-        echo "3. Run the agent setup script to create AI Foundry agents:"
+        echo "   Option B - Run each stage individually:"
+        echo "     Data:   bash ./infra/scripts/post-provision/data_scripts/run_upload_data_scripts.sh"
+        echo "     Agents: bash ./infra/scripts/post-provision/agent_scripts/run_create_agents_scripts.sh"
         echo ""
-        echo "   bash ./infra/scripts/agent_scripts/run_create_agents_scripts.sh"
-        echo ""
-      shell: sh
       continueOnError: false
       interactive: true
-
-# AVM Deployment Configuration
-infra:
-  path: infra

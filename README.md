@@ -1,6 +1,6 @@
 # Customer Chatbot Solution Accelerator
 
-This solution accelerator empowers organizations to build intelligent, conversational customer service experiences by leveraging Microsoft Foundry's Agent Framework. With seamless integration of specialized AI agents, and enterprise-grade data services, teams can create chatbots that provide personalized product recommendations, answer policy questions, and deliver exceptional customer support. The solution combines a modern e-commerce frontend with an intelligent backend that uses an orchestrator agent to route customer queries to specialized agents (Product Lookup and Policy/Knowledge), ensuring accurate, contextual responses grounded in product catalogs and policy documents. By unifying AI capabilities with scalable cloud infrastructure, organizations can deliver 24/7 customer support that understands context, maintains conversation history, and provides actionable insights to improve customer satisfaction and operational efficiency.
+This solution accelerator empowers organizations to build intelligent, conversational customer service experiences by leveraging Microsoft Foundry's Agent Framework. With seamless integration of specialized AI agents and enterprise-grade data services, teams can create chatbots that answer catalog and policy questions and deliver exceptional support across industry scenarios. The solution pairs a scenario host application (ecommerce, healthcare, or banking) with an embeddable chat widget backed by an orchestrator agent that routes customer queries to specialized agents (catalog/product lookup and policy/knowledge), ensuring accurate, contextual responses grounded in scenario data. By unifying AI capabilities with scalable cloud infrastructure, organizations can deliver 24/7 customer support that understands context, maintains conversation history, and provides actionable insights to improve customer satisfaction and operational efficiency.
 
 ---
 
@@ -12,7 +12,7 @@ This solution accelerator empowers organizations to build intelligent, conversat
 
 ## Solution overview
 
-Leverages Microsoft Foundry's Agent Framework, Foundry IQ, and Azure Cosmos DB to create an intelligent customer chatbot with specialized agents for product lookup and knowledge management. The solution features a modern React-based e-commerce frontend with integrated chat interface, enabling customers to browse products, get personalized recommendations, and receive support through natural language conversations. An orchestrator agent intelligently routes queries to specialized agents (Product Lookup and Policy/Knowledge), which use hybrid search across product catalogs and policy documents to ensure accurate, contextual answers.
+Leverages Microsoft Foundry's Agent Framework, Foundry IQ, and Azure Cosmos DB to create an intelligent customer chatbot with specialized agents for catalog lookup and knowledge management. Deploy one industry scenario per environment—**ecommerce**, **healthcare**, or **banking**. Each deployment includes a scenario host UI for browsing catalog content and an embedded chat widget (text and voice) that uses an orchestrator agent to route queries to specialized agents. Those agents use hybrid search across catalog and policy documents to return accurate, contextual answers.
 
 ### Solution architecture
 
@@ -20,6 +20,15 @@ The solution consists of:
 
 |![image](./documents/Images/solution-architecture.png)|
 |---|
+
+**Application layout:**
+
+| App | Role |
+|---|---|
+| **Scenario host** (`scenario-app`) | Industry-specific frontend and API (product grid, hospital services, or banking products) |
+| **Chat service** (`chat-app`) | Chat widget UI/API, Foundry agent orchestration, and Voice Live; embedded into the host via `widget.js` |
+
+Scenario packs under `scenarios/{ecommerce|healthcare|banking}/` supply manifests, seed data, and agent instructions. Deploy one scenario per `azd` environment with `AZURE_ENV_SCENARIO`. See the [scenario deployment guide](./documents/scenario-deployment-guide.md) for details.
 
 ### Additional resources
 
@@ -38,23 +47,30 @@ For detailed technical information, see the component READMEs:
 <summary>Click to learn more about the key features this solution enables</summary>  
 
 - **Intelligent agent orchestration using Microsoft Agent Framework**  
-  Leverage Microsoft Foundry's Agent Framework with an orchestrator agent that uses automatic tool selection to route customer queries to specialized agents (Product Lookup and Policy/Knowledge). The orchestrator analyzes user intent and automatically invokes the appropriate specialist agent as a tool, ensuring queries are handled by the most capable agent for each task.
+  Leverage Microsoft Foundry's Agent Framework with an orchestrator agent that uses automatic tool selection to route customer queries to specialized agents (catalog/product lookup and policy/knowledge). The orchestrator analyzes user intent and automatically invokes the appropriate specialist agent as a tool, ensuring queries are handled by the most capable agent for each task.
+
+- **Multi-scenario deployment**  
+  Choose **ecommerce** (Contoso Paints), **healthcare** (Contoso Health), or **banking** (Contoso Banking) per environment. Each scenario packs its own host UI, API surface, search indexes, seed data, and Foundry agent instructions under `scenarios/`.
+
+- **Embeddable chat widget**  
+  The chat experience ships as a standalone widget (`widget.js`) from the chat frontend and embeds into the scenario host. Customers get text chat with product/service cards where applicable, plus Voice Live for spoken conversations—without coupling the host UI to the chat stack.
 
 - **Hybrid search capabilities**  
-  Foundry IQ provides fast, accurate product discovery and policy document retrieval using semantic and keyword search, enabling natural language queries across product catalogs and knowledge bases. Specialized agents access search indexes to retrieve relevant information from product catalogs and policy documents.
+  Foundry IQ provides fast, accurate catalog and policy document retrieval using semantic and keyword search, enabling natural language queries across industry knowledge bases. Specialized agents access scenario-specific search indexes to retrieve relevant information.
 
 - **Natural language interaction**  
-  Microsoft Foundry's Agent Framework orchestrates multi-agent workflows using GPT-5.4-mini to deliver conversational, context-aware responses that understand customer intent. The framework maintains conversation threads and context across sessions, enabling natural, flowing conversations with specialized agents.
+  Microsoft Foundry's Agent Framework orchestrates multi-agent workflows using GPT-5.4-mini to deliver conversational, context-aware responses that understand customer intent. The framework maintains conversation threads and context across sessions, enabling natural, flowing conversations with specialized agents. Voice Live uses the same Foundry pipeline with scenario-aware grounding.
 
-- **Modern e-commerce experience**  
-  React-based frontend with dual-panel layout featuring product browsing and integrated AI chat assistant for seamless shopping and support experiences
+- **Modern scenario host experience**  
+  React-based host frontend for browsing the industry catalog (paints, clinical services, or banking products) with an integrated floating chat assistant for seamless discovery and support
 
 - **Scalable data architecture**  
-  Azure Cosmos DB stores product catalogs, customer orders, and chat history with high availability and global distribution, ensuring fast access to customer and product data
+  Azure Cosmos DB stores catalogs, transactions/orders, and chat history with high availability and global distribution, ensuring fast access to customer and catalog data
 
 </details>
 
 ---
+
 ## Getting Started
 
 <img src="./documents/Images/quick-deploy.png" width="48" />
@@ -74,6 +90,10 @@ Follow the quick deploy steps on the deployment guide to deploy this solution to
 
 > ⚠️ **Important: Check Azure OpenAI Quota Availability**  
 > To ensure sufficient quota is available in your subscription, please follow [quota check instructions guide](./documents/QuotaCheck.md) before you deploy the solution.
+
+> **Tip: Choose a scenario before first deploy**  
+> Default is **ecommerce**. For healthcare or banking, set the scenario on a new environment first:  
+> `azd env set AZURE_ENV_SCENARIO healthcare` (or `banking`), then `azd up`. See [scenario deployment guide](./documents/scenario-deployment-guide.md).
 
 ## Guidance
 
@@ -100,11 +120,11 @@ _Note: This is not meant to outline all costs as selected SKUs, scaled use, cust
 | Product | Description | Tier / Expected Usage Notes | Cost |
 |---|---|---|---|
 | [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry) | Used to orchestrate and build AI workflows with specialized agents for customer service. | Free Tier | [Pricing](https://azure.microsoft.com/pricing/details/ai-studio/) |
-| [Azure AI Services (OpenAI)](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/overview) | Enables language understanding and chat capabilities using GPT models for conversational AI. | S0 Tier; pricing depends on token volume and model used (e.g., GPT-5.4-mini). | [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/) |
-| [Foundry IQ](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search) | Provides hybrid search capabilities for product catalogs and policy documents with semantic and keyword search. | Basic Tier; pricing based on search units and data storage. | [Pricing](https://azure.microsoft.com/pricing/details/search/) |
-| [Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/overview) | Hosts the frontend React application and backend FastAPI services. | Basic or Standard plan; includes a free tier for development. | [Pricing](https://azure.microsoft.com/pricing/details/app-service/windows/) |
+| [Azure AI Services (OpenAI)](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/overview) | Enables language understanding, chat, and realtime voice (Voice Live) using GPT models for conversational AI. | S0 Tier; pricing depends on token volume and model used (e.g., GPT-5.4-mini, gpt-realtime-mini). | [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/) |
+| [Foundry IQ](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search) | Provides hybrid search capabilities for scenario catalogs and policy documents with semantic and keyword search. | Basic Tier; pricing based on search units and data storage. | [Pricing](https://azure.microsoft.com/pricing/details/search/) |
+| [Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/overview) | Hosts the scenario and chat frontend apps and FastAPI backends. | Basic or Standard plan; includes a free tier for development. | [Pricing](https://azure.microsoft.com/pricing/details/app-service/windows/) |
 | [Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-intro) | Stores and serves container images used by Azure App Service. | Basic Tier; fixed daily cost per registry. | [Pricing](https://azure.microsoft.com/pricing/details/container-registry/) |
-| [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) | Stores product catalogs, customer orders, and chat conversation history. | Serverless or provisioned throughput; pricing based on request units and storage. | [Pricing](https://azure.microsoft.com/pricing/details/cosmos-db/) |
+| [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) | Stores scenario catalogs, orders/transactions, and chat conversation history. | Serverless or provisioned throughput; pricing based on request units and storage. | [Pricing](https://azure.microsoft.com/pricing/details/cosmos-db/) |
 | [Azure Monitor / Log Analytics](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overview) | Collects and analyzes telemetry and logs from services and applications. | Pay-as-you-go; charges based on data ingestion volume. | [Pricing](https://azure.microsoft.com/pricing/details/monitor/) |
 
 ---
@@ -113,15 +133,46 @@ _Note: This is not meant to outline all costs as selected SKUs, scaled use, cust
 
 ## Business scenario
 
-The solution provides a modern e-commerce interface with integrated AI chat assistant, enabling customers to browse products, get recommendations, and receive support through natural language conversations.
+The solution provides an industry host experience with an embedded AI chat assistant, enabling customers to browse catalog content, get recommendations, and receive support through natural language (text and voice).
 
 ---
 
-The sample data illustrates how this accelerator could be used for a customer service scenario across e-commerce industries. 
+The sample data illustrates how this accelerator can be used for customer service across multiple industries. Deploy **one scenario per Azure environment**. Sample questions below are grounded in each scenario’s catalog and policy documents.
 
-In this scenario, Contoso Paints is an e-commerce paint retailer looking to provide exceptional customer support through an intelligent chatbot. Previously, customers had to navigate complex product catalogs, search through policy documents, and contact support for assistance. Leveraging the solution accelerator, customers now have access to a conversational AI assistant that can help them find the perfect paint colors, answer questions about warranties and returns, and provide personalized product recommendations. The chatbot uses an orchestrator agent that intelligently routes queries to specialized agents—Product Lookup Agent for finding paints and product information, and Policy/Knowledge Agent for policy questions and customer support—ensuring customers receive accurate, contextual responses in natural language (e.g., "I'm looking for a cool, blue-toned paint that feels calm but not gray", "What's your warranty policy?").
+### Ecommerce — Contoso Paints *(default)*
 
-⚠️ The sample data used in this repository is synthetic and generated. The data is intended for use as sample data only.
+Contoso Paints is a paint retailer looking to provide exceptional support through an intelligent chatbot. Customers previously had to navigate complex product catalogs and policy documents, or contact support for help. With the accelerator, they browse paint shades on the host site and use the embedded chat widget for color recommendations, warranties, and returns. The orchestrator routes queries to a product agent and a policy agent so answers stay grounded in the catalog and company documents.
+
+**Try asking:**
+
+- "I'm looking for a cool, blue-toned paint that feels calm but not gray"
+- "Show me warm white paint colors"
+- "What's your warranty policy?"
+- "What is your return policy?"
+
+### Healthcare — Contoso Health
+
+Contoso Health uses the same pattern for a patient-facing hospital experience. The host UI surfaces clinical services and departments; the chat widget answers questions about services, visiting hours, billing, and patient rights—without providing medical diagnosis or emergency care advice.
+
+**Try asking:**
+
+- "What are visiting hours?"
+- "Tell me about primary care services"
+- "Do you offer radiology and imaging?"
+- "What are patient rights related to billing?"
+
+### Banking — Contoso Banking
+
+Contoso Banking demonstrates deposit, lending, and card products with an assistant for account features, fees, and digital banking policies. The experience is informational only and must not collect or expose full account numbers, PINs, or passwords.
+
+**Try asking:**
+
+- "What savings options are available?"
+- "Show me the credit cards you offer"
+- "What's included with Everyday Checking?"
+- "How do I report suspected fraud?"
+
+⚠️ The sample data used in this repository is synthetic and generated. The data is intended for use as sample data only. Healthcare and banking scenarios are demos only—not medical devices, medical advice, or financial advice.
 
 ### Business value
 
@@ -131,15 +182,19 @@ In this scenario, Contoso Paints is an e-commerce paint retailer looking to prov
 
   - **Intelligent customer support** 
 
-Enable conversational AI agents that understand customer intent and provide accurate, contextual responses by routing queries to specialized agents that access product catalogs and policy documents through Foundry IQ. The orchestrator agent automatically selects the appropriate specialist (Product Lookup or Policy/Knowledge) based on the query, reducing support ticket volume and improving customer satisfaction with 24/7 availability.
+Enable conversational AI agents that understand customer intent and provide accurate, contextual responses by routing queries to specialized agents that access catalogs and policy documents through Foundry IQ. The orchestrator agent automatically selects the appropriate specialist based on the query, reducing support ticket volume and improving customer satisfaction with 24/7 availability across text and voice.
 
-- **Accelerated product discovery**
+- **Accelerated discovery**
 
-Help customers find products faster through natural language queries and intelligent search. Enable personalized recommendations based on customer needs, preferences, and conversation context, increasing conversion rates and average order value.
+Help customers find products, services, or account offerings faster through natural language queries and intelligent search. Enable personalized recommendations based on needs, preferences, and conversation context, increasing engagement and conversion.
+
+- **Reusable embeddable chat**
+
+Ship a single chat widget and backend that plug into different industry hosts. Scenario packs swap data, instructions, and branding without rebuilding the chat stack from scratch.
 
 - **Scalable and maintainable architecture**
 
-Deliver consistent customer experiences at scale with a microservices architecture that separates concerns between product lookup and knowledge management. The Microsoft Foundry Agent Framework enables easy extension with new agents, data sources, or capabilities as business needs evolve.
+Deliver consistent customer experiences at scale with a separation between the industry host and the chat service. The Microsoft Foundry Agent Framework enables easy extension with new agents, scenarios, or data sources as business needs evolve.
 
 </details>
 

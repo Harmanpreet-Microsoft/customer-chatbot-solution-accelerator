@@ -1,28 +1,30 @@
-## [Optional]: Customizing resource names 
+## Customizing AZD Parameters 
 
-By default this template will use the environment name as the prefix to prevent naming collisions within Azure. The parameters below show the default values. You only need to run the statements below if you need to change the values. 
+By default this template will use the environment name as the prefix to prevent naming collisions within Azure. The parameters below show the default values. You only need to run the statements below if you need to change the values.
 
-
-> To override any of the parameters, run `azd env set <PARAMETER_NAME> <VALUE>` before running `azd up`. On the first azd command, it will prompt you for the environment name. Be sure to choose 3-16 characters alphanumeric unique name. 
+> To override any of the parameters, run `azd env set <PARAMETER_NAME> <VALUE>` before running `azd up`. On the first azd command, it will prompt you for the environment name. Be sure to choose 3-16 characters alphanumeric unique name.
 
 ## Parameters
 
 | Name                                   | Type    | Example Value                | Purpose                                                                       |
 | -------------------------------------- | ------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| `AZURE_ENV_DEPLOYMENT_FLAVOR`          | string  | `bicep`                      | **Deployment mode** - Controls which infrastructure modules are used:<br/>• `bicep` (default): Vanilla Bicep for dev/test<br/>• `avm`: AVM production without private networking<br/>• `avm-waf`: AVM with WAF features and private networking<br/>|
 | `AZURE_LOCATION`                       | string  | `<User selects during deployment>` | Sets the Azure region for resource deployment.                                |
-| `AZURE_ENV_NAME`                       | string  | `docgen`                   | Sets the environment name prefix for all Azure resources.                     |                                      |
+| `AZURE_ENV_NAME`                       | string  | `chatbot`                  | Sets the environment name prefix for all Azure resources.                     |                                      |
 | `AZURE_ENV_AI_SERVICE_LOCATION`                       | string  | `<User selects during deployment>` | Sets the Azure region for AI service resource deployment.  |
-| `AZURE_ENV_MODEL_DEPLOYMENT_TYPE`      | string  | `Standard`                 | Defines the model deployment type (allowed: `Standard`, `GlobalStandard`).    |
+| `AZURE_ENV_MODEL_DEPLOYMENT_TYPE`      | string  | `GlobalStandard`           | Defines the model deployment type (allowed: `Standard`, `GlobalStandard`).    |
 | `AZURE_ENV_GPT_MODEL_NAME`                 | string  | `gpt-5.4-mini`                   | Specifies the GPT model name (e.g., `gpt-5.4-mini`).                    |
 | `AZURE_ENV_GPT_MODEL_VERSION`                 | string  | `2026-03-17`                   | Set the Azure model version.                    |
 | `AZURE_ENV_GPT_MODEL_CAPACITY`             | integer | `10`                         | Sets the GPT model capacity (based on what's available in your subscription). |
 | `AZURE_ENV_EMBEDDING_DEPLOYMENT_CAPACITY` | integer | `10`                      | Sets the embedding model deployment capacity (minimum: 10).                   |
-| `AZURE_ENV_CONTAINER_REGISTRY_ENDPOINT`    | string  | `ccbcontainerreg.azurecr.io` | Sets the Azure Container Registry login server/endpoint (for example: `ccbcontainerreg.azurecr.io`). |
-| `AZURE_ENV_IMAGETAG`       | string  | `latest_v2`   | Set the image tag (allowed values: `latest`, `dev`, `demo`, `latest_v2`).     |
+| `AZURE_ENV_GPT_REALTIME_DEPLOYMENT_CAPACITY` | integer | `1`                    | Sets the realtime GPT model deployment capacity (minimum: 1). |
+| `AZURE_ENV_ENABLE_TELEMETRY` | boolean | `true` | Enables/disables usage telemetry for AVM modules. |
+| `AZURE_ENV_IMAGETAG`      | string  | `latest_v3`   | Image tag applied to the container images built by **`build_push_images`** (falls back to a UTC timestamp if unset). |
+| `AZURE_ENV_SCENARIO`       | string  | `ecommerce`   | Deployment scenario: `ecommerce` (default), `healthcare`, or `banking`. See [scenario-deployment-guide.md](./scenario-deployment-guide.md). |
 | `AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID` | string  | Guide to get your [Existing Workspace Resource ID](./ReuseLogAnalytics.md)  | Reuses an existing Log Analytics Workspace instead of creating a new one.     |
 | `AZURE_EXISTING_AIPROJECT_RESOURCE_ID`    | string  | Guide to get your existing [Existing Foundry Project Resource ID](./ReuseFoundryProject.md)           | Reuses an existing AIFoundry and AIFoundryProject instead of creating a new one.  |
-| `AZURE_ENV_VM_ADMIN_USERNAME`          | string  | `adminuser`                | The admin username for the virtual machine (used when WAF private networking is enabled). |
-| `AZURE_ENV_VM_ADMIN_PASSWORD`          | string  | *(secure)*                 | The admin password for the virtual machine (used when WAF private networking is enabled). |
+| `AZURE_ENV_VM_ADMIN_USERNAME`          | string  | `testvmuser`               | **Optional (Entra ID Auth is default):** The admin username for the VM. Only set if using traditional username/password auth instead of Microsoft Entra ID authentication (not recommended). |
+| `AZURE_ENV_VM_ADMIN_PASSWORD`          | string  | *(secure)*                 | **Optional (Entra ID Auth is default):** The admin password for the VM. Only set if using traditional username/password auth instead of Microsoft Entra ID authentication (not recommended). |
 | `AZURE_ENV_VM_SIZE`  | string | `Standard_D2s_v5`               | The size/SKU of the Jumpbox Virtual Machine for WAF/private-networking deployments (e.g., `Standard_D2s_v5`, `Standard_DS2_v2`).         |
 
 ## How to Set a Parameter
@@ -33,8 +35,19 @@ To customize any of the above values, run the following command **before** `azd 
 azd env set <PARAMETER_NAME> <VALUE>
 ```
 
-**Example:**
+**Examples:**
 
 ```bash
+# Set deployment region
 azd env set AZURE_LOCATION westus2
+
+## Deployment Flavor Examples
+# Default: Vanilla Bicep
+azd env set AZURE_ENV_DEPLOYMENT_FLAVOR bicep
+
+# AVM non-WAF (enterprise-grade without private networking)
+azd env set AZURE_ENV_DEPLOYMENT_FLAVOR avm
+
+# AVM WAF-aligned (production with private networking)
+azd env set AZURE_ENV_DEPLOYMENT_FLAVOR avm-waf
 ```

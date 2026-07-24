@@ -1,122 +1,119 @@
 # Local Development Setup Guide
 
-This guide provides comprehensive instructions for setting up the Customer Chatbot Solution Accelerator for local development across Windows and Linux platforms.
+This guide walks you through running the Customer Chatbot Solution Accelerator on your local machine for development.
 
 ## Important Setup Notes
 
-### Multi-Service Architecture
+### Multi-App Architecture
 
-This application consists of **two separate services** that run independently:
+The accelerator ships as **two independent apps**, each with its own backend and frontend:
 
-1. **Backend API** - FastAPI REST API server for the frontend
-2. **Frontend** - React-based e-commerce user interface with integrated chat
+| App | Backend | Frontend | Purpose |
+|-----|---------|----------|---------|
+| `chat-app/` | FastAPI (`chat-app/backend/`) | React + Vite (`chat-app/frontend/`) | Standalone chat host + embeddable chat widget |
+| `scenario-app/` | FastAPI (`scenario-app/backend/`) | React + Vite (`scenario-app/frontend/`) | Scenario host UI (ecommerce / healthcare / banking) that embeds the chat widget |
 
-> **⚠️ Critical: Each service must run in its own terminal/console window**
+You do **not** need to run all four services at once. Typical local workflows:
+
+- **Chat only** — run `chat-app/backend` + `chat-app/frontend`
+- **Scenario + Chat** — run all four (the scenario frontend calls both its own backend and the chat backend)
+
+> **⚠️ Each service needs its own terminal**
 >
-> - **Do NOT close terminals** while services are running
-> - Open **2 separate terminal windows** for local development
-> - Each service will occupy its terminal and show live logs
+> - Do **not** close terminals while services are running
+> - Open one terminal per service
+> - Each terminal will stream live logs
 
 ### Path Conventions
 
-**All paths in this guide are relative to the repository root directory:**
+All paths in this guide are relative to the repository root:
 
 ```
 customer-chatbot-solution-accelerator/       ← Repository root (start here)
-├── src/
-│   ├── api/                                 ← Backend FastAPI application
-│   │   ├── app/                             ← Main application code
-│   │   │   ├── routers/                     ← API endpoint routes
-│   │   │   ├── services/                    ← Business logic services
-│   │   │   ├── plugins/                     ← Agent plugins
-│   │   │   └── utils/                       ← Utility functions
-│   │   ├── .env                             ← Backend environment config
-│   │   └── requirements.txt                 ← Python dependencies
-│   ├── App/                                 ← Frontend React application
-│   │   ├── src/                             ← React/TypeScript source
-│   │   ├── package.json                     ← Frontend dependencies
-│   │   └── env.example                      ← Frontend env template
-│   ├── tests/                               ← Unit and integration tests
-│   ├── start-local.bat                      ← Windows startup script
-│   └── start-local.sh                       ← Linux/Mac startup script
-├── infra/                                   ← Azure infrastructure (Bicep)
+├── chat-app/
+│   ├── backend/                             ← FastAPI chat backend
+│   │   ├── app/                             ← Application code
+│   │   ├── env.sample                       ← Env template (copy to .env)
+│   │   ├── requirements.txt                 ← Python dependencies
+│   │   └── startup.sh                       ← Container startup script
+│   └── frontend/                            ← React + Vite chat frontend
+│       ├── src/
+│       ├── package.json
+│       └── vite.config.ts                   ← Dev server on port 3001
+├── scenario-app/
+│   ├── backend/                             ← FastAPI scenario host backend
+│   │   ├── app/
+│   │   ├── env.sample
+│   │   └── requirements.txt
+│   └── frontend/                            ← React + Vite scenario host UI
+│       ├── src/
+│       ├── package.json
+│       └── vite.config.ts                   ← Dev server on port 5173
+├── scenarios/                               ← Scenario packs (ecommerce/healthcare/banking)
+│   ├── ecommerce/
+│   ├── healthcare/
+│   └── banking/
+├── infra/                                   ← Bicep infrastructure
+│   ├── main.bicep
+│   ├── main.parameters.json
+│   ├── main.waf.parameters.json
+│   ├── bicep/                               ← Vanilla Bicep modules (dev/test)
+│   ├── avm/                                 ← Azure Verified Modules (production/WAF)
+│   └── scripts/                             ← Pre/post-provision scripts
 ├── documents/                               ← Documentation (you are here)
-├── .vscode/                                 ← VS Code configuration
+├── .vscode/
 └── azure.yaml                               ← Azure Developer CLI config
 ```
 
-**Before starting any step, ensure you are in the repository root directory:**
+**Verify you are at the repo root before running any command:**
 
 ```bash
-# Verify you're in the correct location
-pwd  # Linux/macOS - should show: .../customer-chatbot-solution-accelerator
-Get-Location  # Windows PowerShell - should show: ...\customer-chatbot-solution-accelerator
+# Linux/macOS
+pwd    # should end in .../customer-chatbot-solution-accelerator
 
-# If not, navigate to repository root
+# Windows PowerShell
+Get-Location    # should end in ...\customer-chatbot-solution-accelerator
+
+# If not, navigate there
 cd path/to/customer-chatbot-solution-accelerator
 ```
 
 ---
 
-## Step 1: Prerequisites - Install Required Tools
+## Step 1: Prerequisites — Install Required Tools
 
-Install these tools before you start:
-
-- [Visual Studio Code](https://code.visualstudio.com/) with the following extensions:
+- [Visual Studio Code](https://code.visualstudio.com/) with these extensions:
   - [Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack)
   - [Bicep](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-bicep)
   - [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
   - [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance)
-- [Python 3.11+](https://www.python.org/downloads/). **Important:** Check "Add Python to PATH" during installation.
+- [Python 3.11+](https://www.python.org/downloads/) — check "Add Python to PATH" during installation
 - [PowerShell 7.0+](https://github.com/PowerShell/PowerShell#get-powershell) (Windows)
-- [Node.js (LTS)](https://nodejs.org/en) - Required for frontend development
+- [Node.js LTS](https://nodejs.org/en) — required for both frontends
 - [Git](https://git-scm.com/downloads)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 - [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
 - [Bicep CLI 0.33.0+](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
 
-### Windows Development
-
-#### Option 1: Native Windows (PowerShell)
+### Windows (PowerShell)
 
 ```powershell
-# Install Python 3.11+ and Git
 winget install Python.Python.3.11
 winget install Git.Git
-
-# Install Node.js for frontend
 winget install OpenJS.NodeJS.LTS
-
-# Install Azure CLI
 winget install Microsoft.AzureCLI
-
-# Install Azure Developer CLI
 winget install Microsoft.Azd
 ```
 
-#### Option 2: Windows with WSL2 (Recommended for Linux-like experience)
+### Ubuntu/Debian
 
 ```bash
-# Install WSL2 first (run in PowerShell as Administrator):
-# wsl --install -d Ubuntu
-
-# Then in WSL2 Ubuntu terminal:
 sudo apt update && sudo apt install python3.11 python3.11-venv git curl nodejs npm -y
 ```
 
-### Linux Development
-
-#### Ubuntu/Debian
+### RHEL/CentOS/Fedora
 
 ```bash
-# Install prerequisites
-sudo apt update && sudo apt install python3.11 python3.11-venv git curl nodejs npm -y
-```
-
-#### RHEL/CentOS/Fedora
-
-```bash
-# Install prerequisites
 sudo dnf install python3.11 python3.11-devel git curl gcc nodejs npm -y
 ```
 
@@ -124,437 +121,319 @@ sudo dnf install python3.11 python3.11-devel git curl gcc nodejs npm -y
 
 ## Step 2: Clone the Repository
 
-Choose a location on your local machine where you want to store the project files.
-
-### Using Command Line/Terminal
-
-1. **Open your terminal or command prompt. Navigate to your desired directory and clone the repository:**
-
-   ```bash
-   git clone https://github.com/microsoft/customer-chatbot-solution-accelerator.git
-   ```
-
-2. **Navigate to the project directory:**
-
-   ```bash
-   cd customer-chatbot-solution-accelerator
-   ```
-
-3. **Open the project in Visual Studio Code:**
-
-   ```bash
-   code .
-   ```
+```bash
+git clone https://github.com/microsoft/customer-chatbot-solution-accelerator.git
+cd customer-chatbot-solution-accelerator
+code .
+```
 
 ---
 
-## Step 3: Development Tools Setup
+## Step 3: Azure Authentication
 
-### Visual Studio Code (Recommended)
-
-The repository includes pre-configured VS Code settings in `.vscode/` directory:
-
-- **launch.json** - Debug configurations for Python FastAPI backend
-- **settings.json** - Python, linting, and testing configurations
-
-#### Recommended Extensions
-
-VS Code should automatically prompt you to install recommended extensions. If not, install these manually:
-
-- `ms-python.python` - Python language support
-- `ms-python.vscode-pylance` - Python language server
-- `ms-python.black-formatter` - Code formatting
-- `ms-python.isort` - Import sorting
-- `ms-python.flake8` - Linting
-- `ms-azuretools.vscode-bicep` - Bicep support
-- `ms-vscode.azure-account` - Azure account management
-
----
-
-## Step 4: Azure Authentication Setup
-
-Before running the application locally, authenticate with Azure:
+Local development uses `DefaultAzureCredential` against the Azure resources you have provisioned.
 
 ```bash
-# Login to Azure CLI
 az login
-
-# Set your subscription (replace with your subscription ID)
-az account set --subscription "your-subscription-id"
-
-# Verify authentication
+az account set --subscription "<your-subscription-id>"
 az account show
 ```
 
 ---
 
-## Step 5: Local Setup/Deployment
+## Step 4: Deploy Azure Resources
 
-Follow these steps to set up and run the application locally:
-
-### 5.1. Deploy Azure Resources First
-
-Before running locally, you need Azure resources deployed. If you haven't already:
+The backends talk to real Azure services (AI Foundry, OpenAI, AI Search, Cosmos DB). Provision them first:
 
 ```bash
-# Initialize Azure Developer CLI
-azd init
-
-# Deploy to Azure (this creates all required resources)
+azd auth login
 azd up
 ```
 
-📖 **Detailed Deployment:** Follow the [Deployment Guide](./DeploymentGuide.md) for complete instructions.
+📖 See the [Deployment Guide](./DeploymentGuide.md) for the full deployment flow (including scenario selection and post-provision data/agent scripts).
 
-### 5.2. Configure Environment Variables
-
-#### Backend Environment (.env)
-
-1. Navigate to `src/api/` directory
-2. If resources were provisioned using `azd provision` or `azd up`, environment variables are automatically configured in `.azure/<env-name>/.env`
-3. Copy or create a `.env` file in `src/api/` with the required values:
-
-```env
-# App Configuration
-APP_ENV="dev"
-ALLOWED_ORIGINS_STR="*"
-
-# Azure AI Foundry
-AZURE_AI_AGENT_ENDPOINT="https://your-ai-services.services.ai.azure.com/api/projects/your-project"
-AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME="gpt-5.4-mini"
-AZURE_FOUNDRY_ENDPOINT="https://your-ai-services.services.ai.azure.com/api/projects/your-project"
-
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT="https://your-openai.openai.azure.com/"
-AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5.4-mini"
-AZURE_OPENAI_API_VERSION="2025-01-01-preview"
-
-# Azure AI Search
-AZURE_AI_SEARCH_ENDPOINT="https://your-search.search.windows.net"
-AZURE_SEARCH_ENDPOINT="https://your-search.search.windows.net"
-AZURE_SEARCH_INDEX="policies"
-AZURE_SEARCH_PRODUCT_INDEX="products"
-
-# Azure Cosmos DB
-COSMOS_DB_ENDPOINT="https://your-cosmos.documents.azure.com:443/"
-COSMOS_DB_DATABASE_NAME="ecommerce_db"
-AZURE_COSMOSDB_DATABASE="ecommerce_db"
-AZURE_COSMOSDB_CONVERSATIONS_CONTAINER="chat_sessions"
-
-# Foundry Agents
-FOUNDRY_CHAT_AGENT="chat-agent-name"
-FOUNDRY_PRODUCT_AGENT="product-agent-name"
-FOUNDRY_POLICY_AGENT="policy-agent-name"
-USE_FOUNDRY_AGENTS="True"
-USE_AI_PROJECT_CLIENT="True"
-```
-
-> **Note**: Set `APP_ENV="dev"` for local development. This enables DefaultAzureCredential for authentication.
-
-> **Important**: The `FOUNDRY_CHAT_AGENT`, `FOUNDRY_PRODUCT_AGENT`, and `FOUNDRY_POLICY_AGENT` values are **not** automatically populated by `azd up`. You must run the post-deployment agent creation script first, then manually copy the agent names into your local `.env` file.
-
-#### Frontend Environment
-
-1. Navigate to `src/App/` directory
-2. Copy `env.example` to `.env`:
-
-```bash
-cp src/App/env.example src/App/.env
-```
-
-3. Update the `.env` file:
-
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000/
-VITE_ENVIRONMENT=development
-```
-
-### 5.3. Required Azure RBAC Permissions
-
-To run the application locally, your Azure account needs the following role assignments on the deployed resources:
-
-#### Cosmos DB Access
-
-```bash
-# Get your principal ID
-PRINCIPAL_ID=$(az ad signed-in-user show --query id -o tsv)
-
-# Assign Cosmos DB Built-in Data Contributor role
-az cosmosdb sql role assignment create \
-  --account-name <cosmos-account-name> \
-  --resource-group <resource-group> \
-  --role-definition-name "Cosmos DB Built-in Data Contributor" \
-  --principal-id $PRINCIPAL_ID \
-  --scope "/"
-```
-
-#### Azure AI Search Access
-
-```bash
-# Assign Search Index Data Contributor role
-az role assignment create \
-  --assignee $PRINCIPAL_ID \
-  --role "Search Index Data Contributor" \
-  --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Search/searchServices/<search-name>"
-```
-
-> **Note**: After Azure deployment is complete, the post-deployment script assigns these roles automatically. You may only need to do this manually if permissions are missing.
+After `azd up` completes, run the post-provision data upload and agent creation scripts described in the Deployment Guide — the backends need the AI Foundry agent names in order to serve requests.
 
 ---
 
-## Step 6: Running the Application
+## Step 5: Configure Environment Variables
 
-### 6.1. Create Virtual Environment
+Each backend loads settings from a `.env` file in its own directory. Copy the sample and fill in values from your `azd` environment (`.azure/<env-name>/.env` after `azd up`).
 
-Open your terminal and navigate to the repository root folder:
+### 5.1 Chat backend — `chat-app/backend/.env`
 
 ```bash
-# Navigate to the project root folder
-cd customer-chatbot-solution-accelerator
+# From repo root (bash / macOS / Linux / WSL)
+cp chat-app/backend/env.sample chat-app/backend/.env
+```
 
-# Create virtual environment in the root folder
+```powershell
+# From repo root (Windows PowerShell)
+Copy-Item chat-app/backend/env.sample chat-app/backend/.env
+```
+
+Populate the file with the endpoints/keys from your provisioned resources. Minimum values for local dev:
+
+```env
+# App
+APP_ENV=dev
+ALLOWED_ORIGINS_STR=http://localhost:3001,http://localhost:5173
+
+# Azure AI Foundry / OpenAI
+AZURE_AI_AGENT_ENDPOINT=https://<your-ai-services>.services.ai.azure.com/api/projects/<project>
+AZURE_OPENAI_ENDPOINT=https://<your-openai>.openai.azure.com/
+AZURE_OPENAI_API_VERSION=2025-01-01-preview
+
+# Azure AI Search
+AZURE_AI_SEARCH_ENDPOINT=https://<your-search>.search.windows.net
+
+# Azure Cosmos DB
+COSMOS_DB_ENDPOINT=https://<your-cosmos>.documents.azure.com:443/
+
+# Foundry agent names (created by the post-provision agent script)
+FOUNDRY_CHAT_AGENT=<chat-agent-name>
+FOUNDRY_PRODUCT_AGENT=<product-agent-name>
+FOUNDRY_POLICY_AGENT=<policy-agent-name>
+```
+
+> **⚠️ Set `APP_ENV=dev`.** If you copied values from `.azure/<env-name>/.env`, `APP_ENV` will be set for the deployed environment. You **must** change it to `dev` locally — this switches the backend to `DefaultAzureCredential` so it uses your `az login` identity instead of the App Service managed identity.
+
+> `FOUNDRY_*` values are **not** populated automatically by `azd up`. Run the post-provision agent creation script (see Deployment Guide § 5.3) and copy the resulting names into `.env`.
+
+### 5.2 Scenario backend — `scenario-app/backend/.env`
+
+```bash
+# bash / macOS / Linux / WSL
+cp scenario-app/backend/env.sample scenario-app/backend/.env
+```
+
+```powershell
+# Windows PowerShell
+Copy-Item scenario-app/backend/env.sample scenario-app/backend/.env
+```
+
+The scenario backend needs Cosmos + OpenAI (and Application Insights, optionally). Fill in the same Azure endpoints as above.
+
+> **Port note:** Both backends default to port `8000`. For local dev, run the chat backend on `8001` (matches its Dockerfile) so the two do not collide. See Step 6.
+
+### 5.3 Frontends
+
+The frontends read `VITE_API_BASE_URL` at build time (Vite `.env`) or at runtime via a generated `runtime-config.js` in production. For local dev, create a `.env` file next to each `package.json`:
+
+**`chat-app/frontend/.env`**
+
+```env
+VITE_API_BASE_URL=http://localhost:8001
+```
+
+**`scenario-app/frontend/.env`**
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_CHAT_API_BASE_URL=http://localhost:8001
+VITE_SCENARIO=ecommerce
+```
+
+> If `VITE_API_BASE_URL` is not set, the frontend defaults to `http://localhost:8000` (see [chat-app/frontend/src/lib/api.ts](../chat-app/frontend/src/lib/api.ts) and [scenario-app/frontend/src/lib/api.ts](../scenario-app/frontend/src/lib/api.ts)).
+
+### 5.4 Required Azure RBAC (once per user)
+
+If the post-provision hook already assigned roles, skip this. Otherwise grant your user identity:
+
+```bash
+PRINCIPAL_ID=$(az ad signed-in-user show --query id -o tsv)
+
+# Cosmos DB data plane access
+az cosmosdb sql role assignment create \
+  --account-name <cosmos-account> \
+  --resource-group <resource-group> \
+  --role-definition-name "Cosmos DB Built-in Data Contributor" \
+  --principal-id "$PRINCIPAL_ID" \
+  --scope "/"
+
+# AI Search data plane access
+az role assignment create \
+  --assignee "$PRINCIPAL_ID" \
+  --role "Search Index Data Contributor" \
+  --scope "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Search/searchServices/<search-name>"
+```
+
+---
+
+## Step 6: Run the Applications
+
+### 6.1 Create Python virtual environments
+
+Each backend has its own `requirements.txt`. Use one venv per backend (or a shared venv at the repo root — both approaches work; the examples below use a shared root venv).
+
+```bash
+# From repo root
 python -m venv .venv
 
-# Activate virtual environment (Windows PowerShell)
+# Activate
+# Windows PowerShell
 .venv\Scripts\Activate.ps1
-
-# Activate virtual environment (Windows Command Prompt)
+# Windows CMD
 .venv\Scripts\activate.bat
-
-# Activate virtual environment (macOS/Linux)
+# macOS/Linux
 source .venv/bin/activate
 ```
 
-> **Note**: After activation, you should see `(.venv)` in your terminal prompt indicating the virtual environment is active.
+You should see `(.venv)` in your prompt.
 
-### 6.2. Install Dependencies
-
-```bash
-# Navigate to the API folder (while virtual environment is activated)
-cd src/api
-
-# Upgrade pip
-python -m pip install --upgrade pip
-
-# Install Python dependencies
-pip install -r requirements.txt
-```
-
-### 6.3. Running with Automated Script
-
-For convenience, use the provided startup scripts that handle starting both services:
-
-**Windows:**
-
-```cmd
-cd src
-.\start-local.bat
-```
-
-**macOS/Linux:**
+### 6.2 Install backend dependencies
 
 ```bash
-cd src
-chmod +x start-local.sh
-./start-local.sh
+# Chat backend
+pip install --upgrade pip
+pip install -r chat-app/backend/requirements.txt
+
+# Scenario backend (only if you plan to run it)
+pip install -r scenario-app/backend/requirements.txt
 ```
 
-### 6.4. Running Backend and Frontend Separately
-
-> **📋 Terminal Reminder**: This section requires **two separate terminal windows** - one for the Backend API and one for the Frontend. Keep both terminals open while running.
-
-#### Terminal 1: Backend API
+### 6.3 Install frontend dependencies
 
 ```bash
-# Navigate to the API folder (with virtual environment activated)
-cd src/api
+# Chat frontend
+cd chat-app/frontend && npm install && cd -
 
-# Run the backend API
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+# Scenario frontend
+cd scenario-app/frontend && npm install && cd -
 ```
 
-#### Terminal 2: Frontend
+### 6.4 Start each service in its own terminal
+
+Recommended port layout for running everything locally:
+
+| Service | Directory | Port |
+|---------|-----------|------|
+| Chat backend | `chat-app/backend` | **8001** |
+| Chat frontend | `chat-app/frontend` | **3001** (Vite default for this app) |
+| Scenario backend | `scenario-app/backend` | **8000** |
+| Scenario frontend | `scenario-app/frontend` | **5173** (Vite default) |
+
+**Terminal 1 — Chat backend (port 8001):**
 
 ```bash
-# Navigate to the frontend folder
-cd src/App
+cd chat-app/backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+```
 
-# Install frontend dependencies (first time only)
-npm install
+**Terminal 2 — Chat frontend (port 3001):**
 
-# Run the frontend development server
+```bash
+cd chat-app/frontend
 npm run dev
 ```
 
-### 6.5. Using VS Code Debug Configuration
-
-Alternatively, run the backend in debug mode:
-
-1. Open VS Code
-2. Go to **Run and Debug** (Ctrl+Shift+D)
-3. Select **"Python: Backend"** from the dropdown
-4. Click the green play button or press F5
-
----
-
-## Step 7: Verify All Services Are Running
-
-Before using the application, confirm all services are running correctly:
-
-### 7.1. Terminal Status Checklist
-
-| Terminal | Service | Command | Expected Output | URL |
-|----------|---------|---------|-----------------|-----|
-| **Terminal 1** | Backend API | `python -m uvicorn app.main:app --port 8000 --reload` | `INFO: Application startup complete` | http://127.0.0.1:8000 |
-| **Terminal 2** | Frontend (Dev) | `npm run dev` | `Local: http://localhost:5173/` | http://localhost:5173 |
-
-### 7.2. Quick Verification
-
-**1. Check Backend API:**
+**Terminal 3 — Scenario backend (port 8000):** *(only if running scenario host)*
 
 ```bash
-# In a new terminal
-curl http://127.0.0.1:8000/health
-# Expected: {"status":"healthy"} or similar JSON response
+cd scenario-app/backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-**2. Check Frontend:**
-
-- Open browser to http://localhost:5173
-- Should see the Customer Chatbot e-commerce UI
-- If authentication is configured, you may be redirected to Azure AD login
-
-### 7.3. Common Issues
-
-**Service not starting?**
-
-- Ensure you're in the correct directory (`src/api` for backend, `src/App` for frontend)
-- Verify virtual environment is activated (you should see `(.venv)` in prompt)
-- Check that port is not already in use (8000 for API, 5173 for frontend dev)
-- Review error messages in the terminal
-
-**Can't access services?**
-
-- Verify firewall isn't blocking ports 8000 or 5173
-- Try `http://localhost:port` instead of `http://127.0.0.1:port`
-- Ensure services show "startup complete" messages
-
-**Azure authentication errors?**
-
-- Ensure you're logged in with `az login`
-- Verify `APP_ENV="dev"` is set in `.env`
-- Check that your account has the required RBAC roles on Azure resources
-
----
-
-## Step 8: Running Tests
-
-The project includes unit tests and code quality tools:
+**Terminal 4 — Scenario frontend (port 5173):** *(only if running scenario host)*
 
 ```bash
-# Navigate to the API directory
-cd src/api
-
-# Run tests with pytest
-pytest tests/ -v
-
-# Run tests with coverage report
-pytest tests/ -v --cov=app --cov-report=html
+cd scenario-app/frontend
+npm run dev
 ```
+
+### 6.5 VS Code Debug
+
+Ready-to-use debug configurations are provided in [`.vscode/launch.json`](../.vscode/launch.json):
+
+- **Chat backend (uvicorn, reload)** — runs `chat-app/backend` on port `8001` with `chat-app/backend/.env`
+- **Scenario backend (uvicorn, reload)** — runs `scenario-app/backend` on port `8000` with `scenario-app/backend/.env`
+- **Chat + Scenario backends** (compound) — launches both backends together with a single F5
+
+Open **Run and Debug** (`Ctrl+Shift+D`), pick the configuration, and press F5. The frontends are still started from the terminal (`npm run dev` in each frontend directory).
+
+> The configurations assume a shared virtual environment at `${workspaceFolder}/.venv` (created in § 6.1). If you use a per-app venv instead, update the `python` field in each entry.
 
 ---
 
-## Step 9: Next Steps
+## Step 7: Verify Everything Is Running
 
-Once all services are running (as confirmed in Step 7), you can:
+| Terminal | Service | Expected log line | URL |
+|----------|---------|-------------------|-----|
+| 1 | Chat backend | `Uvicorn running on http://127.0.0.1:8001` | http://127.0.0.1:8001/docs |
+| 2 | Chat frontend | `Local:   http://localhost:3001/` | http://localhost:3001 |
+| 3 | Scenario backend | `Uvicorn running on http://127.0.0.1:8000` | http://127.0.0.1:8000/docs |
+| 4 | Scenario frontend | `Local:   http://localhost:5173/` | http://localhost:5173 |
 
-1. **Access the Application**: Open `http://localhost:5173` in your browser to explore the Customer Chatbot UI
-2. **Browse Products**: Navigate the e-commerce interface and browse the product catalog
-3. **Test Chat**: Use the integrated chat assistant to ask questions about products or policies
-4. **Explore the Code**: Review the codebase starting with `src/api/app/` directory
+**Quick health checks:**
+
+```bash
+curl http://127.0.0.1:8001/health   # Chat backend
+curl http://127.0.0.1:8000/health   # Scenario backend
+```
+
+Open http://localhost:5173 in a browser to load the scenario host UI (with the embedded chat widget), or http://localhost:3001 for the standalone chat UI.
+
+### Common issues
+
+- **Port already in use** — another process is on `8000`/`8001`/`3001`/`5173`. Change the `--port` flag or the Vite `server.port` in `vite.config.ts`.
+- **`DefaultAzureCredential` errors** — run `az login`, confirm `az account show` returns the right subscription, and confirm `APP_ENV=dev` is set in the backend `.env`.
+- **Frontend gets CORS errors** — ensure both frontend origins (`http://localhost:3001`, `http://localhost:5173`) are in the backend's `ALLOWED_ORIGINS_STR`.
+- **Chat responses return errors about missing agents** — you have not populated `FOUNDRY_CHAT_AGENT` / `FOUNDRY_PRODUCT_AGENT` / `FOUNDRY_POLICY_AGENT`. Run the post-provision agent script and copy the names in.
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Python Version Issues
+### Python version
 
 ```bash
-# Check available Python versions
-python3 --version
-python3.11 --version
-
-# If python3.11 not found, install it:
-# Ubuntu: sudo apt install python3.11
-# macOS: brew install python@3.11
-# Windows: winget install Python.Python.3.11
+python3 --version           # macOS/Linux
+python --version            # Windows
 ```
 
-#### Virtual Environment Issues
+If Python 3.11+ is missing:
+
+- Ubuntu: `sudo apt install python3.11`
+- macOS: `brew install python@3.11`
+- Windows: `winget install Python.Python.3.11`
+
+### Recreate the virtual environment
 
 ```bash
-# Recreate virtual environment
-rm -rf .venv  # Linux/macOS
-# or Remove-Item -Recurse .venv  # Windows PowerShell
+# From repo root
+rm -rf .venv                        # macOS/Linux
+Remove-Item -Recurse -Force .venv   # Windows PowerShell
 
 python -m venv .venv
-
-# Activate and reinstall
-source .venv/bin/activate  # Linux/macOS
-# or .\.venv\Scripts\Activate.ps1  # Windows
-
-pip install -r src/api/requirements.txt
+# Activate (see § 6.1) then reinstall requirements
+pip install -r chat-app/backend/requirements.txt
+pip install -r scenario-app/backend/requirements.txt
 ```
 
-#### Permission Issues (Linux/macOS)
-
-```bash
-# Fix ownership of files
-sudo chown -R $USER:$USER .
-```
-
-#### Windows-Specific Issues
+### PowerShell execution policy (Windows)
 
 ```powershell
-# PowerShell execution policy
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Long path support (Windows 10 1607+, run as Administrator)
-New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 ```
 
-### Azure Authentication Issues
+### Environment variables not picked up
 
 ```bash
-# Login to Azure CLI
-az login
+# macOS/Linux
+env | grep AZURE
 
-# Set subscription
-az account set --subscription "your-subscription-id"
-
-# Test authentication
-az account show
+# Windows PowerShell
+Get-ChildItem Env:AZURE*
 ```
 
-### Environment Variable Issues
-
-```bash
-# Check environment variables are loaded
-env | grep AZURE  # Linux/macOS
-Get-ChildItem Env:AZURE*  # Windows PowerShell
-
-# Validate .env file format
-cat src/api/.env | grep -v '^#' | grep '='  # Should show key=value pairs
-```
+Confirm each backend `.env` file has real values (not the placeholders from `env.sample`) and that the backend was started from the directory containing its `.env`.
 
 ---
 
 ## Related Documentation
 
-- [Deployment Guide](./DeploymentGuide.md) - Instructions for Azure deployment
-- [Technical Architecture](./TechnicalArchitecture.md) - Solution architecture details
-- [App Authentication Setup](./AppAuthentication.md) - Configure application authentication
-- [Delete Resource Group](./DeleteResourceGroup.md) - Steps to safely delete Azure resources
-- [Quota Check](./QuotaCheck.md) - Verify Azure quotas before deployment
+- [Deployment Guide](./DeploymentGuide.md)
+- [Scenario-based Deployment](./scenario-deployment-guide.md)
+- [Technical Architecture](./TechnicalArchitecture.md)
+- [App Authentication Setup](./AppAuthentication.md)
+- [Customizing AZD Parameters](./CustomizingAzdParameters.md)
