@@ -15,7 +15,8 @@ COPY scenario-app/frontend/ ./
 RUN npm run build
 COPY --from=widget-builder /src/chat-app/frontend/dist/widget.js ./dist/widget.js
 
-FROM mcr.microsoft.com/azurelinux/base/nginx:1.25
+FROM mcr.microsoft.com/azurelinux/base/nginx:1.28.3-8-azl3.0.20260722
+RUN tdnf -y update nginx && tdnf clean all
 COPY --from=app-builder /src/scenario-app/frontend/dist /usr/share/nginx/html
 COPY scenario-app/frontend/nginx.conf /etc/nginx/nginx.conf
 COPY scenario-app/frontend/startup.sh /docker-entrypoint.d/startup.sh

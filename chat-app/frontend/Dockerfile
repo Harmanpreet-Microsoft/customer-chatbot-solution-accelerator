@@ -17,15 +17,11 @@ COPY . .
 RUN npm run build
  
 # Production stage
-FROM mcr.microsoft.com/azurelinux/base/nginx:1.25
- 
-# Copy built files from builder stage
+FROM mcr.microsoft.com/azurelinux/base/nginx:1.28.3-8-azl3.0.20260722
+RUN tdnf -y update nginx && tdnf clean all
+
 COPY --from=builder /app/dist /usr/share/nginx/html
- 
-# Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
- 
-# Copy startup script
 COPY startup.sh /docker-entrypoint.d/startup.sh
 RUN chmod +x /docker-entrypoint.d/startup.sh
 RUN sed -i 's/\r$//' /docker-entrypoint.d/startup.sh
