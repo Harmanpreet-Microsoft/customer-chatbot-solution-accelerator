@@ -18,7 +18,6 @@ RUN npm run build
  
 # Production stage
 FROM mcr.microsoft.com/azurelinux/base/nginx:1.28.3-8-azl3.0.20260722
-RUN tdnf -y update nginx && tdnf clean all
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
