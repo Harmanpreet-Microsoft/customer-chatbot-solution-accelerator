@@ -50,7 +50,7 @@ async def get_ai_search_connection_id(project_client: AIProjectClient) -> str:
             if connection.target == ai_search_endpoint:
                 return connection.id
     raise Exception(
-        f"Could not find AI Search connection for {ai_search_endpoint}."
+        f"Could not find Azure AI Search connection for {ai_search_endpoint}."
     )
 
 

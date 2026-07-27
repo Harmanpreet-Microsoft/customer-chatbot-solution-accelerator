@@ -70,7 +70,7 @@
             "OpenAI.GlobalStandard.gpt-realtime-mini,1"
           ]
         },
-        "description": "Required. Location for AI Foundry and model deployments."
+        "description": "Required. Location for Azure AI Foundry and model deployments."
       }
     },
     "deploymentScenario": {
@@ -165,7 +165,7 @@
       "type": "string",
       "defaultValue": "2025-01-01-preview",
       "metadata": {
-        "description": "Optional. Azure OpenAI API version."
+        "description": "Optional. OpenAI API version."
       }
     },
     "azureAiAgentApiVersion": {
@@ -215,7 +215,7 @@
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Optional. Resource ID of an existing AI Foundry project. Empty creates a new one."
+        "description": "Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one."
       }
     },
     "deployingUserPrincipalType": {
@@ -636,7 +636,7 @@
               "type": "string",
               "defaultValue": "[format('proj-{0}', parameters('solutionName'))]",
               "metadata": {
-                "description": "Optional. Override name for the AI Foundry project. Defaults to proj-{solutionName}."
+                "description": "Optional. Override name for the Azure AI Foundry project. Defaults to proj-{solutionName}."
               }
             },
             "location": {
@@ -670,7 +670,7 @@
               "type": "bool",
               "defaultValue": true,
               "metadata": {
-                "description": "Optional. Whether to allow project management (AI Foundry hub)."
+                "description": "Optional. Whether to allow project management (Azure AI Foundry hub)."
               }
             },
             "publicNetworkAccess": {
@@ -770,7 +770,7 @@
             "azureOpenAiCuEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI Content Understanding endpoint URL."
+                "description": "OpenAI Content Understanding endpoint URL."
               },
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Content Understanding']]"
             },
@@ -784,23 +784,23 @@
             "projectResourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the AI Foundry project."
+                "description": "Resource ID of the Azure AI Foundry project."
               },
               "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
             },
             "projectName": {
               "type": "string",
               "metadata": {
-                "description": "Name of the AI Foundry project."
+                "description": "Name of the Azure AI Foundry project."
               },
               "value": "[parameters('projectName')]"
             },
             "projectEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "AI Foundry project endpoint."
+                "description": "Azure AI Foundry project endpoint."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['AI Foundry API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['Azure AI Foundry API']]"
             },
             "projectIdentityPrincipalId": {
               "type": "string",
@@ -890,7 +890,7 @@
             "azureOpenAiCuEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI Content Understanding endpoint URL."
+                "description": "OpenAI Content Understanding endpoint URL."
               },
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Content Understanding']]"
             },
@@ -904,23 +904,23 @@
             "projectResourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the AI Foundry project."
+                "description": "Resource ID of the Azure AI Foundry project."
               },
               "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
             },
             "projectName": {
               "type": "string",
               "metadata": {
-                "description": "Name of the AI Foundry project."
+                "description": "Name of the Azure AI Foundry project."
               },
               "value": "[parameters('projectName')]"
             },
             "projectEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "AI Foundry project endpoint."
+                "description": "Azure AI Foundry project endpoint."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['AI Foundry API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['Azure AI Foundry API']]"
             },
             "projectIdentityPrincipalId": {
               "type": "string",
@@ -1312,7 +1312,7 @@
                     "name": {
                       "type": "string",
                       "metadata": {
-                        "description": "The name of the existing AI Search service."
+                        "description": "The name of the existing Azure AI Search service."
                       }
                     },
                     "location": {
@@ -1432,7 +1432,7 @@
                     "systemAssignedMIPrincipalId": {
                       "type": "string",
                       "metadata": {
-                        "description": "The principal ID of the AI Search system-assigned managed identity."
+                        "description": "The principal ID of the Azure AI Search system-assigned managed identity."
                       },
                       "value": "[reference(resourceId('Microsoft.Search/searchServices', parameters('name')), '2025-05-01', 'full').identity.principalId]"
                     }
@@ -1448,21 +1448,21 @@
             "resourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the AI Search service."
+                "description": "Resource ID of the Azure AI Search service."
               },
               "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
             },
             "name": {
               "type": "string",
               "metadata": {
-                "description": "Name of the AI Search service."
+                "description": "Name of the Azure AI Search service."
               },
               "value": "[parameters('name')]"
             },
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint URL of the AI Search service."
+                "description": "Endpoint URL of the Azure AI Search service."
               },
               "value": "[format('https://{0}.search.windows.net', parameters('name'))]"
             },
@@ -1533,7 +1533,7 @@
             "projectName": {
               "type": "string",
               "metadata": {
-                "description": "Required. Name of the AI Foundry project."
+                "description": "Required. Name of the Azure AI Foundry project."
               }
             },
             "solutionName": {
@@ -1716,7 +1716,7 @@
               "type": "string",
               "defaultValue": "[format('cosmos-{0}', parameters('solutionName'))]",
               "metadata": {
-                "description": "Name of the Cosmos DB account."
+                "description": "Name of the Azure Cosmos DB account."
               }
             },
             "location": {
@@ -1833,21 +1833,21 @@
             "resourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the Cosmos DB account."
+                "description": "Resource ID of the Azure Cosmos DB account."
               },
               "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
             },
             "name": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB account."
+                "description": "Name of the Azure Cosmos DB account."
               },
               "value": "[parameters('name')]"
             },
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint of the Cosmos DB account."
+                "description": "Endpoint of the Azure Cosmos DB account."
               },
               "value": "[format('https://{0}.documents.azure.com:443/', parameters('name'))]"
             },
@@ -3620,7 +3620,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Principal ID of the AI Search identity."
+                "description": "Principal ID of the Azure AI Search identity."
               }
             },
             "appServicePrincipalIds": {
@@ -3652,21 +3652,21 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Resource ID of the AI Foundry account (empty if not deployed — new project path)."
+                "description": "Resource ID of the Azure AI Foundry account (empty if not deployed — new project path)."
               }
             },
             "aiSearchResourceId": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Resource ID of the AI Search service (empty if not deployed)."
+                "description": "Resource ID of the Azure AI Search service (empty if not deployed)."
               }
             },
             "cosmosDbAccountName": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Name of the Cosmos DB account (empty if not deployed)."
+                "description": "Name of the Azure Cosmos DB account (empty if not deployed)."
               }
             },
             "containerRegistryResourceId": {
@@ -4207,70 +4207,70 @@
     "AZURE_COSMOSDB_ACCOUNT": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB account."
+        "description": "Name of the Azure Cosmos DB account."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.name.value]"
     },
     "COSMOS_DB_ENDPOINT": {
       "type": "string",
       "metadata": {
-        "description": "Cosmos DB endpoint URL."
+        "description": "Azure Cosmos DB endpoint URL."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.endpoint.value]"
     },
     "COSMOS_DB_DATABASE_NAME": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB database."
+        "description": "Name of the Azure Cosmos DB database."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.databaseName.value]"
     },
     "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB container for chat conversations."
+        "description": "Name of the Azure Cosmos DB container for chat conversations."
       },
       "value": "chat_sessions"
     },
     "AZURE_COSMOSDB_DATABASE": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Cosmos DB database (alias)."
+        "description": "Name of the Azure Cosmos DB database (alias)."
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.databaseName.value]"
     },
     "AZURE_OPENAI_DEPLOYMENT_MODEL": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI GPT model deployment name."
+        "description": "OpenAI GPT model deployment name."
       },
       "value": "[parameters('gptModelName')]"
     },
     "AZURE_OPENAI_EMBEDDING_MODEL": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI embedding model name."
+        "description": "OpenAI embedding model name."
       },
       "value": "[parameters('embeddingModel')]"
     },
     "AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY": {
       "type": "int",
       "metadata": {
-        "description": "Azure OpenAI embedding model deployment capacity."
+        "description": "OpenAI embedding model deployment capacity."
       },
       "value": "[parameters('embeddingDeploymentCapacity')]"
     },
     "AZURE_OPENAI_ENDPOINT": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI service endpoint URL."
+        "description": "OpenAI service endpoint URL."
       },
       "value": "[if(variables('useExistingAIProject'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('aiFoundrySubscriptionId'), variables('aiFoundryResourceGroupName')), 'Microsoft.Resources/deployments', take(format('module.existing-project-setup.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.endpoint.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.ai-foundry-project.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.endpoint.value)]"
     },
     "AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI model deployment type."
+        "description": "OpenAI model deployment type."
       },
       "value": "[parameters('deploymentType')]"
     },
@@ -4284,14 +4284,14 @@
     "AZURE_OPENAI_API_VERSION": {
       "type": "string",
       "metadata": {
-        "description": "API version for Azure OpenAI service."
+        "description": "API version for OpenAI service."
       },
       "value": "[parameters('azureOpenaiAPIVersion')]"
     },
     "AZURE_OPENAI_RESOURCE": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Azure OpenAI resource."
+        "description": "Name of the OpenAI resource."
       },
       "value": "[if(variables('useExistingAIProject'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('aiFoundrySubscriptionId'), variables('aiFoundryResourceGroupName')), 'Microsoft.Resources/deployments', take(format('module.existing-project-setup.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.name.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.ai-foundry-project.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.name.value)]"
     },

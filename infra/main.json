@@ -5,8 +5,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.45.6.27763",
-      "templateHash": "1130790663632080876"
+      "version": "0.45.15.27210",
+      "templateHash": "6717713924327194381"
     }
   },
   "parameters": {
@@ -82,7 +82,7 @@
             "OpenAI.GlobalStandard.gpt-realtime-mini,1"
           ]
         },
-        "description": "Required. Location for AI Foundry and model deployments."
+        "description": "Required. Location for Azure AI Foundry and model deployments."
       }
     },
     "deploymentScenario": {
@@ -177,7 +177,7 @@
       "type": "string",
       "defaultValue": "2025-01-01-preview",
       "metadata": {
-        "description": "Optional. Azure OpenAI API version."
+        "description": "Optional. OpenAI API version."
       }
     },
     "azureAiAgentApiVersion": {
@@ -220,7 +220,7 @@
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Optional. Resource ID of an existing AI Foundry project. Empty creates a new one."
+        "description": "Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one."
       }
     },
     "deployingUserPrincipalType": {
@@ -266,14 +266,14 @@
       "type": "bool",
       "defaultValue": false,
       "metadata": {
-        "description": "Optional. Enable redundancy (zone redundant Cosmos DB, multi-region failover)."
+        "description": "Optional. Enable redundancy (zone redundant Azure Cosmos DB, multi-region failover)."
       }
     },
     "secondaryLocation": {
       "type": "string",
       "defaultValue": "canadacentral",
       "metadata": {
-        "description": "Optional. Secondary CosmosDB location for high availability."
+        "description": "Optional. Secondary Azure Cosmos DB location for high availability."
       }
     },
     "vmAdminUsername": {
@@ -387,8 +387,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "18235037256776572197"
+              "version": "0.45.15.27210",
+              "templateHash": "15491613390743974800"
             }
           },
           "parameters": {
@@ -453,7 +453,7 @@
                     "OpenAI.GlobalStandard.gpt-realtime-mini,1"
                   ]
                 },
-                "description": "Required. Location for AI Foundry and model deployments."
+                "description": "Required. Location for Azure AI Foundry and model deployments."
               }
             },
             "deploymentScenario": {
@@ -548,7 +548,7 @@
               "type": "string",
               "defaultValue": "2025-01-01-preview",
               "metadata": {
-                "description": "Optional. Azure OpenAI API version."
+                "description": "Optional. OpenAI API version."
               }
             },
             "azureAiAgentApiVersion": {
@@ -598,7 +598,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Optional. Resource ID of an existing AI Foundry project. Empty creates a new one."
+                "description": "Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one."
               }
             },
             "deployingUserPrincipalType": {
@@ -707,8 +707,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "12829235775567600920"
+                      "version": "0.45.15.27210",
+                      "templateHash": "1562511690153284384"
                     }
                   },
                   "parameters": {
@@ -837,8 +837,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "17497827752064117634"
+                      "version": "0.45.15.27210",
+                      "templateHash": "1396979465821863055"
                     }
                   },
                   "parameters": {
@@ -997,8 +997,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "8511660641005875858"
+                      "version": "0.45.15.27210",
+                      "templateHash": "14710745103930099805"
                     }
                   },
                   "parameters": {
@@ -1019,7 +1019,7 @@
                       "type": "string",
                       "defaultValue": "[format('proj-{0}', parameters('solutionName'))]",
                       "metadata": {
-                        "description": "Optional. Override name for the AI Foundry project. Defaults to proj-{solutionName}."
+                        "description": "Optional. Override name for the Azure AI Foundry project. Defaults to proj-{solutionName}."
                       }
                     },
                     "location": {
@@ -1053,7 +1053,7 @@
                       "type": "bool",
                       "defaultValue": true,
                       "metadata": {
-                        "description": "Optional. Whether to allow project management (AI Foundry hub)."
+                        "description": "Optional. Whether to allow project management (Azure AI Foundry hub)."
                       }
                     },
                     "publicNetworkAccess": {
@@ -1153,7 +1153,7 @@
                     "azureOpenAiCuEndpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "Azure OpenAI Content Understanding endpoint URL."
+                        "description": "OpenAI Content Understanding endpoint URL."
                       },
                       "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Content Understanding']]"
                     },
@@ -1167,14 +1167,14 @@
                     "projectResourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the AI Foundry project."
+                        "description": "Resource ID of the Azure AI Foundry project."
                       },
                       "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
                     },
                     "projectName": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the AI Foundry project."
+                        "description": "Name of the Azure AI Foundry project."
                       },
                       "value": "[parameters('projectName')]"
                     },
@@ -1222,8 +1222,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "6434598355203707033"
+                      "version": "0.45.15.27210",
+                      "templateHash": "17323730446378630757"
                     }
                   },
                   "parameters": {
@@ -1273,7 +1273,7 @@
                     "azureOpenAiCuEndpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "Azure OpenAI Content Understanding endpoint URL."
+                        "description": "OpenAI Content Understanding endpoint URL."
                       },
                       "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Content Understanding']]"
                     },
@@ -1287,14 +1287,14 @@
                     "projectResourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the AI Foundry project."
+                        "description": "Resource ID of the Azure AI Foundry project."
                       },
                       "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
                     },
                     "projectName": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the AI Foundry project."
+                        "description": "Name of the Azure AI Foundry project."
                       },
                       "value": "[parameters('projectName')]"
                     },
@@ -1360,8 +1360,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "6715448001846817199"
+                      "version": "0.45.15.27210",
+                      "templateHash": "3303748358923315881"
                     }
                   },
                   "parameters": {
@@ -1498,8 +1498,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "778242983230747658"
+                      "version": "0.45.15.27210",
+                      "templateHash": "9950595487577758814"
                     }
                   },
                   "parameters": {
@@ -1687,15 +1687,15 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.45.6.27763",
-                              "templateHash": "16237442077230849366"
+                              "version": "0.45.15.27210",
+                              "templateHash": "7691531029197971157"
                             }
                           },
                           "parameters": {
                             "name": {
                               "type": "string",
                               "metadata": {
-                                "description": "The name of the existing AI Search service."
+                                "description": "The name of the existing Azure AI Search service."
                               }
                             },
                             "location": {
@@ -1815,7 +1815,7 @@
                             "systemAssignedMIPrincipalId": {
                               "type": "string",
                               "metadata": {
-                                "description": "The principal ID of the AI Search system-assigned managed identity."
+                                "description": "The principal ID of the Azure AI Search system-assigned managed identity."
                               },
                               "value": "[reference(resourceId('Microsoft.Search/searchServices', parameters('name')), '2025-05-01', 'full').identity.principalId]"
                             }
@@ -1831,21 +1831,21 @@
                     "resourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the AI Search service."
+                        "description": "Resource ID of the Azure AI Search service."
                       },
                       "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
                     },
                     "name": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the AI Search service."
+                        "description": "Name of the Azure AI Search service."
                       },
                       "value": "[parameters('name')]"
                     },
                     "endpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "Endpoint URL of the AI Search service."
+                        "description": "Endpoint URL of the Azure AI Search service."
                       },
                       "value": "[format('https://{0}.search.windows.net', parameters('name'))]"
                     },
@@ -1902,8 +1902,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "8750708162978576025"
+                      "version": "0.45.15.27210",
+                      "templateHash": "5046364178840388691"
                     }
                   },
                   "parameters": {
@@ -1916,7 +1916,7 @@
                     "projectName": {
                       "type": "string",
                       "metadata": {
-                        "description": "Required. Name of the AI Foundry project."
+                        "description": "Required. Name of the Azure AI Foundry project."
                       }
                     },
                     "solutionName": {
@@ -2080,12 +2080,13 @@
                 },
                 "template": {
                   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "languageVersion": "2.0",
                   "contentVersion": "1.0.0.0",
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "16072023559576139398"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4107269099544654905"
                     }
                   },
                   "parameters": {
@@ -2099,7 +2100,7 @@
                       "type": "string",
                       "defaultValue": "[format('cosmos-{0}', parameters('solutionName'))]",
                       "metadata": {
-                        "description": "Name of the Cosmos DB account."
+                        "description": "Name of the Azure Cosmos DB account."
                       }
                     },
                     "location": {
@@ -2124,6 +2125,17 @@
                     },
                     "containers": {
                       "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "partitionKeyPath": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "defaultValue": [
                         {
                           "name": "conversations",
@@ -2144,8 +2156,8 @@
                       }
                     }
                   },
-                  "resources": [
-                    {
+                  "resources": {
+                    "database::list": {
                       "copy": {
                         "name": "database::list",
                         "count": "[length(parameters('containers'))]"
@@ -2165,10 +2177,10 @@
                         "options": {}
                       },
                       "dependsOn": [
-                        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('name'), parameters('databaseName'))]"
+                        "database"
                       ]
                     },
-                    {
+                    "cosmos": {
                       "type": "Microsoft.DocumentDB/databaseAccounts",
                       "apiVersion": "2025-10-15",
                       "name": "[parameters('name')]",
@@ -2198,7 +2210,7 @@
                         ]
                       }
                     },
-                    {
+                    "database": {
                       "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
                       "apiVersion": "2025-10-15",
                       "name": "[format('{0}/{1}', parameters('name'), parameters('databaseName'))]",
@@ -2208,29 +2220,29 @@
                         }
                       },
                       "dependsOn": [
-                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                        "cosmos"
                       ]
                     }
-                  ],
+                  },
                   "outputs": {
                     "resourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the Cosmos DB account."
+                        "description": "Resource ID of the Azure Cosmos DB account."
                       },
                       "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
                     },
                     "name": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the Cosmos DB account."
+                        "description": "Name of the Azure Cosmos DB account."
                       },
                       "value": "[parameters('name')]"
                     },
                     "endpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "Endpoint of the Cosmos DB account."
+                        "description": "Endpoint of the Azure Cosmos DB account."
                       },
                       "value": "[format('https://{0}.documents.azure.com:443/', parameters('name'))]"
                     },
@@ -2287,8 +2299,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "7309270875979052806"
+                      "version": "0.45.15.27210",
+                      "templateHash": "634033543361922430"
                     }
                   },
                   "parameters": {
@@ -2457,8 +2469,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "14921737129205933042"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4537280756464844268"
                     }
                   },
                   "parameters": {
@@ -2691,8 +2703,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "12196797251843480266"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4923875466157929514"
                     }
                   },
                   "parameters": {
@@ -2999,8 +3011,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "12196797251843480266"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4923875466157929514"
                     }
                   },
                   "parameters": {
@@ -3347,8 +3359,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "12196797251843480266"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4923875466157929514"
                     }
                   },
                   "parameters": {
@@ -3656,8 +3668,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "12196797251843480266"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4923875466157929514"
                     }
                   },
                   "parameters": {
@@ -3966,8 +3978,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "17289391055173016668"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4601633220910924569"
                     }
                   },
                   "parameters": {
@@ -4003,7 +4015,7 @@
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Principal ID of the AI Search identity."
+                        "description": "Principal ID of the Azure AI Search identity."
                       }
                     },
                     "appServicePrincipalIds": {
@@ -4035,21 +4047,21 @@
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Resource ID of the AI Foundry account (empty if not deployed — new project path)."
+                        "description": "Resource ID of the Azure AI Foundry account (empty if not deployed — new project path)."
                       }
                     },
                     "aiSearchResourceId": {
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Resource ID of the AI Search service (empty if not deployed)."
+                        "description": "Resource ID of the Azure AI Search service (empty if not deployed)."
                       }
                     },
                     "cosmosDbAccountName": {
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Name of the Cosmos DB account (empty if not deployed)."
+                        "description": "Name of the Azure Cosmos DB account (empty if not deployed)."
                       }
                     },
                     "containerRegistryResourceId": {
@@ -4309,8 +4321,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.45.6.27763",
-                              "templateHash": "1989127288943974415"
+                              "version": "0.45.15.27210",
+                              "templateHash": "1300049152829937087"
                             }
                           },
                           "parameters": {
@@ -4431,8 +4443,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.45.6.27763",
-                              "templateHash": "1989127288943974415"
+                              "version": "0.45.15.27210",
+                              "templateHash": "1300049152829937087"
                             }
                           },
                           "parameters": {
@@ -4590,35 +4602,35 @@
             "AZURE_COSMOSDB_ACCOUNT": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB account."
+                "description": "Name of the Azure Cosmos DB account."
               },
               "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.name.value]"
             },
             "COSMOS_DB_ENDPOINT": {
               "type": "string",
               "metadata": {
-                "description": "Cosmos DB endpoint URL."
+                "description": "Azure Cosmos DB endpoint URL."
               },
               "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.endpoint.value]"
             },
             "COSMOS_DB_DATABASE_NAME": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB database."
+                "description": "Name of the Azure Cosmos DB database."
               },
               "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.databaseName.value]"
             },
             "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB container for chat conversations."
+                "description": "Name of the Azure Cosmos DB container for chat conversations."
               },
               "value": "chat_sessions"
             },
             "AZURE_COSMOSDB_DATABASE": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB database (alias)."
+                "description": "Name of the Azure Cosmos DB database (alias)."
               },
               "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', take(format('module.cosmos-db-nosql.{0}', parameters('solutionName')), 64)), '2025-04-01').outputs.databaseName.value]"
             },
@@ -4995,8 +5007,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "4526071171632831008"
+              "version": "0.45.15.27210",
+              "templateHash": "15825270133024493599"
             }
           },
           "parameters": {
@@ -5061,7 +5073,7 @@
                     "OpenAI.GlobalStandard.gpt-realtime-mini,1"
                   ]
                 },
-                "description": "Required. Location for AI Foundry and model deployments."
+                "description": "Required. Location for Azure AI Foundry and model deployments."
               }
             },
             "deploymentScenario": {
@@ -5227,7 +5239,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Optional. Resource ID of an existing AI Foundry project. Empty creates a new one."
+                "description": "Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one."
               }
             },
             "deployingUserPrincipalType": {
@@ -5245,7 +5257,7 @@
               "type": "string",
               "defaultValue": "canadacentral",
               "metadata": {
-                "description": "Optional. Secondary CosmosDB location for high availability."
+                "description": "Optional. Secondary Azure Cosmos DB location for high availability."
               }
             },
             "vmAdminUsername": {
@@ -5435,8 +5447,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "13057004032172561022"
+                      "version": "0.45.15.27210",
+                      "templateHash": "8088039885965286237"
                     }
                   },
                   "parameters": {
@@ -8737,8 +8749,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "15211167376897453419"
+                      "version": "0.45.15.27210",
+                      "templateHash": "17593462233384180904"
                     }
                   },
                   "parameters": {
@@ -9664,8 +9676,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "6476447410274580151"
+                      "version": "0.45.15.27210",
+                      "templateHash": "11868321282699299231"
                     }
                   },
                   "definitions": {
@@ -12530,8 +12542,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "9116500550183450565"
+                      "version": "0.45.15.27210",
+                      "templateHash": "5843178535659210113"
                     }
                   },
                   "parameters": {
@@ -14434,8 +14446,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "5272027087445572747"
+                      "version": "0.45.15.27210",
+                      "templateHash": "1089854782656841223"
                     }
                   },
                   "parameters": {
@@ -14974,8 +14986,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "11479330755037849383"
+                      "version": "0.45.15.27210",
+                      "templateHash": "8930408375182742451"
                     }
                   },
                   "parameters": {
@@ -16443,8 +16455,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "6662408081790292224"
+                      "version": "0.45.15.27210",
+                      "templateHash": "9515837065104451474"
                     }
                   },
                   "parameters": {
@@ -16952,8 +16964,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "9028893310045880819"
+                      "version": "0.45.15.27210",
+                      "templateHash": "18103466400870370455"
                     }
                   },
                   "parameters": {
@@ -26308,8 +26320,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "6269193753809634195"
+                      "version": "0.45.15.27210",
+                      "templateHash": "6776150673571028467"
                     }
                   },
                   "parameters": {
@@ -29816,8 +29828,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "8028799539155931791"
+                      "version": "0.45.15.27210",
+                      "templateHash": "6476709335461897153"
                     }
                   },
                   "parameters": {
@@ -29838,7 +29850,7 @@
                       "type": "string",
                       "defaultValue": "[format('proj-{0}', parameters('solutionName'))]",
                       "metadata": {
-                        "description": "Optional. Override name for the AI Foundry project. Defaults to proj-{solutionName}."
+                        "description": "Optional. Override name for the Azure AI Foundry project. Defaults to proj-{solutionName}."
                       }
                     },
                     "location": {
@@ -29872,7 +29884,7 @@
                       "type": "bool",
                       "defaultValue": true,
                       "metadata": {
-                        "description": "Optional. Whether to allow project management (AI Foundry hub)."
+                        "description": "Optional. Whether to allow project management (Azure AI Foundry hub)."
                       }
                     },
                     "publicNetworkAccess": {
@@ -32519,21 +32531,21 @@
                     "projectResourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the AI Foundry project."
+                        "description": "Resource ID of the Azure AI Foundry project."
                       },
                       "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
                     },
                     "projectName": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the AI Foundry project."
+                        "description": "Name of the Azure AI Foundry project."
                       },
                       "value": "[parameters('projectName')]"
                     },
                     "projectEndpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "AI Foundry project endpoint."
+                        "description": "Azure AI Foundry project endpoint."
                       },
                       "value": "[reference('aiProject').endpoints['AI Foundry API']]"
                     },
@@ -32616,8 +32628,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "2563730588707091687"
+                      "version": "0.45.15.27210",
+                      "templateHash": "13058032099310447838"
                     }
                   },
                   "parameters": {
@@ -33364,8 +33376,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "705358977237504297"
+                      "version": "0.45.15.27210",
+                      "templateHash": "4547396846815855075"
                     }
                   },
                   "parameters": {
@@ -33429,21 +33441,21 @@
                     "projectResourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the AI Foundry project."
+                        "description": "Resource ID of the Azure AI Foundry project."
                       },
                       "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName'))]"
                     },
                     "projectName": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the AI Foundry project."
+                        "description": "Name of the Azure AI Foundry project."
                       },
                       "value": "[parameters('projectName')]"
                     },
                     "projectEndpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "AI Foundry project endpoint."
+                        "description": "Azure AI Foundry project endpoint."
                       },
                       "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['AI Foundry API']]"
                     },
@@ -33502,8 +33514,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "6715448001846817199"
+                      "version": "0.45.15.27210",
+                      "templateHash": "3303748358923315881"
                     }
                   },
                   "parameters": {
@@ -33670,8 +33682,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "3261808213176490944"
+                      "version": "0.45.15.27210",
+                      "templateHash": "12097105566229065476"
                     }
                   },
                   "definitions": {
@@ -34178,7 +34190,7 @@
                       "type": "array",
                       "defaultValue": [],
                       "metadata": {
-                        "description": "Optional. Array of role assignments to create on the AI Search service."
+                        "description": "Optional. Array of role assignments to create on the Azure AI Search service."
                       }
                     }
                   },
@@ -36287,21 +36299,21 @@
                     "resourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the AI Search service."
+                        "description": "Resource ID of the Azure AI Search service."
                       },
                       "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
                     },
                     "name": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the AI Search service."
+                        "description": "Name of the Azure AI Search service."
                       },
                       "value": "[parameters('name')]"
                     },
                     "endpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "Endpoint URL of the AI Search service."
+                        "description": "Endpoint URL of the Azure AI Search service."
                       },
                       "value": "[format('https://{0}.search.windows.net', parameters('name'))]"
                     },
@@ -36359,8 +36371,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "8750708162978576025"
+                      "version": "0.45.15.27210",
+                      "templateHash": "5046364178840388691"
                     }
                   },
                   "parameters": {
@@ -36373,7 +36385,7 @@
                     "projectName": {
                       "type": "string",
                       "metadata": {
-                        "description": "Required. Name of the AI Foundry project."
+                        "description": "Required. Name of the Azure AI Foundry project."
                       }
                     },
                     "solutionName": {
@@ -36554,8 +36566,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "5504060809490275188"
+                      "version": "0.45.15.27210",
+                      "templateHash": "14855699799284856128"
                     }
                   },
                   "definitions": {
@@ -36927,7 +36939,7 @@
                       "type": "string",
                       "defaultValue": "[format('cosmos-{0}', parameters('solutionName'))]",
                       "metadata": {
-                        "description": "Name of the Cosmos DB account."
+                        "description": "Name of the Azure Cosmos DB account."
                       }
                     },
                     "location": {
@@ -36952,6 +36964,17 @@
                     },
                     "containers": {
                       "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "partitionKeyPath": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "defaultValue": [
                         {
                           "name": "conversations",
@@ -36988,7 +37011,7 @@
                       "items": {
                         "$ref": "#/definitions/privateEndpointSingleServiceType"
                       },
-                      "nullable": true,
+                      "defaultValue": [],
                       "metadata": {
                         "description": "Optional. Configuration details for private endpoints. For security reasons, it is recommended to use private endpoints whenever possible."
                       }
@@ -43008,21 +43031,21 @@
                     "resourceId": {
                       "type": "string",
                       "metadata": {
-                        "description": "Resource ID of the Cosmos DB account."
+                        "description": "Resource ID of the Azure Cosmos DB account."
                       },
                       "value": "[reference('cosmosAccount').outputs.resourceId.value]"
                     },
                     "name": {
                       "type": "string",
                       "metadata": {
-                        "description": "Name of the Cosmos DB account."
+                        "description": "Name of the Azure Cosmos DB account."
                       },
                       "value": "[reference('cosmosAccount').outputs.name.value]"
                     },
                     "endpoint": {
                       "type": "string",
                       "metadata": {
-                        "description": "Endpoint of the Cosmos DB account."
+                        "description": "Endpoint of the Azure Cosmos DB account."
                       },
                       "value": "[format('https://{0}.documents.azure.com:443/', parameters('name'))]"
                     },
@@ -43094,8 +43117,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "5809745100524015651"
+                      "version": "0.45.15.27210",
+                      "templateHash": "11545178839017345310"
                     }
                   },
                   "definitions": {
@@ -43587,7 +43610,7 @@
                       "type": "string",
                       "defaultValue": "enabled",
                       "metadata": {
-                        "description": "Azure AD authentication as ARM policy status."
+                        "description": "Microsoft Entra ID authentication as ARM policy status."
                       }
                     }
                   },
@@ -47544,8 +47567,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "7722311537111875045"
+                      "version": "0.45.15.27210",
+                      "templateHash": "17112276975229652402"
                     }
                   },
                   "parameters": {
@@ -48521,8 +48544,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "17881259901050695278"
+                      "version": "0.45.15.27210",
+                      "templateHash": "9004187060827479743"
                     }
                   },
                   "definitions": {
@@ -64087,8 +64110,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "17881259901050695278"
+                      "version": "0.45.15.27210",
+                      "templateHash": "9004187060827479743"
                     }
                   },
                   "definitions": {
@@ -79695,8 +79718,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "17881259901050695278"
+                      "version": "0.45.15.27210",
+                      "templateHash": "9004187060827479743"
                     }
                   },
                   "definitions": {
@@ -95264,8 +95287,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "17881259901050695278"
+                      "version": "0.45.15.27210",
+                      "templateHash": "9004187060827479743"
                     }
                   },
                   "definitions": {
@@ -110807,8 +110830,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "16279263826646088113"
+                      "version": "0.45.15.27210",
+                      "templateHash": "10434475903975084916"
                     }
                   },
                   "parameters": {
@@ -110844,7 +110867,7 @@
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Principal ID of the AI Search identity."
+                        "description": "Principal ID of the Azure AI Search identity."
                       }
                     },
                     "appServicePrincipalIds": {
@@ -110858,28 +110881,28 @@
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Principal ID of the deploying user (for deployer Cosmos DB access)."
+                        "description": "Principal ID of the deploying user (for deployer Azure Cosmos DB access)."
                       }
                     },
                     "aiFoundryResourceId": {
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Resource ID of the AI Foundry account (empty if not deployed — new project path)."
+                        "description": "Resource ID of the Azure AI Foundry account (empty if not deployed — new project path)."
                       }
                     },
                     "aiSearchResourceId": {
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Resource ID of the AI Search service (empty if not deployed)."
+                        "description": "Resource ID of the Azure AI Search service (empty if not deployed)."
                       }
                     },
                     "cosmosDbAccountName": {
                       "type": "string",
                       "defaultValue": "",
                       "metadata": {
-                        "description": "Name of the Cosmos DB account (empty if not deployed)."
+                        "description": "Name of the Azure Cosmos DB account (empty if not deployed)."
                       }
                     }
                   },
@@ -111023,8 +111046,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.45.6.27763",
-                              "templateHash": "8340198449457510026"
+                              "version": "0.45.15.27210",
+                              "templateHash": "13897284585221236671"
                             }
                           },
                           "parameters": {
@@ -111073,7 +111096,7 @@
                               "type": "string",
                               "defaultValue": "",
                               "metadata": {
-                                "description": "Name of the target AI Foundry (Cognitive Services) account. Required when targetResourceType is AIServices."
+                                "description": "Name of the target Azure AI Foundry (Cognitive Services) account. Required when targetResourceType is AIServices."
                               }
                             },
                             "containerRegistryName": {
@@ -111145,8 +111168,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.45.6.27763",
-                              "templateHash": "8340198449457510026"
+                              "version": "0.45.15.27210",
+                              "templateHash": "13897284585221236671"
                             }
                           },
                           "parameters": {
@@ -111195,7 +111218,7 @@
                               "type": "string",
                               "defaultValue": "",
                               "metadata": {
-                                "description": "Name of the target AI Foundry (Cognitive Services) account. Required when targetResourceType is AIServices."
+                                "description": "Name of the target Azure AI Foundry (Cognitive Services) account. Required when targetResourceType is AIServices."
                               }
                             },
                             "containerRegistryName": {
@@ -111301,70 +111324,70 @@
             "AZURE_COSMOSDB_ACCOUNT": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB account."
+                "description": "Name of the Azure Cosmos DB account."
               },
               "value": "[reference('cosmosDBModule').outputs.name.value]"
             },
             "COSMOS_DB_ENDPOINT": {
               "type": "string",
               "metadata": {
-                "description": "Cosmos DB endpoint URL."
+                "description": "Azure Cosmos DB endpoint URL."
               },
               "value": "[reference('cosmosDBModule').outputs.endpoint.value]"
             },
             "COSMOS_DB_DATABASE_NAME": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB database."
+                "description": "Name of the Azure Cosmos DB database."
               },
               "value": "[reference('cosmosDBModule').outputs.databaseName.value]"
             },
             "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB container for chat conversations."
+                "description": "Name of the Azure Cosmos DB container for chat conversations."
               },
               "value": "chat_sessions"
             },
             "AZURE_COSMOSDB_DATABASE": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Cosmos DB database (alias)."
+                "description": "Name of the Azure Cosmos DB database (alias)."
               },
               "value": "[reference('cosmosDBModule').outputs.databaseName.value]"
             },
             "AZURE_OPENAI_DEPLOYMENT_MODEL": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI GPT model deployment name."
+                "description": "OpenAI GPT model deployment name."
               },
               "value": "[parameters('gptModelName')]"
             },
             "AZURE_OPENAI_EMBEDDING_MODEL": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI embedding model name."
+                "description": "OpenAI embedding model name."
               },
               "value": "[parameters('embeddingModel')]"
             },
             "AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY": {
               "type": "int",
               "metadata": {
-                "description": "Azure OpenAI embedding model deployment capacity."
+                "description": "OpenAI embedding model deployment capacity."
               },
               "value": "[parameters('embeddingDeploymentCapacity')]"
             },
             "AZURE_OPENAI_ENDPOINT": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI service endpoint URL."
+                "description": "OpenAI service endpoint URL."
               },
               "value": "[if(variables('useExistingAIProject'), reference('existing_project_setup').outputs.endpoint.value, reference('ai_foundry_project').outputs.endpoint.value)]"
             },
             "AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI model deployment type."
+                "description": "OpenAI model deployment type."
               },
               "value": "[parameters('deploymentType')]"
             },
@@ -111378,14 +111401,14 @@
             "AZURE_OPENAI_API_VERSION": {
               "type": "string",
               "metadata": {
-                "description": "API version for Azure OpenAI service."
+                "description": "API version for OpenAI service."
               },
               "value": "[parameters('azureOpenaiAPIVersion')]"
             },
             "AZURE_OPENAI_RESOURCE": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Azure OpenAI resource."
+                "description": "Name of the OpenAI resource."
               },
               "value": "[if(variables('useExistingAIProject'), reference('existing_project_setup').outputs.name.value, reference('ai_foundry_project').outputs.name.value)]"
             },

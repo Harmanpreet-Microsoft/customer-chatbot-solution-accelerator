@@ -58,7 +58,7 @@ param tags object = {}
     ]
   }
 })
-@description('Required. Location for AI Foundry and model deployments.')
+@description('Required. Location for Azure AI Foundry and model deployments.')
 param azureAiServiceLocation string
 
 @description('Deployment scenario: ecommerce, healthcare, or banking')
@@ -113,7 +113,7 @@ param gptRealtimeModelVersion string = '2025-12-15'
 @description('Optional. Capacity of the realtime model deployment.')
 param gptRealtimeDeploymentCapacity int = 1
 
-@description('Optional. Azure OpenAI API version.')
+@description('Optional. OpenAI API version.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @description('Optional. Azure AI Agent API version.')
@@ -141,7 +141,7 @@ param enableMonitoring bool = false
 @description('Optional. Resource ID of an existing Log Analytics workspace. Empty creates a new one when monitoring is enabled.')
 param existingLogAnalyticsWorkspaceId string = ''
 
-@description('Optional. Resource ID of an existing AI Foundry project. Empty creates a new one.')
+@description('Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one.')
 param existingFoundryProjectResourceId string = ''
 
 // ============================================================================
@@ -679,19 +679,19 @@ output AZURE_AI_AGENT_API_VERSION string = azureAiAgentApiVersion
 @description('Name of the Azure AI Foundry project.')
 output AZURE_AI_PROJECT_NAME string = aiProjectName
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 output AZURE_COSMOSDB_ACCOUNT string = cosmosDBModule.outputs.name
 
-@description('Cosmos DB endpoint URL.')
+@description('Azure Cosmos DB endpoint URL.')
 output COSMOS_DB_ENDPOINT string = cosmosDBModule.outputs.endpoint
 
-@description('Name of the Cosmos DB database.')
+@description('Name of the Azure Cosmos DB database.')
 output COSMOS_DB_DATABASE_NAME string = cosmosDBModule.outputs.databaseName
 
-@description('Name of the Cosmos DB container for chat conversations.')
+@description('Name of the Azure Cosmos DB container for chat conversations.')
 output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = 'chat_sessions'
 
-@description('Name of the Cosmos DB database (alias).')
+@description('Name of the Azure Cosmos DB database (alias).')
 output AZURE_COSMOSDB_DATABASE string = cosmosDBModule.outputs.databaseName
 
 @description('Azure OpenAI GPT model deployment name.')

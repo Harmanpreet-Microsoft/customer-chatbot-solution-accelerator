@@ -39,7 +39,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 ### 3. Azure App Registration
 
 1. Go to [Azure Portal](https://portal.azure.com)
-2. Navigate to "Azure Active Directory" > "App registrations"
+2. Navigate to "Microsoft Entra ID" > "App registrations"
 3. Click "New registration"
 4. Fill in:
    - Name: "E-commerce Chat Local Dev"

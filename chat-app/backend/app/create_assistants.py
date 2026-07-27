@@ -21,8 +21,8 @@ async def create_assistants():
         await init_foundry_client()
         client = get_foundry_client()
 
-        # Get OpenAI client
-        print("Getting OpenAI client...")
+        # Get Azure OpenAI client
+        print("Getting Azure OpenAI client...")
         openai_client = await client.get_openai_client(  # type: ignore
             api_version=settings.azure_openai_api_version
         )

@@ -142,10 +142,10 @@ enable_public_access() {
 		return 0
 	fi
 	echo "=== Temporarily enabling public network access for services ==="
-	# Enable public access for Cosmos DB
-	echo "Configuring Cosmos DB network access: $cosmosdb_account"
+	# Enable public access for Azure Cosmos DB
+	echo "Configuring Azure Cosmos DB network access: $cosmosdb_account"
 	
-	# Get Cosmos DB resource ID  
+	# Get Azure Cosmos DB resource ID  
 	subscription_id=$(az account show --query id -o tsv)
 	cosmos_resource_id="/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosdb_account}"
 	
@@ -154,11 +154,11 @@ enable_public_access() {
 		--api-version 2021-04-15 \
 		--query "properties.publicNetworkAccess" \
 		--output tsv 2>/dev/null)
-	echo "Original Cosmos DB public access: $original_cosmos_public_access"
+	echo "Original Azure Cosmos DB public access: $original_cosmos_public_access"
 	
-	# Only modify Cosmos DB if it's not already enabled
+	# Only modify Azure Cosmos DB if it's not already enabled
 	if [ "$original_cosmos_public_access" = "Enabled" ]; then
-		echo "✓ Cosmos DB public access already enabled - no changes needed"
+		echo "✓ Azure Cosmos DB public access already enabled - no changes needed"
 	else
 		# Abort if the read fails so restore never wipes rules with an empty set.
 		echo "Getting current firewall configuration..."
@@ -168,13 +168,13 @@ enable_public_access() {
 			--query "properties.ipRules" \
 			--output json 2>/dev/null)
 		if [ $? -ne 0 ]; then
-			echo "Error: Failed to read existing Cosmos DB firewall rules; aborting before any network changes to avoid wiping them on restore." >&2
+			echo "Error: Failed to read existing Azure Cosmos DB firewall rules; aborting before any network changes to avoid wiping them on restore." >&2
 			# No changes were made yet, so skip the restore trap (it would write ipRules=[]).
 			trap - EXIT INT TERM
 			exit 1
 		fi
 
-		echo "Cosmos DB public access is '$original_cosmos_public_access' - enabling access"
+		echo "Azure Cosmos DB public access is '$original_cosmos_public_access' - enabling access"
 
 		if [ -n "$COSMOS_FIREWALL_IP" ]; then
 			# Explicit override for proxy/VPN environments where the auto-detected IP
@@ -219,7 +219,7 @@ enable_public_access() {
 				exit 1
 			fi
 
-			echo "Adding multiple IPs to Cosmos DB firewall to handle NAT/proxy variations..."
+			echo "Adding multiple IPs to Azure Cosmos DB firewall to handle NAT/proxy variations..."
 			echo "  Base IP: $current_ip"
 
 			# Build JSON array with current IP and ±2 range
@@ -245,26 +245,26 @@ enable_public_access() {
 			--set "properties.ipRules=$ip_rules" \
 			--set "properties.publicNetworkAccess=Enabled" \
 			--output none; then
-			echo "✓ Cosmos DB firewall updated with multiple IPs for NAT handling"
-			echo "✓ Cosmos DB public network access enabled"
+			echo "✓ Azure Cosmos DB firewall updated with multiple IPs for NAT handling"
+			echo "✓ Azure Cosmos DB public network access enabled"
 			
 			# Wait longer for changes to propagate
-			echo "Waiting for Cosmos DB network changes to take effect..."
+			echo "Waiting for Azure Cosmos DB network changes to take effect..."
 			sleep 30
 			echo "Network configuration should now be active"
 		else
-			echo "⚠ Warning: Failed to update Cosmos DB firewall. You may need to manually add IP $current_ip"
-			echo "  Please add this IP address in Azure Portal: Cosmos DB > $cosmosdb_account > Networking > Firewall"
+			echo "⚠ Warning: Failed to update Azure Cosmos DB firewall. You may need to manually add IP $current_ip"
+			echo "  Please add this IP address in Azure Portal: Azure Cosmos DB > $cosmosdb_account > Networking > Firewall"
 		fi
 	fi
 
-	# Enable public access for AI Foundry
+	# Enable public access for Azure AI Foundry
 	# Extract the account resource ID (remove /projects/... part if present)
 	aif_account_resource_id=$(echo "$aiFoundryResourceId" | sed 's|/projects/.*||')
 	aif_resource_name=$(basename "$aif_account_resource_id")
-	# Extract resource group from the AI Foundry account resource ID
+	# Extract resource group from the Azure AI Foundry account resource ID
 	aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
-	# Extract subscription ID from the AI Foundry account resource ID
+	# Extract subscription ID from the Azure AI Foundry account resource ID
 	aif_subscription_id=$(echo "$aif_account_resource_id" | sed -n 's|.*/subscriptions/\([^/]*\)/.*|\1|p')
 
 	original_foundry_public_access=$(az cognitiveservices account show \
@@ -274,22 +274,22 @@ enable_public_access() {
 		--query "properties.publicNetworkAccess" \
 		--output tsv)
 	if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
-		echo "⚠ Info: Could not retrieve AI Foundry network access status."
-		echo "  AI Foundry network access might be managed differently."
+		echo "⚠ Info: Could not retrieve Azure AI Foundry network access status."
+		echo "  Azure AI Foundry network access might be managed differently."
 	elif [ "$original_foundry_public_access" != "Enabled" ]; then
-		echo "Current AI Foundry public access: $original_foundry_public_access"
-		echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
+		echo "Current Azure AI Foundry public access: $original_foundry_public_access"
+		echo "Enabling public access for Azure AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
 		if MSYS_NO_PATHCONV=1 az resource update \
 			--ids "$aif_account_resource_id" \
 			--api-version 2024-10-01 \
 			--set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" \
 			--output none; then
-			echo "✓ AI Foundry public access enabled"
+			echo "✓ Azure AI Foundry public access enabled"
 		else
-			echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
+			echo "⚠ Warning: Failed to enable Azure AI Foundry public access automatically."
 		fi
 	else
-		echo "✓ AI Foundry public access already enabled - no changes needed"
+		echo "✓ Azure AI Foundry public access already enabled - no changes needed"
 	fi
 	
 	# Wait a bit for changes to take effect
@@ -314,10 +314,10 @@ restore_network_access() {
 	: "${original_cosmos_public_access:=${ORIGINAL_COSMOS_PUBLIC_ACCESS:-}}"
 	: "${original_cosmos_ip_filter:=${ORIGINAL_COSMOS_IP_FILTER:-[]}}"
 	: "${original_foundry_public_access:=${ORIGINAL_FOUNDRY_PUBLIC_ACCESS:-}}"	
-	# Restore AI Foundry access only if it was changed from the original state
+	# Restore Azure AI Foundry access only if it was changed from the original state
 	if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
-		echo "Restoring AI Foundry public access to: $original_foundry_public_access"
-		# Reconstruct the AI Foundry resource ID for restoration
+		echo "Restoring Azure AI Foundry public access to: $original_foundry_public_access"
+		# Reconstruct the Azure AI Foundry resource ID for restoration
 		aif_account_resource_id=$(echo "$aiFoundryResourceId" | sed 's|/projects/.*||')
 		# Try using the working approach to restore the original setting
 		if MSYS_NO_PATHCONV=1 az resource update \
@@ -327,22 +327,22 @@ restore_network_access() {
         	--set properties.apiProperties.qnaAzureSearchEndpointKey="" \
         	--set properties.networkAcls.bypass="AzureServices" \
 			--output none 2>/dev/null; then
-			echo "✓ AI Foundry access restored"
+			echo "✓ Azure AI Foundry access restored"
 		else
-			echo "⚠ Warning: Failed to restore AI Foundry access automatically."
+			echo "⚠ Warning: Failed to restore Azure AI Foundry access automatically."
 			echo "  Please manually restore network access in the Azure portal if needed."
 		fi
 	else
-		echo "AI Foundry access unchanged (no restoration needed)"
+		echo "Azure AI Foundry access unchanged (no restoration needed)"
 	fi
 
-	# Restore Cosmos DB settings only if it was changed from the original state
+	# Restore Azure Cosmos DB settings only if it was changed from the original state
 	if [ -n "$original_cosmos_public_access" ] && [ "$original_cosmos_public_access" != "Enabled" ] && [ "$original_cosmos_public_access" != "null" ]; then
-		echo "Restoring Cosmos DB settings..."
+		echo "Restoring Azure Cosmos DB settings..."
 		subscription_id=$(az account show --query id -o tsv)
 		cosmos_resource_id="/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosdb_account}"
 		
-		echo "Restoring Cosmos DB public access to: $original_cosmos_public_access"
+		echo "Restoring Azure Cosmos DB public access to: $original_cosmos_public_access"
 		
 		# Use separate az resource update calls to avoid JSON parsing issues
 		# First, restore public network access
@@ -352,13 +352,13 @@ restore_network_access() {
 			--set "properties.publicNetworkAccess=$original_cosmos_public_access" \
 			--set "properties.ipRules=$original_cosmos_ip_filter" \
 			--output none 2>/dev/null; then
-			echo "✓ Cosmos DB settings restored"
+			echo "✓ Azure Cosmos DB settings restored"
 		else
-			echo "⚠ Warning: Failed to restore Cosmos DB settings automatically."
+			echo "⚠ Warning: Failed to restore Azure Cosmos DB settings automatically."
 			echo "  Please manually check firewall and network settings in the Azure portal."
 		fi
 	else
-		echo "Cosmos DB unchanged (no restoration needed)"
+		echo "Azure Cosmos DB unchanged (no restoration needed)"
 	fi
 
 	echo "=== Network access restoration completed ==="
@@ -480,9 +480,9 @@ echo "==============================================="
 echo "Values to be used:"
 echo "==============================================="
 echo "Resource Group: $resource_group"
-echo "AI Search Endpoint: $ai_search_endpoint"
+echo "Azure AI Search Endpoint: $ai_search_endpoint"
 echo "Azure OpenAI Endpoint: $azure_openai_endpoint"
-echo "Cosmos DB Account: $cosmosdb_account"
+echo "Azure Cosmos DB Account: $cosmosdb_account"
 echo "Subscription ID: $azSubscriptionId"
 echo "==============================================="
 echo ""
@@ -537,7 +537,7 @@ fi
 set -e
 
 if [ "$SKIP_ROLE_ASSIGNMENT" != "true" ] && [ -n "$signed_user_id" ]; then
-    echo "Checking if the principal has Search roles on the AI Search Service"
+    echo "Checking if the principal has Search roles on the Azure AI Search Service"
     # search service contributor role id: 7ca78c08-252a-4471-8644-bb5ff32d4ba0
     # search index data contributor role id: 8ebe5a00-799e-43f5-93ac-243d3dce84a7
     # search index data reader role id: 1407120a-92aa-4202-b7e9-c0e197c71c8f
@@ -650,8 +650,8 @@ if [ "$SKIP_ROLE_ASSIGNMENT" != "true" ] && [ -n "$signed_user_id" ]; then
         echo "Principal already has the Azure AI Developer role."
     fi
 
-    # Check if the principal has the Cosmos DB Built-in Data Contributor role
-    echo "Checking if principal has the Cosmos DB Built-in Data Contributor role"
+    # Check if the principal has the Azure Cosmos DB Built-in Data Contributor role
+    echo "Checking if principal has the Azure Cosmos DB Built-in Data Contributor role"
     roleExists=$(az cosmosdb sql role assignment list \
         --resource-group $resource_group \
         --account-name $cosmosdb_account \
@@ -659,9 +659,9 @@ if [ "$SKIP_ROLE_ASSIGNMENT" != "true" ] && [ -n "$signed_user_id" ]; then
 
     # Check if the role exists
     if [ -n "$roleExists" ]; then
-        echo "Principal already has the Cosmos DB Built-in Data Contributer role."
+        echo "Principal already has the Azure Cosmos DB Built-in Data contributor role."
     else
-        echo "Principal does not have the Cosmos DB Built-in Data Contributer role. Assigning the role."
+        echo "Principal does not have the Azure Cosmos DB Built-in Data contributor role. Assigning the role."
         MSYS_NO_PATHCONV=1 az cosmosdb sql role assignment create \
             --resource-group $resource_group \
             --account-name $cosmosdb_account \
@@ -670,11 +670,11 @@ if [ "$SKIP_ROLE_ASSIGNMENT" != "true" ] && [ -n "$signed_user_id" ]; then
             --scope "/" \
             --output none
         if [ $? -eq 0 ]; then
-            echo "Cosmos DB Built-in Data Contributer role assigned successfully."
+            echo "Azure Cosmos DB Built-in Data contributor role assigned successfully."
             echo "Waiting 10 seconds for role propagation..."
             sleep 10
         else
-            echo "Failed to assign Cosmos DB Built-in Data Contributer role."
+            echo "Failed to assign Azure Cosmos DB Built-in Data contributor role."
         fi
     fi
 else
@@ -688,7 +688,7 @@ fi
 #   --query "[].roleDefinitionId" -o tsv)
 
 # if [ -z "$role_assignment" ]; then
-#     echo "User does not have the Cosmos DB account contributor role. Assigning the role..."
+#     echo "User does not have the Azure Cosmos DB account contributor role. Assigning the role..."
 #     MSYS_NO_PATHCONV=1 az role assignment create \
 #       --assignee "$signed_user_id" \
 #       --role "00000000-0000-0000-0000-000000000002" \
@@ -696,13 +696,13 @@ fi
 #       --output none
 
 #     if [ $? -eq 0 ]; then
-#         echo "Cosmos DB account contributor role assigned successfully."
+#         echo "Azure Cosmos DB account contributor role assigned successfully."
 #     else
-#         echo "Failed to assign Cosmos DB account contributor role."
+#         echo "Failed to assign Azure Cosmos DB account contributor role."
 #         exit 1
 #     fi
 # else
-#     echo "User already has the Cosmos DB account contributor role."
+#     echo "User already has the Azure Cosmos DB account contributor role."
 # fi
 
 # role_assignment=$(MSYS_NO_PATHCONV=1 az cosmosdb sql role assignment list \
@@ -713,7 +713,7 @@ fi
 #   --query "[].roleDefinitionId" -o tsv)
 
 # if [ -z "$role_assignment" ]; then
-#     echo "User does not have the Cosmos DB SQL role. Assigning the role..."
+#     echo "User does not have the Azure Cosmos DB SQL role. Assigning the role..."
 #     MSYS_NO_PATHCONV=1 az cosmosdb sql role assignment create \
 #       --account-name "$cosmosdb_account" \
 #       --resource-group "$resource_group" \
@@ -723,13 +723,13 @@ fi
 #       --output none
 
 #     if [ $? -eq 0 ]; then
-#         echo "Cosmos DB SQL role assigned successfully."
+#         echo "Azure Cosmos DB SQL role assigned successfully."
 #     else
-#         echo "Failed to assign Cosmos DB SQL role."
+#         echo "Failed to assign Azure Cosmos DB SQL role."
 #         exit 1
 #     fi
 # else
-#     echo "User already has the Cosmos DB SQL role."
+#     echo "User already has the Azure Cosmos DB SQL role."
 # fi
 
 # python -m venv .venv
@@ -767,11 +767,11 @@ while true; do
 	fi
 	blocked_ip=$(echo "$upload_output" | grep -oE 'originated from IP [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
 	if [ -n "$blocked_ip" ] && [ $upload_attempt -lt $max_upload_attempts ]; then
-		echo "Cosmos DB firewall blocked actual egress IP $blocked_ip - adding it and retrying (attempt $upload_attempt of $max_upload_attempts)..."
+		echo "Azure Cosmos DB firewall blocked actual egress IP $blocked_ip - adding it and retrying (attempt $upload_attempt of $max_upload_attempts)..."
 		existing_ips=$(MSYS_NO_PATHCONV=1 az resource show --ids "$cosmos_resource_id" --api-version 2021-04-15 --query "properties.ipRules[].ipAddressOrRange" --output tsv 2>/dev/null)
 		existing_ips_rc=$?
 		if [ $existing_ips_rc -ne 0 ]; then
-			echo "Error: Failed to read existing Cosmos DB firewall rules; aborting recovery to avoid overwriting them." >&2
+			echo "Error: Failed to read existing Azure Cosmos DB firewall rules; aborting recovery to avoid overwriting them." >&2
 			break
 		fi
 		existing_ips=$(printf '%s' "$existing_ips" | tr -d '\r')
@@ -789,16 +789,16 @@ while true; do
 		retry_rules="${retry_rules}]"
 		update_err=$(MSYS_NO_PATHCONV=1 az resource update --ids "$cosmos_resource_id" --api-version 2021-04-15 --set "properties.ipRules=$retry_rules" --set "properties.publicNetworkAccess=Enabled" --output none 2>&1)
 		if [ $? -ne 0 ]; then
-			echo "Error: Failed to add blocked IP $blocked_ip to the Cosmos DB firewall. Aborting retries." >&2
+			echo "Error: Failed to add blocked IP $blocked_ip to the Azure Cosmos DB firewall. Aborting retries." >&2
 			echo "$update_err" >&2
 			break
 		fi
-		echo "Waiting for Cosmos DB network changes to take effect (30 seconds)..."
+		echo "Waiting for Azure Cosmos DB network changes to take effect (30 seconds)..."
 		sleep 30
 		upload_attempt=$((upload_attempt + 1))
 		continue
 	fi
-	echo "Error: Cosmos DB upload failed (exit code $upload_rc) and could not be recovered."
+	echo "Error: Azure Cosmos DB upload failed (exit code $upload_rc) and could not be recovered."
 	break
 done
 set -e

@@ -82,7 +82,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-# Check if we have Cosmos DB configuration
+# Check if we have Azure Cosmos DB configuration
 def has_cosmos_db_config() -> bool:
     v = settings.cosmos_db_endpoint
     return v is not None and str(v).strip() != ""

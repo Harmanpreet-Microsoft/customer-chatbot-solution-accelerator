@@ -254,9 +254,9 @@ Write-Host "==============================================="
 Write-Host "Values to be used:"
 Write-Host "==============================================="
 Write-Host "Resource Group: $resource_group"
-Write-Host "AI Search Endpoint: $ai_search_endpoint"
+Write-Host "Azure AI Search Endpoint: $ai_search_endpoint"
 Write-Host "Azure OpenAI Endpoint: $azure_openai_endpoint"
-Write-Host "Cosmos DB Account: $cosmosdb_account"
+Write-Host "Azure Cosmos DB Account: $cosmosdb_account"
 Write-Host "Subscription ID: $azSubscriptionId"
 Write-Host "==============================================="
 Write-Host ""
@@ -264,7 +264,7 @@ Write-Host ""
 Write-Host "Getting signed in user id"
 $signed_user_id = az ad signed-in-user show --query id -o tsv
 
-Write-Host "Checking if the user has Search roles on the AI Search Service"
+Write-Host "Checking if the user has Search roles on the Azure AI Search Service"
 # search service contributor role id: 7ca78c08-252a-4471-8644-bb5ff32d4ba0
 # search index data contributor role id: 8ebe5a00-799e-43f5-93ac-243d3dce84a7
 # search index data reader role id: 1407120a-92aa-4202-b7e9-c0e197c71c8f
@@ -376,8 +376,8 @@ if ([string]::IsNullOrEmpty($role_assignment)) {
     Write-Host "User already has the Azure AI Developer role."
 }
 
-# Check if the user has the Cosmos DB Built-in Data Contributor role
-Write-Host "Checking if user has the Cosmos DB Built-in Data Contributor role"
+# Check if the user has the Azure Cosmos DB Built-in Data Contributor role
+Write-Host "Checking if user has the Azure Cosmos DB Built-in Data Contributor role"
 $roleExists = az cosmosdb sql role assignment list `
     --resource-group $resource_group `
     --account-name $cosmosdb_account `
@@ -385,9 +385,9 @@ $roleExists = az cosmosdb sql role assignment list `
 
 # Check if the role exists
 if (![string]::IsNullOrEmpty($roleExists)) {
-    Write-Host "User already has the Cosmos DB Built-in Data Contributer role."
+    Write-Host "User already has the Azure Cosmos DB Built-in Data contributor role."
 } else {
-    Write-Host "User does not have the Cosmos DB Built-in Data Contributer role. Assigning the role."
+    Write-Host "User does not have the Azure Cosmos DB Built-in Data contributor role. Assigning the role."
     az cosmosdb sql role assignment create `
         --resource-group $resource_group `
         --account-name $cosmosdb_account `
@@ -397,11 +397,11 @@ if (![string]::IsNullOrEmpty($roleExists)) {
         --output none
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "Cosmos DB Built-in Data Contributer role assigned successfully."
+        Write-Host "Azure Cosmos DB Built-in Data contributor role assigned successfully."
         Write-Host "Waiting 10 seconds for role propagation..."
         Start-Sleep -Seconds 10
     } else {
-        Write-Host "Failed to assign Cosmos DB Built-in Data Contributer role."
+        Write-Host "Failed to assign Azure Cosmos DB Built-in Data contributor role."
     }
 }
 
@@ -413,7 +413,7 @@ if (![string]::IsNullOrEmpty($roleExists)) {
 #   --query "[].roleDefinitionId" -o tsv
 
 # if ([string]::IsNullOrEmpty($role_assignment)) {
-#     Write-Host "User does not have the Cosmos DB account contributor role. Assigning the role..."
+#     Write-Host "User does not have the Azure Cosmos DB account contributor role. Assigning the role..."
 #     az role assignment create `
 #       --assignee "$signed_user_id" `
 #       --role "00000000-0000-0000-0000-000000000002" `
@@ -421,13 +421,13 @@ if (![string]::IsNullOrEmpty($roleExists)) {
 #       --output none
 
 #     if ($LASTEXITCODE -eq 0) {
-#         Write-Host "Cosmos DB account contributor role assigned successfully."
+#         Write-Host "Azure Cosmos DB account contributor role assigned successfully."
 #     } else {
-#         Write-Host "Failed to assign Cosmos DB account contributor role."
+#         Write-Host "Failed to assign Azure Cosmos DB account contributor role."
 #         exit 1
 #     }
 # } else {
-#     Write-Host "User already has the Cosmos DB account contributor role."
+#     Write-Host "User already has the Azure Cosmos DB account contributor role."
 # }
 
 # $role_assignment = az cosmosdb sql role assignment list `
@@ -438,7 +438,7 @@ if (![string]::IsNullOrEmpty($roleExists)) {
 #   --query "[].roleDefinitionId" -o tsv
 
 # if ([string]::IsNullOrEmpty($role_assignment)) {
-#     Write-Host "User does not have the Cosmos DB SQL role. Assigning the role..."
+#     Write-Host "User does not have the Azure Cosmos DB SQL role. Assigning the role..."
 #     az cosmosdb sql role assignment create `
 #       --account-name "$cosmosdb_account" `
 #       --resource-group "$resource_group" `
@@ -448,13 +448,13 @@ if (![string]::IsNullOrEmpty($roleExists)) {
 #       --output none
 
 #     if ($LASTEXITCODE -eq 0) {
-#         Write-Host "Cosmos DB SQL role assigned successfully."
+#         Write-Host "Azure Cosmos DB SQL role assigned successfully."
 #     } else {
-#         Write-Host "Failed to assign Cosmos DB SQL role."
+#         Write-Host "Failed to assign Azure Cosmos DB SQL role."
 #         exit 1
 #     }
 # } else {
-#     Write-Host "User already has the Cosmos DB SQL role."
+#     Write-Host "User already has the Azure Cosmos DB SQL role."
 # }
 
 # python -m venv .venv
@@ -467,17 +467,17 @@ Write-Host "Installing Python requirements..."
 python -m pip install --upgrade pip
 python -m pip install --quiet -r "$requirementFile"
 
-# For WAF deployments, temporarily enable public network access on AI Foundry (needed for embeddings)
-Write-Host "=== Checking AI Foundry network access for embeddings ==="
+# For WAF deployments, temporarily enable public network access on Azure AI Foundry (needed for embeddings)
+Write-Host "=== Checking Azure AI Foundry network access for embeddings ==="
 
-# Extract the AI Foundry account resource ID (remove /projects/... part if present)
+# Extract the Azure AI Foundry account resource ID (remove /projects/... part if present)
 $aifAccountResourceId = $aiFoundryResourceId -replace '/projects/.*', ''
 $aifResourceName = Split-Path -Leaf $aifAccountResourceId
-# Extract resource group from the AI Foundry account resource ID
+# Extract resource group from the Azure AI Foundry account resource ID
 if ($aifAccountResourceId -match '/resourceGroups/([^/]+)/') {
     $aifResourceGroup = $Matches[1]
 }
-# Extract subscription ID from the AI Foundry account resource ID
+# Extract subscription ID from the Azure AI Foundry account resource ID
 if ($aifAccountResourceId -match '/subscriptions/([^/]+)/') {
     $aifSubscriptionId = $Matches[1]
 }
@@ -488,11 +488,11 @@ $foundryAccessEnabled = $false
 
 # Check if public network access is disabled (WAF deployment)
 if ($originalFoundryPublicAccess -eq "Disabled") {
-    Write-Host "AI Foundry public network access is disabled. Temporarily enabling for embeddings..."
+    Write-Host "Azure AI Foundry public network access is disabled. Temporarily enabling for embeddings..."
     
     az resource update --ids $aifAccountResourceId --api-version 2024-10-01 --set "properties.publicNetworkAccess=Enabled" "properties.apiProperties={}" --output none 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "Successfully enabled public network access on AI Foundry."
+        Write-Host "Successfully enabled public network access on Azure AI Foundry."
         $foundryAccessEnabled = $true
     } else {
         Write-Host "Warning: Could not enable public network access. Embeddings may fail."
@@ -502,27 +502,27 @@ if ($originalFoundryPublicAccess -eq "Disabled") {
     Write-Host "Waiting for network settings to propagate (60 seconds)..."
     Start-Sleep -Seconds 60
 } else {
-    Write-Host "AI Foundry public network access is already enabled."
+    Write-Host "Azure AI Foundry public network access is already enabled."
 }
 
-Write-Host "=== AI Foundry network access check completed ==="
+Write-Host "=== Azure AI Foundry network access check completed ==="
 
 # Run Python scripts
 Write-Host "Running data upload scripts for scenario: $deploymentScenario"
 python infra/scripts/post-provision/data_scripts/01_create_products_search_index.py --ai_search_endpoint="$ai_search_endpoint" --azure_openai_endpoint="$azure_openai_endpoint" --embedding_model_name="$embedding_model_name" --scenario="$deploymentScenario"
 python infra/scripts/post-provision/data_scripts/02_create_policies_search_index.py --ai_search_endpoint="$ai_search_endpoint" --azure_openai_endpoint="$azure_openai_endpoint" --embedding_model_name="$embedding_model_name" --scenario="$deploymentScenario"
 
-# For WAF deployments, temporarily enable public network access on Cosmos DB
-Write-Host "=== Temporarily enabling public network access for Cosmos DB ==="
-Write-Host "Configuring Cosmos DB network access: $cosmosdb_account"
+# For WAF deployments, temporarily enable public network access on Azure Cosmos DB
+Write-Host "=== Temporarily enabling public network access for Azure Cosmos DB ==="
+Write-Host "Configuring Azure Cosmos DB network access: $cosmosdb_account"
 
-# Get Cosmos DB resource ID
+# Get Azure Cosmos DB resource ID
 $subscription_id = az account show --query id -o tsv
 $cosmos_resource_id = "/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.DocumentDB/databaseAccounts/${cosmosdb_account}"
 
 # Get current public network access setting
 $originalCosmosPublicAccess = az resource show --ids $cosmos_resource_id --api-version 2021-04-15 --query "properties.publicNetworkAccess" -o tsv 2>$null
-Write-Host "Original Cosmos DB public access: $originalCosmosPublicAccess"
+Write-Host "Original Azure Cosmos DB public access: $originalCosmosPublicAccess"
 
 $cosmosAccessEnabled = $false
 # Capture existing firewall rules up front so they can be restored accurately,
@@ -533,12 +533,12 @@ if (-not $originalCosmosIpFilter) {
     $originalCosmosIpFilter = "[]"
 }
 
-# Only modify Cosmos DB if it's not already enabled
+# Only modify Azure Cosmos DB if it's not already enabled
 if ($originalCosmosPublicAccess -eq "Enabled") {
-    Write-Host "✓ Cosmos DB public access already enabled - no changes needed"
+    Write-Host "✓ Azure Cosmos DB public access already enabled - no changes needed"
 } else {
     if ($ipFilterReadFailed) {
-        throw "Failed to read existing Cosmos DB firewall rules (az resource show exit code $LASTEXITCODE); aborting before any network changes to avoid wiping them on restore."
+        throw "Failed to read existing Azure Cosmos DB firewall rules (az resource show exit code $LASTEXITCODE); aborting before any network changes to avoid wiping them on restore."
     }
     # Determine the IP to whitelist. In proxy/VPN environments the auto-detected
     # IP can differ from the IP Cosmos actually sees, so allow an explicit override
@@ -556,36 +556,36 @@ if ($originalCosmosPublicAccess -eq "Enabled") {
         Write-Host "Current IP: $currentIp"
     }
     
-    Write-Host "Cosmos DB public access is '$originalCosmosPublicAccess' - enabling access"
+    Write-Host "Azure Cosmos DB public access is '$originalCosmosPublicAccess' - enabling access"
     
     # Add the detected/override IP(s) to firewall rules and enable public network access.
     # Supports a comma-separated list of IPs/CIDRs via COSMOS_FIREWALL_IP.
     $cosmosIpList = @($currentIp -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
     if ($cosmosIpList.Count -eq 0) {
-        throw "Could not determine an IP to whitelist for the Cosmos DB firewall (auto-detection failed and COSMOS_FIREWALL_IP is not set). Set COSMOS_FIREWALL_IP to an explicit IP/CIDR (or comma-separated list) and re-run. Refusing to enable public access with an empty firewall rule set."
+        throw "Could not determine an IP to whitelist for the Azure Cosmos DB firewall (auto-detection failed and COSMOS_FIREWALL_IP is not set). Set COSMOS_FIREWALL_IP to an explicit IP/CIDR (or comma-separated list) and re-run. Refusing to enable public access with an empty firewall rule set."
     }
-    Write-Host "Adding IP(s) to Cosmos DB firewall: $($cosmosIpList -join ', ')"
+    Write-Host "Adding IP(s) to Azure Cosmos DB firewall: $($cosmosIpList -join ', ')"
     $ipRuleJson = "[" + (($cosmosIpList | ForEach-Object { "{\`"ipAddressOrRange\`":\`"$_\`"}" }) -join ",") + "]"
     
     az resource update --ids $cosmos_resource_id --api-version 2021-04-15 --set "properties.ipRules=$ipRuleJson" --set "properties.publicNetworkAccess=Enabled" --output none 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Cosmos DB firewall updated to allow current IP"
-        Write-Host "✓ Cosmos DB public network access enabled"
+        Write-Host "✓ Azure Cosmos DB firewall updated to allow current IP"
+        Write-Host "✓ Azure Cosmos DB public network access enabled"
         $cosmosAccessEnabled = $true
         
         # Wait for changes to propagate
-        Write-Host "Waiting for Cosmos DB network changes to take effect (30 seconds)..."
+        Write-Host "Waiting for Azure Cosmos DB network changes to take effect (30 seconds)..."
         Start-Sleep -Seconds 30
         Write-Host "Network configuration should now be active"
     } else {
-        Write-Host "⚠ Warning: Failed to update Cosmos DB firewall. You may need to manually add IP $currentIp"
-        Write-Host "  Please add this IP address in Azure Portal: Cosmos DB > $cosmosdb_account > Networking > Firewall"
+        Write-Host "⚠ Warning: Failed to update Azure Cosmos DB firewall. You may need to manually add IP $currentIp"
+        Write-Host "  Please add this IP address in Azure Portal: Azure Cosmos DB > $cosmosdb_account > Networking > Firewall"
     }
 }
 
 Write-Host "=== Public network access enabled successfully ==="
 
-# Run the Cosmos DB upload script within try/finally to ensure network settings are restored on error
+# Run the Azure Cosmos DB upload script within try/finally to ensure network settings are restored on error
 $dataUploadFailed = $false
 try {
     $cosmosUploadSuccess = $false
@@ -605,10 +605,10 @@ try {
         $ipMatch = [regex]::Match($uploadText, 'originated from IP (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
         if ($ipMatch.Success -and $attempt -lt $maxUploadAttempts) {
             $blockedIp = $ipMatch.Groups[1].Value
-            Write-Host "Cosmos DB firewall blocked actual egress IP $blockedIp - adding it and retrying (attempt $attempt of $maxUploadAttempts)..."
+            Write-Host "Azure Cosmos DB firewall blocked actual egress IP $blockedIp - adding it and retrying (attempt $attempt of $maxUploadAttempts)..."
             $existingIps = az resource show --ids $cosmos_resource_id --api-version 2021-04-15 --query "properties.ipRules[].ipAddressOrRange" -o tsv 2>$null
             if ($LASTEXITCODE -ne 0) {
-                throw "Failed to read existing Cosmos DB firewall rules (az resource show exit code $LASTEXITCODE); aborting recovery to avoid overwriting existing rules."
+                throw "Failed to read existing Azure Cosmos DB firewall rules (az resource show exit code $LASTEXITCODE); aborting recovery to avoid overwriting existing rules."
             }
             $ipList = @()
             if ($existingIps) { $ipList = @($existingIps -split "\r?\n" | Where-Object { $_ }) }
@@ -616,21 +616,21 @@ try {
             $retryIpRuleJson = "[" + (($ipList | ForEach-Object { "{\`"ipAddressOrRange\`":\`"$_\`"}" }) -join ",") + "]"
             $updateError = az resource update --ids $cosmos_resource_id --api-version 2021-04-15 --set "properties.ipRules=$retryIpRuleJson" --set "properties.publicNetworkAccess=Enabled" --output none 2>&1
             if ($LASTEXITCODE -ne 0) {
-                throw "Failed to add blocked IP $blockedIp to the Cosmos DB firewall (az resource update exit code $LASTEXITCODE): $($updateError | Out-String)"
+                throw "Failed to add blocked IP $blockedIp to the Azure Cosmos DB firewall (az resource update exit code $LASTEXITCODE): $($updateError | Out-String)"
             }
             $cosmosAccessEnabled = $true
-            Write-Host "Waiting for Cosmos DB network changes to take effect (30 seconds)..."
+            Write-Host "Waiting for Azure Cosmos DB network changes to take effect (30 seconds)..."
             Start-Sleep -Seconds 30
         } else {
             break
         }
     }
     if (-not $cosmosUploadSuccess) {
-        throw "Cosmos DB upload script failed with exit code $uploadExitCode"
+        throw "Azure Cosmos DB upload script failed with exit code $uploadExitCode"
     }
 }
 catch {
-    Write-Host "Error running Cosmos DB upload script: $_"
+    Write-Host "Error running Azure Cosmos DB upload script: $_"
     $dataUploadFailed = $true
 }
 finally {
@@ -638,12 +638,12 @@ finally {
     Write-Host "=== Restoring original network access settings ==="
 
     if ($cosmosAccessEnabled) {
-        Write-Host "Restoring Cosmos DB settings..."
+        Write-Host "Restoring Azure Cosmos DB settings..."
         
         # Restore both firewall rules and public access setting
         $restoreSuccess = $false
         if ($originalCosmosPublicAccess -and $originalCosmosPublicAccess -ne "null") {
-            Write-Host "Restoring Cosmos DB public access to: $originalCosmosPublicAccess"
+            Write-Host "Restoring Azure Cosmos DB public access to: $originalCosmosPublicAccess"
             az resource update --ids $cosmos_resource_id --api-version 2021-04-15 --set "properties.ipRules=$originalCosmosIpFilter" --set "properties.publicNetworkAccess=$originalCosmosPublicAccess" --output none 2>$null
             $restoreSuccess = ($LASTEXITCODE -eq 0)
         } else {
@@ -652,26 +652,26 @@ finally {
         }
         
         if ($restoreSuccess) {
-            Write-Host "✓ Cosmos DB settings restored"
+            Write-Host "✓ Azure Cosmos DB settings restored"
         } else {
-            Write-Host "⚠ Warning: Failed to restore Cosmos DB settings automatically."
+            Write-Host "⚠ Warning: Failed to restore Azure Cosmos DB settings automatically."
             Write-Host "  Please manually check firewall and network settings in the Azure portal."
         }
     } else {
-        Write-Host "Cosmos DB unchanged (no restoration needed)"
+        Write-Host "Azure Cosmos DB unchanged (no restoration needed)"
     }
 
-    # Restore AI Foundry access if we enabled it
+    # Restore Azure AI Foundry access if we enabled it
     if ($foundryAccessEnabled) {
-        Write-Host "Restoring original AI Foundry settings (disabling public network access)..."
+        Write-Host "Restoring original Azure AI Foundry settings (disabling public network access)..."
         az resource update --ids $aifAccountResourceId --api-version 2024-10-01 --set "properties.publicNetworkAccess=Disabled" "properties.apiProperties.qnaAzureSearchEndpointKey=" "properties.networkAcls.bypass=AzureServices" --output none 2>$null
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ AI Foundry public network access restored (disabled)."
+            Write-Host "✓ Azure AI Foundry public network access restored (disabled)."
         } else {
-            Write-Host "⚠ Warning: Could not disable AI Foundry public network access. Please disable it manually in Azure Portal."
+            Write-Host "⚠ Warning: Could not disable Azure AI Foundry public network access. Please disable it manually in Azure Portal."
         }
     } else {
-        Write-Host "AI Foundry unchanged (no restoration needed)"
+        Write-Host "Azure AI Foundry unchanged (no restoration needed)"
     }
 
     Write-Host "=== Network access restoration completed ==="

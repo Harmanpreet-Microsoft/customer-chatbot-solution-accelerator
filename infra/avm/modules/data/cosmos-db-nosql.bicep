@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: Cosmos DB
+// Module: Azure Cosmos DB
 // Description: AVM wrapper for Azure Cosmos DB (NoSQL) with WAF alignment
 // AVM Module: avm/res/document-db/database-account:0.19.0
 // WAF: https://learn.microsoft.com/azure/well-architected/service-guides/cosmos-db
@@ -8,7 +8,7 @@
 @description('Solution name suffix used to derive the resource name.')
 param solutionName string
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 param name string = 'cosmos-${solutionName}'
 
 @description('Azure region for the resource.')
@@ -21,7 +21,10 @@ param tags object = {}
 param databaseName string = 'db_conversation_history'
 
 @description('Container definitions.')
-param containers array = [
+param containers {
+  name: string
+  partitionKeyPath: string
+}[] = [
   {
     name: 'conversations'
     partitionKeyPath: '/userId'
@@ -41,7 +44,7 @@ param publicNetworkAccess string = 'Enabled'
 
 import { privateEndpointSingleServiceType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
 @description('Optional. Configuration details for private endpoints. For security reasons, it is recommended to use private endpoints whenever possible.')
-param privateEndpoints privateEndpointSingleServiceType[]?
+param privateEndpoints privateEndpointSingleServiceType[] = []
 
 // --- WAF: Redundancy ---
 @description('Enable zone redundancy.')
@@ -84,7 +87,7 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.19.0' = {
       networkAclBypass: 'None'
       publicNetworkAccess: publicNetworkAccess
     }
-    privateEndpoints: privateEndpoints
+    privateEndpoints: any(privateEndpoints)
     zoneRedundant: zoneRedundant
     enableAutomaticFailover: enableAutomaticFailover
     managedIdentities: managedIdentities
@@ -114,13 +117,13 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.19.0' = {
 // ============================================================================
 // Outputs
 // ============================================================================
-@description('Resource ID of the Cosmos DB account.')
+@description('Resource ID of the Azure Cosmos DB account.')
 output resourceId string = cosmosAccount.outputs.resourceId
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 output name string = cosmosAccount.outputs.name
 
-@description('Endpoint of the Cosmos DB account.')
+@description('Endpoint of the Azure Cosmos DB account.')
 output endpoint string = 'https://${name}.documents.azure.com:443/'
 
 @description('Database name.')

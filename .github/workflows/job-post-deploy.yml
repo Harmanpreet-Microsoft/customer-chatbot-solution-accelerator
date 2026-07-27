@@ -59,7 +59,7 @@ jobs:
           NETWORK_TOGGLE_ONLY: enable
           INPUT_RESOURCE_GROUP_NAME: ${{ inputs.RESOURCE_GROUP_NAME }}
         run: |
-          echo "🔓 Opening Cosmos DB / AI Foundry public access so Python SDK calls can reach them..."
+          echo "🔓 Opening Azure Cosmos DB / Azure AI Foundry public access so Python SDK calls can reach them..."
           cd $GITHUB_WORKSPACE
           bash ./infra/scripts/post-provision/data_scripts/run_upload_data_scripts.sh --resource-group "$INPUT_RESOURCE_GROUP_NAME"
 
