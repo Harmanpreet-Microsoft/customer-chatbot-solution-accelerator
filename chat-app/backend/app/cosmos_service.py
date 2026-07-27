@@ -118,7 +118,7 @@ To fix this, run these Azure CLI commands:
        --resource-group [YOUR_RESOURCE_GROUP] \\
        --scope "/" \\
        --principal-id 137b5924-bb10-4c28-9a9b-06e8227fb28e \\
-    --role-definition-name "Cosmos DB Built-in Data Contributor"
+       --role-definition-name "Cosmos DB Built-in Data Contributor"
 
 2. Or assign custom role with required permissions:
    az role assignment create \\

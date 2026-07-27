@@ -114,7 +114,7 @@ param gptRealtimeModelVersion string = '2025-12-15'
 @description('Optional. Capacity of the realtime model deployment.')
 param gptRealtimeDeploymentCapacity int = 1
 
-@description('Optional. OpenAI API version.')
+@description('Optional. Azure OpenAI API version.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @description('Optional. Azure AI Agent API version.')
