@@ -6,7 +6,8 @@ on:
       - main
       - dev
     paths:
-      - 'src/**/*.py'
+      - 'chat-app/backend/**/*.py'
+      - 'scenario-app/backend/**/*.py'
       - '.flake8'
       - '.github/workflows/tests.yaml'
   pull_request:
@@ -19,7 +20,8 @@ on:
       - main
       - dev
     paths:
-      - 'src/**/*.py'
+      - 'chat-app/backend/**/*.py'
+      - 'scenario-app/backend/**/*.py'
       - '.github/workflows/tests.yaml'
 
 permissions:
@@ -43,12 +45,25 @@ jobs:
 
       - name: Install Backend Dependencies
         run: |
-          python -m pip install -r src/api/requirements.txt
+          python -m pip install -r chat-app/backend/requirements.txt
+          python -m pip install -r scenario-app/backend/requirements.txt
 
       - name: Run Backend Tests with Coverage
-        working-directory: src
         run: |
-          if python -m pytest --cov=api/app --cov-config=tests/.coveragerc --cov-report=xml --cov-report=html --cov-report=term-missing --junitxml=coverage-junit.xml ./tests; then
+          CHAT_APP_BACKEND="chat-app/backend"
+          SCENARIO_APP_BACKEND="scenario-app/backend"
+          TEST_DIRS=()
+          COV_FLAGS=()
+          [ -d "$CHAT_APP_BACKEND/tests" ] && TEST_DIRS+=("$CHAT_APP_BACKEND/tests")
+          [ -d "$SCENARIO_APP_BACKEND/tests" ] && TEST_DIRS+=("$SCENARIO_APP_BACKEND/tests")
+          [ -d "$CHAT_APP_BACKEND/app" ] && COV_FLAGS+=("--cov=$CHAT_APP_BACKEND/app")
+          [ -d "$SCENARIO_APP_BACKEND/app" ] && COV_FLAGS+=("--cov=$SCENARIO_APP_BACKEND/app")
+          if [ ${#TEST_DIRS[@]} -eq 0 ]; then
+            echo "No test directories found, skipping tests."
+          elif python -m pytest \
+              ${COV_FLAGS[@]:+"${COV_FLAGS[@]}"} \
+              --cov-report=xml:coverage.xml --cov-report=html:htmlcov \
+              --cov-report=term-missing --junitxml=coverage-junit.xml "${TEST_DIRS[@]}"; then
             echo "Tests completed, checking coverage."
             # Only fail if coverage does not meet criteria
             if [ -f coverage.xml ]; then
@@ -68,9 +83,9 @@ jobs:
         with:
           name: backend-coverage
           path: |
-            src/coverage.xml
-            src/coverage-junit.xml
-            src/htmlcov/
+            coverage.xml
+            coverage-junit.xml
+            htmlcov/
 
       - name: Pytest Coverage Comment
         if: |
@@ -79,6 +94,6 @@ jobs:
           github.event.pull_request.head.repo.fork == false
         uses: MishaKav/pytest-coverage-comment@dd5b80bde6d16941f336518e92929e89069d8451  # v1.7.2
         with:
-          pytest-xml-coverage-path: src/coverage.xml
-          junitxml-path: src/coverage-junit.xml
+          pytest-xml-coverage-path: coverage.xml
+          junitxml-path: coverage-junit.xml
           report-only-changed-files: true
