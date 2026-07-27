@@ -3,7 +3,8 @@ name: PyLint
 on:
   push:
     paths:
-      - 'src/api/**/*.py'
+      - 'chat-app/backend/**/*.py'
+      - 'scenario-app/backend/**/*.py'
       - 'infra/scripts/**/*.py'
       - '.flake8'
       - '.github/workflows/pylint.yml'
@@ -25,8 +26,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r src/api/requirements.txt --no-cache-dir
+          pip install -r chat-app/backend/requirements.txt --no-cache-dir
+          pip install -r scenario-app/backend/requirements.txt --no-cache-dir
       
       - name: Run flake8 and pylint
         run: |
-          flake8 --config=.flake8 src/api infra/scripts
+          flake8 --config=.flake8 chat-app/backend scenario-app/backend infra/scripts
