@@ -40,7 +40,7 @@ output endpoint string = aiServices.properties.endpoints['OpenAI Language Model 
 @description('Endpoint of the AI Services account (Cognitive Services).')
 output cognitiveServicesEndpoint string = aiServices.properties.endpoint
 
-@description('OpenAI Content Understanding endpoint URL.')
+@description('Azure OpenAI Content Understanding endpoint URL.')
 output azureOpenAiCuEndpoint string = aiServices.properties.endpoints['Content Understanding']
 
 @description('System-assigned identity principal ID of the AI Services account (empty if none).')
@@ -53,7 +53,7 @@ output projectResourceId string = aiProject.id
 output projectName string = aiProject.name
 
 @description('Azure AI Foundry project endpoint.')
-output projectEndpoint string = aiProject.properties.endpoints['Azure AI Foundry API']
+output projectEndpoint string = aiProject.properties.endpoints['AI Foundry API']
 
 @description('System-assigned identity principal ID of the project (empty if none).')
 output projectIdentityPrincipalId string = aiProject.identity.?principalId ?? ''

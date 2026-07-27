@@ -694,28 +694,28 @@ output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = 'chat_sessions'
 @description('Name of the Azure Cosmos DB database (alias).')
 output AZURE_COSMOSDB_DATABASE string = cosmosDBModule.outputs.databaseName
 
-@description('OpenAI GPT model deployment name.')
+@description('Azure OpenAI GPT model deployment name.')
 output AZURE_OPENAI_DEPLOYMENT_MODEL string = gptModelName
 
-@description('OpenAI embedding model name.')
+@description('Azure OpenAI embedding model name.')
 output AZURE_OPENAI_EMBEDDING_MODEL string = embeddingModel
 
-@description('OpenAI embedding model deployment capacity.')
+@description('Azure OpenAI embedding model deployment capacity.')
 output AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY int = embeddingDeploymentCapacity
 
-@description('OpenAI service endpoint URL.')
+@description('Azure OpenAI service endpoint URL.')
 output AZURE_OPENAI_ENDPOINT string = aiFoundryEndpoint
 
-@description('OpenAI model deployment type.')
+@description('Azure OpenAI model deployment type.')
 output AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE string = deploymentType
 
 @description('Azure AI Search service endpoint URL.')
 output AZURE_AI_SEARCH_ENDPOINT string = ai_search.outputs.endpoint
 
-@description('API version for OpenAI service.')
+@description('API version for Azure OpenAI service.')
 output AZURE_OPENAI_API_VERSION string = azureOpenaiAPIVersion
 
-@description('Name of the OpenAI resource.')
+@description('Name of the Azure OpenAI resource.')
 output AZURE_OPENAI_RESOURCE string = aiFoundryName
 
 @description('React application layout configuration JSON.')

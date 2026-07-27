@@ -247,7 +247,7 @@ PRINCIPAL_ID=$(az ad signed-in-user show --query id -o tsv)
 az cosmosdb sql role assignment create \
   --account-name <cosmos-account> \
   --resource-group <resource-group> \
-  --role-definition-name "Azure Cosmos DB Built-in Data Contributor" \
+  --role-definition-name "Cosmos DB Built-in Data Contributor" \
   --principal-id "$PRINCIPAL_ID" \
   --scope "/"
 
