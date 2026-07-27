@@ -143,7 +143,7 @@ az account show
 
 ## Step 4: Deploy Azure Resources
 
-The backends talk to real Azure services (Azure AI Foundry, Azure OpenAI, Azure AI Serach, Azure Cosmos DB). Provision them first:
+The backends talk to real Azure services (Azure AI Foundry, Azure OpenAI, Azure AI Search, Azure Cosmos DB). Provision them first:
 
 ```bash
 azd auth login
@@ -184,7 +184,7 @@ AZURE_AI_AGENT_ENDPOINT=https://<your-ai-services>.services.ai.azure.com/api/pro
 AZURE_OPENAI_ENDPOINT=https://<your-openai>.openai.azure.com/
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
-# Azure Azure AI Serach
+# Azure AI Search
 AZURE_AI_SEARCH_ENDPOINT=https://<your-search>.search.windows.net
 
 # Azure Cosmos DB
@@ -251,7 +251,7 @@ az cosmosdb sql role assignment create \
   --principal-id "$PRINCIPAL_ID" \
   --scope "/"
 
-# Azure AI Serach data plane access
+# Azure AI Search data plane access
 az role assignment create \
   --assignee "$PRINCIPAL_ID" \
   --role "Search Index Data Contributor" \

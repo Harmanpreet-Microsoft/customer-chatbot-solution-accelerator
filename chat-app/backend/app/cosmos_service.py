@@ -488,9 +488,9 @@ Original error: {error_msg}
     async def search_products_hybrid(
         self, query: str, limit: int = 10
     ) -> List[Product]:
-        """Hybrid search: Azure Azure AI Serach first (fast), then Azure Cosmos DB fallback"""
+        """Hybrid search: Azure AI Search first (fast), then Azure Cosmos DB fallback"""
         try:
-            # Strategy 1: Try Azure Azure AI Serach first (fastest, most accurate)
+            # Strategy 1: Try Azure AI Search first (fastest, most accurate)
             try:
                 from services.search import search_products_fast
 
@@ -498,10 +498,10 @@ Original error: {error_msg}
 
                 if ai_search_results:
                     logger.info(
-                        f"Azure Azure AI Serach returned {len(ai_search_results)} products for query: {query}"
+                        f"Azure AI Search returned {len(ai_search_results)} products for query: {query}"
                     )
 
-                    # Convert Azure AI Serach results to Product objects
+                    # Convert Azure AI Search results to Product objects
                     products = []
                     for hit in ai_search_results:
                         # Try to get full product data from Azure Cosmos DB
@@ -510,7 +510,7 @@ Original error: {error_msg}
                             if full_product:
                                 products.append(full_product)
                             else:
-                                # Create Product from Azure AI Serach data
+                                # Create Product from Azure AI Search data
                                 product = Product(
                                     id=hit["id"],
                                     title=hit.get("title", ""),
@@ -534,17 +534,17 @@ Original error: {error_msg}
 
                     if products:
                         logger.info(
-                            f"Hybrid search (Azure AI Serach) returned {len(products)} products"
+                            f"Hybrid search (Azure AI Search) returned {len(products)} products"
                         )
                         return products[:limit]
 
             except ImportError:
                 logger.warning(
-                    "Azure Azure AI Serach not available, falling back to Azure Cosmos DB"
+                    "Azure AI Search not available, falling back to Azure Cosmos DB"
                 )
             except Exception as e:
                 logger.warning(
-                    f"Azure Azure AI Serach failed: {e}, falling back to Azure Cosmos DB"
+                    f"Azure AI Search failed: {e}, falling back to Azure Cosmos DB"
                 )
 
             # Strategy 2: Fallback to enhanced Azure Cosmos DB search
@@ -559,7 +559,7 @@ Original error: {error_msg}
     async def search_products_ai_search(
         self, query: str, limit: int = 10
     ) -> List[Product]:
-        """Search products using Azure Azure AI Serach only"""
+        """Search products using Azure AI Search only"""
         try:
             from services.search import search_products  # type: ignore
 
@@ -568,7 +568,7 @@ Original error: {error_msg}
             if not ai_search_results:
                 return []
 
-            # Convert Azure AI Serach results to Product objects
+            # Convert Azure AI Search results to Product objects
             products = []
             for hit in ai_search_results:
                 try:
@@ -577,7 +577,7 @@ Original error: {error_msg}
                     if full_product:
                         products.append(full_product)
                     else:
-                        # Create Product from Azure AI Serach data
+                        # Create Product from Azure AI Search data
                         product = Product(
                             id=hit["id"],
                             title=hit.get("title", ""),
@@ -595,17 +595,17 @@ Original error: {error_msg}
                         products.append(product)
                 except Exception as e:
                     logger.warning(
-                        f"Failed to process Azure AI Serach result {hit['id']}: {e}"
+                        f"Failed to process Azure AI Search result {hit['id']}: {e}"
                     )
                     continue
 
             logger.info(
-                f"Azure AI Serach returned {len(products)} products for query: {query}"
+                f"Azure AI Search returned {len(products)} products for query: {query}"
             )
             return products[:limit]
 
         except Exception as e:
-            logger.error(f"Azure AI Serach error: {e}")
+            logger.error(f"Azure AI Search error: {e}")
             return []
 
     async def search_products_enhanced(

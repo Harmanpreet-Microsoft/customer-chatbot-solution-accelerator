@@ -47,7 +47,7 @@ Ensure you have access to an [Azure subscription](https://azure.microsoft.com/fr
 **Required Azure Services:**
 - [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/) - For Agent Framework orchestration and AI project management
 - [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/) - For GPT-5.4-mini model deployments
-- [Azure Azure AI Serach](https://learn.microsoft.com/en-us/azure/search/) - For hybrid search across product catalogs and policy documents
+- [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) - For hybrid search across product catalogs and policy documents
 - [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/) - For storing product catalogs, orders, and chat history
 - [Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/) - For hosting frontend and backend applications
 
@@ -449,7 +449,7 @@ The consolidated script runs data upload **and** agent creation in sequence. It 
 
 This stage:
 - Uploads sample product catalog data to Azure Cosmos DB
-- Creates and configures Azure Azure AI Serach indexes
+- Creates and configures Azure AI Search indexes
 - Populates search indexes with product and policy documents
 
 **Stage 2: Create Azure AI Foundry Agents**

@@ -21,7 +21,10 @@ param tags object = {}
 param databaseName string = 'db_conversation_history'
 
 @description('Container definitions.')
-param containers array = [
+param containers {
+  name: string
+  partitionKeyPath: string
+}[] = [
   {
     name: 'conversations'
     partitionKeyPath: '/userId'
@@ -41,7 +44,7 @@ param publicNetworkAccess string = 'Enabled'
 
 import { privateEndpointSingleServiceType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
 @description('Optional. Configuration details for private endpoints. For security reasons, it is recommended to use private endpoints whenever possible.')
-param privateEndpoints privateEndpointSingleServiceType[]?
+param privateEndpoints privateEndpointSingleServiceType[] = []
 
 // --- WAF: Redundancy ---
 @description('Enable zone redundancy.')
@@ -84,7 +87,7 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.19.0' = {
       networkAclBypass: 'None'
       publicNetworkAccess: publicNetworkAccess
     }
-    privateEndpoints: privateEndpoints
+    privateEndpoints: any(privateEndpoints)
     zoneRedundant: zoneRedundant
     enableAutomaticFailover: enableAutomaticFailover
     managedIdentities: managedIdentities

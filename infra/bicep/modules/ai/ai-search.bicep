@@ -1,6 +1,6 @@
 // ============================================================================
-// Module: Azure AI Serach
-// Description: Deploys Azure Azure AI Serach with a two-step pattern:
+// Module: Azure AI Search
+// Description: Deploys Azure AI Search with a two-step pattern:
 //   Step 1: Plain Bicep resource for fast initial creation (name, location, SKU)
 //   Step 2: Separate module deployment to enable managed identity & full config
 // This reduces deployment time by making the resource available immediately
@@ -92,13 +92,13 @@ module searchServiceUpdate 'ai-search-identity.bicep' = {
 // Outputs
 // ============================================================================
 
-@description('Resource ID of the Azure AI Serach service.')
+@description('Resource ID of the Azure AI Search service.')
 output resourceId string = aiSearch.id
 
-@description('Name of the Azure AI Serach service.')
+@description('Name of the Azure AI Search service.')
 output name string = aiSearch.name
 
-@description('Endpoint URL of the Azure AI Serach service.')
+@description('Endpoint URL of the Azure AI Search service.')
 output endpoint string = 'https://${aiSearch.name}.search.windows.net'
 
 @description('System-assigned identity principal ID.')

@@ -59,9 +59,9 @@ param tags object = {  }
   azd: {
     type: 'location'
     usageName: [
-      'Azure OpenAI.GlobalStandard.gpt-5.4-mini,50'
-      'Azure OpenAI.GlobalStandard.text-embedding-3-small,10'
-      'Azure OpenAI.GlobalStandard.gpt-realtime-mini,1'
+      'OpenAI.GlobalStandard.gpt-5.4-mini,50'
+      'OpenAI.GlobalStandard.text-embedding-3-small,10'
+      'OpenAI.GlobalStandard.gpt-realtime-mini,1'
     ]
   }
 })
@@ -120,7 +120,7 @@ param gptRealtimeModelVersion string = '2025-12-15'
 @description('Optional. Capacity of the realtime model deployment.')
 param gptRealtimeDeploymentCapacity int = 1
 
-@description('Optional. Azure OpenAI API version.')
+@description('Optional. OpenAI API version.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @description('Optional. Azure AI Agent API version.')

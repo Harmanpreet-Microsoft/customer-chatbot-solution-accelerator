@@ -231,16 +231,16 @@ jobs:
             echo "AI Services resource name: ${ai_services_name}" 
           fi
 
-          echo "Fetching Azure AI Serach resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
+          echo "Fetching Azure AI Search resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
           
-          # Run the az resource list command to get the Azure AI Serach resource name
+          # Run the az resource list command to get the Azure AI Search resource name
           ai_search_name=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --resource-type "Microsoft.Search/searchServices" --query "[0].name" -o tsv)
 
           if [ -z "$ai_search_name" ]; then
-            echo "No Azure AI Serach resource found in resource group ${{ env.RESOURCE_GROUP_NAME }}."
+            echo "No Azure AI Search resource found in resource group ${{ env.RESOURCE_GROUP_NAME }}."
           else
             echo "AI_SEARCH_NAME=${ai_search_name}" >> $GITHUB_ENV
-            echo "Azure AI Serach resource name: ${ai_search_name}" 
+            echo "Azure AI Search resource name: ${ai_search_name}" 
           fi
 
       - name: List KeyVaults and Store in Array

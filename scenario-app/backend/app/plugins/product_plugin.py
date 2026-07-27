@@ -62,10 +62,10 @@ class ProductPlugin:
             return "I'm having trouble looking up that product right now. Please try again or contact support."
 
     @kernel_function(
-        description="Search products with hybrid Azure AI Serach + Azure Cosmos DB for maximum speed and accuracy"
+        description="Search products with hybrid Azure AI Search + Azure Cosmos DB for maximum speed and accuracy"
     )
     def search(self, query: str, limit: int = 5) -> str:
-        """Hybrid product search with Azure AI Serach first, then Azure Cosmos DB fallback"""
+        """Hybrid product search with Azure AI Search first, then Azure Cosmos DB fallback"""
         try:
             cosmos_service = get_cosmos_service()
 
@@ -79,7 +79,7 @@ class ProductPlugin:
                 suggestions = self._get_search_suggestions(query)
                 return f"I couldn't find any products matching '{query}'. {suggestions}"
 
-            # Format response naturally with Azure AI Serach insights
+            # Format response naturally with Azure AI Search insights
             response_parts = []
 
             if len(products) == 1:
@@ -136,11 +136,11 @@ class ProductPlugin:
 
     @kernel_function(description="Fast product search optimized for chat responses")
     def search_fast(self, query: str, limit: int = 3) -> str:
-        """Ultra-fast product search using Azure AI Serach only"""
+        """Ultra-fast product search using Azure AI Search only"""
         try:
             cosmos_service = get_cosmos_service()
 
-            # Use Azure AI Serach only for maximum speed
+            # Use Azure AI Search only for maximum speed
             products = run_async_sync(
                 cosmos_service.search_products_ai_search(query, limit)
             )

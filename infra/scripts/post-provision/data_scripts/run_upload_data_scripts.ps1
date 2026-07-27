@@ -254,7 +254,7 @@ Write-Host "==============================================="
 Write-Host "Values to be used:"
 Write-Host "==============================================="
 Write-Host "Resource Group: $resource_group"
-Write-Host "Azure AI Serach Endpoint: $ai_search_endpoint"
+Write-Host "Azure AI Search Endpoint: $ai_search_endpoint"
 Write-Host "Azure OpenAI Endpoint: $azure_openai_endpoint"
 Write-Host "Azure Cosmos DB Account: $cosmosdb_account"
 Write-Host "Subscription ID: $azSubscriptionId"
@@ -264,7 +264,7 @@ Write-Host ""
 Write-Host "Getting signed in user id"
 $signed_user_id = az ad signed-in-user show --query id -o tsv
 
-Write-Host "Checking if the user has Search roles on the Azure AI Serach Service"
+Write-Host "Checking if the user has Search roles on the Azure AI Search Service"
 # search service contributor role id: 7ca78c08-252a-4471-8644-bb5ff32d4ba0
 # search index data contributor role id: 8ebe5a00-799e-43f5-93ac-243d3dce84a7
 # search index data reader role id: 1407120a-92aa-4202-b7e9-c0e197c71c8f

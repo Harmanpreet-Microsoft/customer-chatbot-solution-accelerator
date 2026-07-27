@@ -66,9 +66,9 @@
         "azd": {
           "type": "location",
           "usageName": [
-            "Azure OpenAI.GlobalStandard.gpt-5.4-mini,50",
-            "Azure OpenAI.GlobalStandard.text-embedding-3-small,10",
-            "Azure OpenAI.GlobalStandard.gpt-realtime-mini,1"
+            "OpenAI.GlobalStandard.gpt-5.4-mini,50",
+            "OpenAI.GlobalStandard.text-embedding-3-small,10",
+            "OpenAI.GlobalStandard.gpt-realtime-mini,1"
           ]
         },
         "description": "Required. Location for Azure AI Foundry and model deployments."
@@ -166,7 +166,7 @@
       "type": "string",
       "defaultValue": "2025-01-01-preview",
       "metadata": {
-        "description": "Optional. Azure OpenAI API version."
+        "description": "Optional. OpenAI API version."
       }
     },
     "azureAiAgentApiVersion": {
@@ -26105,7 +26105,7 @@
                         "LUIS.Authoring",
                         "LanguageAuthoring",
                         "MetricsAdvisor",
-                        "Azure OpenAI",
+                        "OpenAI",
                         "Personalizer",
                         "QnAMaker.v2",
                         "SpeechServices",
@@ -26370,8 +26370,8 @@
                       "Cognitive Services LUIS Writer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '6322a993-d5c9-4bed-b113-e49bbea25b27')]",
                       "Cognitive Services Metrics Advisor Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'cb43c632-a144-4ec5-977c-e80c4affc34a')]",
                       "Cognitive Services Metrics Advisor User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3b20f47b-3825-43cb-8114-4bd2201156a8')]",
-                      "Cognitive Services Azure OpenAI Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a001fd3d-188f-4b5d-821b-7da978bf7442')]",
-                      "Cognitive Services Azure OpenAI User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]",
+                      "Cognitive Services OpenAI Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a001fd3d-188f-4b5d-821b-7da978bf7442')]",
+                      "Cognitive Services OpenAI User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]",
                       "Cognitive Services QnA Maker Editor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f4cc2bf9-21be-47a1-bdf1-5c5804381025')]",
                       "Cognitive Services QnA Maker Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '466ccd10-b268-4a11-b098-b4849f024126')]",
                       "Cognitive Services Speech Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0e75ca1e-0464-4b4d-8b93-68208a576181')]",
@@ -27501,9 +27501,9 @@
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint of the AI Services account (Azure OpenAI Language Model Instance API)."
+                "description": "Endpoint of the AI Services account (OpenAI Language Model Instance API)."
               },
-              "value": "[reference('aiServices').endpoints['Azure OpenAI Language Model Instance API']]"
+              "value": "[reference('aiServices').endpoints['OpenAI Language Model Instance API']]"
             },
             "cognitiveServicesEndpoint": {
               "type": "string",
@@ -27515,7 +27515,7 @@
             "azureOpenAiCuEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI Content Understanding endpoint URL."
+                "description": "OpenAI Content Understanding endpoint URL."
               },
               "value": "[reference('aiServices').endpoints['Content Understanding']]"
             },
@@ -28411,9 +28411,9 @@
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint of the AI Services account (Azure OpenAI Language Model Instance API)."
+                "description": "Endpoint of the AI Services account (OpenAI Language Model Instance API)."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Azure OpenAI Language Model Instance API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['OpenAI Language Model Instance API']]"
             },
             "cognitiveServicesEndpoint": {
               "type": "string",
@@ -28425,7 +28425,7 @@
             "azureOpenAiCuEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "Azure OpenAI Content Understanding endpoint URL."
+                "description": "OpenAI Content Understanding endpoint URL."
               },
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Content Understanding']]"
             },
@@ -28531,9 +28531,9 @@
             },
             "modelFormat": {
               "type": "string",
-              "defaultValue": "Azure OpenAI",
+              "defaultValue": "OpenAI",
               "metadata": {
-                "description": "Optional. Model format (e.g., Azure OpenAI)."
+                "description": "Optional. Model format (e.g., OpenAI)."
               }
             },
             "modelName": {
@@ -29188,7 +29188,7 @@
               "type": "array",
               "defaultValue": [],
               "metadata": {
-                "description": "Optional. Array of role assignments to create on the Azure AI Serach service."
+                "description": "Optional. Array of role assignments to create on the Azure AI Search service."
               }
             }
           },
@@ -31297,21 +31297,21 @@
             "resourceId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of the Azure AI Serach service."
+                "description": "Resource ID of the Azure AI Search service."
               },
               "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
             },
             "name": {
               "type": "string",
               "metadata": {
-                "description": "Name of the Azure AI Serach service."
+                "description": "Name of the Azure AI Search service."
               },
               "value": "[parameters('name')]"
             },
             "endpoint": {
               "type": "string",
               "metadata": {
-                "description": "Endpoint URL of the Azure AI Serach service."
+                "description": "Endpoint URL of the Azure AI Search service."
               },
               "value": "[format('https://{0}.search.windows.net', parameters('name'))]"
             },
@@ -105854,7 +105854,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Principal ID of the Azure AI Serach identity."
+                "description": "Principal ID of the Azure AI Search identity."
               }
             },
             "appServicePrincipalIds": {
@@ -105882,7 +105882,7 @@
               "type": "string",
               "defaultValue": "",
               "metadata": {
-                "description": "Resource ID of the Azure AI Serach service (empty if not deployed)."
+                "description": "Resource ID of the Azure AI Search service (empty if not deployed)."
               }
             },
             "cosmosDbAccountName": {
@@ -106346,56 +106346,56 @@
     "AZURE_OPENAI_DEPLOYMENT_MODEL": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI GPT model deployment name."
+        "description": "OpenAI GPT model deployment name."
       },
       "value": "[parameters('gptModelName')]"
     },
     "AZURE_OPENAI_EMBEDDING_MODEL": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI embedding model name."
+        "description": "OpenAI embedding model name."
       },
       "value": "[parameters('embeddingModel')]"
     },
     "AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY": {
       "type": "int",
       "metadata": {
-        "description": "Azure OpenAI embedding model deployment capacity."
+        "description": "OpenAI embedding model deployment capacity."
       },
       "value": "[parameters('embeddingDeploymentCapacity')]"
     },
     "AZURE_OPENAI_ENDPOINT": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI service endpoint URL."
+        "description": "OpenAI service endpoint URL."
       },
       "value": "[if(variables('useExistingAIProject'), reference('existing_project_setup').outputs.endpoint.value, reference('ai_foundry_project').outputs.endpoint.value)]"
     },
     "AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE": {
       "type": "string",
       "metadata": {
-        "description": "Azure OpenAI model deployment type."
+        "description": "OpenAI model deployment type."
       },
       "value": "[parameters('deploymentType')]"
     },
     "AZURE_AI_SEARCH_ENDPOINT": {
       "type": "string",
       "metadata": {
-        "description": "Azure Azure AI Serach service endpoint URL."
+        "description": "Azure AI Search service endpoint URL."
       },
       "value": "[reference('ai_search').outputs.endpoint.value]"
     },
     "AZURE_OPENAI_API_VERSION": {
       "type": "string",
       "metadata": {
-        "description": "API version for Azure OpenAI service."
+        "description": "API version for OpenAI service."
       },
       "value": "[parameters('azureOpenaiAPIVersion')]"
     },
     "AZURE_OPENAI_RESOURCE": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Azure OpenAI resource."
+        "description": "Name of the OpenAI resource."
       },
       "value": "[if(variables('useExistingAIProject'), reference('existing_project_setup').outputs.name.value, reference('ai_foundry_project').outputs.name.value)]"
     },
@@ -106584,7 +106584,7 @@
     "AI_SEARCH_SERVICE_RESOURCE_ID": {
       "type": "string",
       "metadata": {
-        "description": "Resource ID of the Azure Azure AI Serach service."
+        "description": "Resource ID of the Azure AI Search service."
       },
       "value": "[reference('ai_search').outputs.resourceId.value]"
     },

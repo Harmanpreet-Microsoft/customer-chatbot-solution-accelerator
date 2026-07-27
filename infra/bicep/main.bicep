@@ -52,9 +52,9 @@ param tags object = {}
   azd: {
     type: 'location'
     usageName: [
-      'Azure OpenAI.GlobalStandard.gpt-5.4-mini,50'
-      'Azure OpenAI.GlobalStandard.text-embedding-3-small,10'
-      'Azure OpenAI.GlobalStandard.gpt-realtime-mini,1'
+      'OpenAI.GlobalStandard.gpt-5.4-mini,50'
+      'OpenAI.GlobalStandard.text-embedding-3-small,10'
+      'OpenAI.GlobalStandard.gpt-realtime-mini,1'
     ]
   }
 })
@@ -113,7 +113,7 @@ param gptRealtimeModelVersion string = '2025-12-15'
 @description('Optional. Capacity of the realtime model deployment.')
 param gptRealtimeDeploymentCapacity int = 1
 
-@description('Optional. Azure OpenAI API version.')
+@description('Optional. OpenAI API version.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @description('Optional. Azure AI Agent API version.')
@@ -694,28 +694,28 @@ output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = 'chat_sessions'
 @description('Name of the Azure Cosmos DB database (alias).')
 output AZURE_COSMOSDB_DATABASE string = cosmosDBModule.outputs.databaseName
 
-@description('Azure OpenAI GPT model deployment name.')
+@description('OpenAI GPT model deployment name.')
 output AZURE_OPENAI_DEPLOYMENT_MODEL string = gptModelName
 
-@description('Azure OpenAI embedding model name.')
+@description('OpenAI embedding model name.')
 output AZURE_OPENAI_EMBEDDING_MODEL string = embeddingModel
 
-@description('Azure OpenAI embedding model deployment capacity.')
+@description('OpenAI embedding model deployment capacity.')
 output AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY int = embeddingDeploymentCapacity
 
-@description('Azure OpenAI service endpoint URL.')
+@description('OpenAI service endpoint URL.')
 output AZURE_OPENAI_ENDPOINT string = aiFoundryEndpoint
 
-@description('Azure OpenAI model deployment type.')
+@description('OpenAI model deployment type.')
 output AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE string = deploymentType
 
-@description('Azure Azure AI Serach service endpoint URL.')
+@description('Azure AI Search service endpoint URL.')
 output AZURE_AI_SEARCH_ENDPOINT string = ai_search.outputs.endpoint
 
-@description('API version for Azure OpenAI service.')
+@description('API version for OpenAI service.')
 output AZURE_OPENAI_API_VERSION string = azureOpenaiAPIVersion
 
-@description('Name of the Azure OpenAI resource.')
+@description('Name of the OpenAI resource.')
 output AZURE_OPENAI_RESOURCE string = aiFoundryName
 
 @description('React application layout configuration JSON.')
@@ -796,7 +796,7 @@ output FOUNDRY_POLICY_AGENT string = '<populate manually after running post-depl
 @description('Resource ID of the Azure AI Foundry account.')
 output AI_FOUNDRY_RESOURCE_ID string = aiFoundryResourceId
 
-@description('Resource ID of the Azure Azure AI Serach service.')
+@description('Resource ID of the Azure AI Search service.')
 output AI_SEARCH_SERVICE_RESOURCE_ID string = ai_search.outputs.resourceId
 
 @description('Application environment (Production)')

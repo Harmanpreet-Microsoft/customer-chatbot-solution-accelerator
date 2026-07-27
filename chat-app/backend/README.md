@@ -7,7 +7,7 @@ AI-powered chat application backend built with FastAPI, designed to integrate wi
 - **Multiple AI Agents**: Customer support, sales assistant, and technical support agents
 - **Conversation Management**: Create, manage, and track chat conversations
 - **Streaming Responses**: Real-time AI responses with Server-Sent Events
-- **Azure AI Integration**: Connects to Azure OpenAI and Azure AI Serach for enhanced capabilities
+- **Azure AI Integration**: Connects to Azure OpenAI and Azure AI Search for enhanced capabilities
 - **Session-based Authentication**: Guest user sessions for development
 - **Flexible Storage**: In-memory storage for development, Azure Cosmos DB for production
 

@@ -66,7 +66,7 @@ def create_search_index():
     """
     Creates or updates an Azure Cognitive Search index configured for:
     - Text fields
-    - Vector search using Azure OpenAI embeddings
+    - Vector search using OpenAI embeddings
     - Semantic search using prioritized fields
     """
 

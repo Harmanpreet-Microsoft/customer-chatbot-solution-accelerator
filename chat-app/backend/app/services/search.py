@@ -199,7 +199,7 @@ def search_reference_enhanced(
 def search_products(
     query: str, top: int = 5, context: str = ""
 ) -> List[Dict[str, Any]]:
-    """Search products using Azure Azure AI Serach with semantic capabilities"""
+    """Search products using Azure AI Search with semantic capabilities"""
     client = get_product_search_client()
     if not client:
         logger.warning("Azure Product Search not configured, returning empty results")

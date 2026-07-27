@@ -33,7 +33,7 @@ async def resolve_credential(api_key: str | None, client_id: str | None = None) 
 
 
 def resolve_endpoint(voicelive_endpoint: str | None, openai_endpoint: str | None) -> str | None:
-    """Pick the correct Azure OpenAI endpoint for realtime connections."""
+    """Pick the correct OpenAI endpoint for realtime connections."""
     endpoint = voicelive_endpoint or openai_endpoint
     if not endpoint:
         return None
@@ -45,7 +45,7 @@ def resolve_endpoint(voicelive_endpoint: str | None, openai_endpoint: str | None
 
 
 def is_valid_realtime_endpoint(endpoint: str) -> bool:
-    """Check if endpoint is a valid Azure OpenAI host for realtime."""
+    """Check if endpoint is a valid OpenAI host for realtime."""
     return "openai.azure.com" in endpoint.lower()
 
 

@@ -1,6 +1,6 @@
 // ============================================================================
-// Module: Azure AI Serach
-// Description: Deploys Azure Azure AI Serach with a two-step pattern:
+// Module: Azure AI Search
+// Description: Deploys Azure AI Search with a two-step pattern:
 //   Step 1: Plain Bicep resource for fast initial creation (name, location, SKU)
 //   Step 2: AVM module update to enable managed identity & full configuration
 // This reduces deployment time by making the resource available immediately
@@ -69,7 +69,7 @@ import { privateEndpointSingleServiceType } from 'br/public:avm/utl/types/avm-co
 param privateEndpoints privateEndpointSingleServiceType[]?
 
 // --- Role Assignments ---
-@description('Optional. Array of role assignments to create on the Azure AI Serach service.')
+@description('Optional. Array of role assignments to create on the Azure AI Search service.')
 param roleAssignments array = []
 
 // ============================================================================
@@ -115,13 +115,13 @@ module searchServiceUpdate 'br/public:avm/res/search/search-service:0.12.0' = {
 // ============================================================================
 // Outputs
 // ============================================================================
-@description('Resource ID of the Azure AI Serach service.')
+@description('Resource ID of the Azure AI Search service.')
 output resourceId string = searchService.id
 
-@description('Name of the Azure AI Serach service.')
+@description('Name of the Azure AI Search service.')
 output name string = searchService.name
 
-@description('Endpoint URL of the Azure AI Serach service.')
+@description('Endpoint URL of the Azure AI Search service.')
 output endpoint string = 'https://${searchService.name}.search.windows.net'
 
 @description('System-assigned identity principal ID.')

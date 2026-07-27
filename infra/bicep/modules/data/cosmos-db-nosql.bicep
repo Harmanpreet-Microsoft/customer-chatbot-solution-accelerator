@@ -20,7 +20,10 @@ param tags object = {}
 param databaseName string = 'db_conversation_history'
 
 @description('Container definitions.')
-param containers array = [
+param containers {
+  name: string
+  partitionKeyPath: string
+}[] = [
   {
     name: 'conversations'
     partitionKeyPath: '/userId'

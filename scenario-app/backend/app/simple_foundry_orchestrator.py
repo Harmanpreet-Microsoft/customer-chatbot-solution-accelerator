@@ -79,7 +79,7 @@ async def _resolve_foundry_agent_definition(agent_id: str):
 async def _build_foundry_agent(
     agent_id: str, name: str, plugins: Optional[List] = None
 ) -> Optional[Any]:
-    """Build a Foundry agent using direct Azure OpenAI API calls"""
+    """Build a Foundry agent using direct OpenAI API calls"""
     try:
         logger.info(f"Building {name} (ID: {agent_id}) using Azure AI Foundry...")
 

@@ -24,7 +24,7 @@ param existingFoundryProjectResourceId string = ''
 @description('Principal ID of the AI project identity (works for both new and existing projects).')
 param aiProjectPrincipalId string = ''
 
-@description('Principal ID of the Azure AI Serach identity.')
+@description('Principal ID of the Azure AI Search identity.')
 param aiSearchPrincipalId string = ''
 
 @description('Principal IDs of the App Service system-assigned identities (empty if not deployed).')
@@ -38,7 +38,7 @@ param deployerPrincipalId string = ''
 @description('Resource ID of the Azure AI Foundry account (empty if not deployed — new project path).')
 param aiFoundryResourceId string = ''
 
-@description('Resource ID of the Azure AI Serach service (empty if not deployed).')
+@description('Resource ID of the Azure AI Search service (empty if not deployed).')
 param aiSearchResourceId string = ''
 
 @description('Name of the Azure Cosmos DB account (empty if not deployed).')
@@ -92,7 +92,7 @@ resource cosmosContributorRoleDefinition 'Microsoft.DocumentDB/databaseAccounts/
 //    Cross-service roles scoped to Azure AI Foundry account
 // ============================================================================
 
-// Azure AI Serach → Cognitive Services Azure OpenAI User on Azure AI Foundry (new project, same RG)
+// Azure AI Search → Cognitive Services Azure OpenAI User on Azure AI Foundry (new project, same RG)
 resource assignOpenAIRoleToAISearch 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useExistingAIProject && !empty(aiSearchPrincipalId) && !empty(aiFoundryResourceId)) {
   name: guid(solutionName, aiFoundryAccount.id, aiSearchPrincipalId, roleDefinitions.cognitiveServicesOpenAIUser)
   scope: aiFoundryAccount
@@ -103,7 +103,7 @@ resource assignOpenAIRoleToAISearch 'Microsoft.Authorization/roleAssignments@202
   }
 }
 
-// Azure AI Serach → Cognitive Services Azure OpenAI User on existing Azure AI Foundry (cross-scope)
+// Azure AI Search → Cognitive Services Azure OpenAI User on existing Azure AI Foundry (cross-scope)
 module assignOpenAIToSearchExisting './cross-scope-role-assignment.bicep' = if (useExistingAIProject && !empty(aiSearchPrincipalId)) {
   name: 'assignOpenAIRoleToAISearchExisting'
   scope: resourceGroup(existingAIFoundrySubscription, existingAIFoundryResourceGroup)
@@ -140,10 +140,10 @@ module chatBackendAppCogServicesUserExisting './cross-scope-role-assignment.bice
 
 // ============================================================================
 // 2. SEARCH SERVICE ROLE ASSIGNMENTS
-//    AI Project and Backend identities → Azure AI Serach
+//    AI Project and Backend identities → Azure AI Search
 // ============================================================================
 
-// AI Project → Search Index Data Reader on Azure AI Serach
+// AI Project → Search Index Data Reader on Azure AI Search
 resource projectSearchReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiSearchResourceId) && !empty(aiProjectPrincipalId)) {
   name: guid(solutionName, aiSearchService.id, aiProjectPrincipalId, roleDefinitions.searchIndexDataReader)
   scope: aiSearchService
@@ -154,7 +154,7 @@ resource projectSearchReader 'Microsoft.Authorization/roleAssignments@2022-04-01
   }
 }
 
-// AI Project → Search Service Contributor on Azure AI Serach
+// AI Project → Search Service Contributor on Azure AI Search
 resource projectSearchContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiSearchResourceId) && !empty(aiProjectPrincipalId)) {
   name: guid(solutionName, aiSearchService.id, aiProjectPrincipalId, roleDefinitions.searchServiceContributor)
   scope: aiSearchService
@@ -165,7 +165,7 @@ resource projectSearchContributor 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-// Chat Backend App Service → Search Index Data Contributor on Azure AI Serach
+// Chat Backend App Service → Search Index Data Contributor on Azure AI Search
 resource chatBackendAppSearchContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(aiSearchResourceId) && !empty(appServicePrincipalIds.chatBackendApp)) {
   name: guid(solutionName, aiSearchService.id, appServicePrincipalIds.chatBackendApp, roleDefinitions.searchIndexDataContributor)
   scope: aiSearchService

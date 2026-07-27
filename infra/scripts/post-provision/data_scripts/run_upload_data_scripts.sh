@@ -480,7 +480,7 @@ echo "==============================================="
 echo "Values to be used:"
 echo "==============================================="
 echo "Resource Group: $resource_group"
-echo "Azure AI Serach Endpoint: $ai_search_endpoint"
+echo "Azure AI Search Endpoint: $ai_search_endpoint"
 echo "Azure OpenAI Endpoint: $azure_openai_endpoint"
 echo "Azure Cosmos DB Account: $cosmosdb_account"
 echo "Subscription ID: $azSubscriptionId"
@@ -537,7 +537,7 @@ fi
 set -e
 
 if [ "$SKIP_ROLE_ASSIGNMENT" != "true" ] && [ -n "$signed_user_id" ]; then
-    echo "Checking if the principal has Search roles on the Azure AI Serach Service"
+    echo "Checking if the principal has Search roles on the Azure AI Search Service"
     # search service contributor role id: 7ca78c08-252a-4471-8644-bb5ff32d4ba0
     # search index data contributor role id: 8ebe5a00-799e-43f5-93ac-243d3dce84a7
     # search index data reader role id: 1407120a-92aa-4202-b7e9-c0e197c71c8f

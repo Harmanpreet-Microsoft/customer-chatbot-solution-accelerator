@@ -319,8 +319,8 @@ assign_agent_identity_roles() {
 		echo "  Role may already exist or failed to assign"
 	fi
 	
-	# Assign Search Index Data Reader on Azure AI Serach service
-	echo "Assigning 'Search Index Data Reader' role to agent identity on Azure AI Serach..."
+	# Assign Search Index Data Reader on Azure AI Search service
+	echo "Assigning 'Search Index Data Reader' role to agent identity on Azure AI Search..."
 	if MSYS_NO_PATHCONV=1 az role assignment create \
 		--assignee "$agent_principal_id" \
 		--role "1407120a-92aa-4202-b7e9-c0e197c71c8f" \
