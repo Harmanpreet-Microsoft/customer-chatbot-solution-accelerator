@@ -50,15 +50,18 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: |
+          CHAT_APP_BACKEND="chat-app/backend"
+          SCENARIO_APP_BACKEND="scenario-app/backend"
           TEST_DIRS=()
           COV_FLAGS=()
-          [ -d "chat-app/backend/tests" ] && TEST_DIRS+=("chat-app/backend/tests")
-          [ -d "scenario-app/backend/tests" ] && TEST_DIRS+=("scenario-app/backend/tests")
-          [ -d "chat-app/backend/app" ] && COV_FLAGS+=("--cov=chat-app/backend/app")
-          [ -d "scenario-app/backend/app" ] && COV_FLAGS+=("--cov=scenario-app/backend/app")
+          [ -d "$CHAT_APP_BACKEND/tests" ] && TEST_DIRS+=("$CHAT_APP_BACKEND/tests")
+          [ -d "$SCENARIO_APP_BACKEND/tests" ] && TEST_DIRS+=("$SCENARIO_APP_BACKEND/tests")
+          [ -d "$CHAT_APP_BACKEND/app" ] && COV_FLAGS+=("--cov=$CHAT_APP_BACKEND/app")
+          [ -d "$SCENARIO_APP_BACKEND/app" ] && COV_FLAGS+=("--cov=$SCENARIO_APP_BACKEND/app")
           if [ ${#TEST_DIRS[@]} -eq 0 ]; then
             echo "No test directories found, skipping tests."
-          elif python -m pytest "${COV_FLAGS[@]}" \
+          elif python -m pytest \
+              ${COV_FLAGS[@]:+"${COV_FLAGS[@]}"} \
               --cov-report=xml:coverage.xml --cov-report=html:htmlcov \
               --cov-report=term-missing --junitxml=coverage-junit.xml "${TEST_DIRS[@]}"; then
             echo "Tests completed, checking coverage."
