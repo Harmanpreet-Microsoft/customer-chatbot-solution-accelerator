@@ -50,14 +50,17 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: |
-          TEST_DIRS=""
-          [ -d "chat-app/backend/tests" ] && TEST_DIRS="$TEST_DIRS chat-app/backend/tests"
-          [ -d "scenario-app/backend/tests" ] && TEST_DIRS="$TEST_DIRS scenario-app/backend/tests"
-          if [ -z "$TEST_DIRS" ]; then
+          TEST_DIRS=()
+          COV_FLAGS=()
+          [ -d "chat-app/backend/tests" ] && TEST_DIRS+=("chat-app/backend/tests")
+          [ -d "scenario-app/backend/tests" ] && TEST_DIRS+=("scenario-app/backend/tests")
+          [ -d "chat-app/backend/app" ] && COV_FLAGS+=("--cov=chat-app/backend/app")
+          [ -d "scenario-app/backend/app" ] && COV_FLAGS+=("--cov=scenario-app/backend/app")
+          if [ ${#TEST_DIRS[@]} -eq 0 ]; then
             echo "No test directories found, skipping tests."
-          elif python -m pytest --cov=chat-app/backend/app --cov=scenario-app/backend/app \
+          elif python -m pytest "${COV_FLAGS[@]}" \
               --cov-report=xml:coverage.xml --cov-report=html:htmlcov \
-              --cov-report=term-missing --junitxml=coverage-junit.xml $TEST_DIRS; then
+              --cov-report=term-missing --junitxml=coverage-junit.xml "${TEST_DIRS[@]}"; then
             echo "Tests completed, checking coverage."
             # Only fail if coverage does not meet criteria
             if [ -f coverage.xml ]; then
