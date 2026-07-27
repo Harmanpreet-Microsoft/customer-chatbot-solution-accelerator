@@ -49,9 +49,15 @@ jobs:
           python -m pip install -r scenario-app/backend/requirements.txt
 
       - name: Run Backend Tests with Coverage
-        working-directory: src
         run: |
-          if python -m pytest --cov=api/app --cov-config=tests/.coveragerc --cov-report=xml --cov-report=html --cov-report=term-missing --junitxml=coverage-junit.xml ./tests; then
+          TEST_DIRS=""
+          [ -d "chat-app/backend/tests" ] && TEST_DIRS="$TEST_DIRS chat-app/backend/tests"
+          [ -d "scenario-app/backend/tests" ] && TEST_DIRS="$TEST_DIRS scenario-app/backend/tests"
+          if [ -z "$TEST_DIRS" ]; then
+            echo "No test directories found, skipping tests."
+          elif python -m pytest --cov=chat-app/backend/app --cov=scenario-app/backend/app \
+              --cov-report=xml:coverage.xml --cov-report=html:htmlcov \
+              --cov-report=term-missing --junitxml=coverage-junit.xml $TEST_DIRS; then
             echo "Tests completed, checking coverage."
             # Only fail if coverage does not meet criteria
             if [ -f coverage.xml ]; then
@@ -71,9 +77,9 @@ jobs:
         with:
           name: backend-coverage
           path: |
-            src/coverage.xml
-            src/coverage-junit.xml
-            src/htmlcov/
+            coverage.xml
+            coverage-junit.xml
+            htmlcov/
 
       - name: Pytest Coverage Comment
         if: |
@@ -82,6 +88,6 @@ jobs:
           github.event.pull_request.head.repo.fork == false
         uses: MishaKav/pytest-coverage-comment@dd5b80bde6d16941f336518e92929e89069d8451  # v1.7.2
         with:
-          pytest-xml-coverage-path: src/coverage.xml
-          junitxml-path: src/coverage-junit.xml
+          pytest-xml-coverage-path: coverage.xml
+          junitxml-path: coverage-junit.xml
           report-only-changed-files: true
