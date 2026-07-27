@@ -116,7 +116,7 @@ To fix this, run these Azure CLI commands:
        --resource-group [YOUR_RESOURCE_GROUP] \\
        --scope "/" \\
        --principal-id 137b5924-bb10-4c28-9a9b-06e8227fb28e \\
-       --role-definition-name "Azure Cosmos DB Built-in Data Contributor"
+       --role-definition-name "Cosmos DB Built-in Data Contributor"
 
 2. Or assign custom role with required permissions:
    az role assignment create \\
@@ -136,7 +136,7 @@ Original error: {error_msg}
 
 Solutions:
 1. Grant RBAC permissions (see commands above)
-2. Ask your Microsoft Entra ID admin to assign "Azure Cosmos DB Built-in Data Contributor" role
+2. Ask your Microsoft Entra ID admin to assign "Cosmos DB Built-in Data Contributor" role
 3. Or temporarily enable local auth: az cosmosdb update --name ecommerce-prod-cosmos-202510211322 --resource-group [RESOURCE_GROUP] --disable-key-based-metadata-write-access false
 
 Original error: {error_msg}

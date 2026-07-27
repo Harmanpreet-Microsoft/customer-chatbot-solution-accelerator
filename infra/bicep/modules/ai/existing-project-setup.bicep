@@ -53,8 +53,8 @@ output projectResourceId string = aiProject.id
 @description('Name of the Azure AI Foundry project.')
 output projectName string = aiProject.name
 
-@description('Azure AI Foundry project endpoint.')
-output projectEndpoint string = aiProject.properties.endpoints['Azure AI Foundry API']
+@description('AI Foundry project endpoint.')
+output projectEndpoint string = aiProject.properties.endpoints['AI Foundry API']
 
 @description('System-assigned identity principal ID of the project (empty if none).')
 output projectIdentityPrincipalId string = contains(aiProject, 'identity') && contains(aiProject.identity, 'principalId') ? aiProject.identity.principalId : ''

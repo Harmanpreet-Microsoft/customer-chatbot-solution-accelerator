@@ -106,7 +106,7 @@ def upsert_with_retry(container, item: Dict[str, Any], max_retries: int = 6):
                 continue
             if status in (401, 403):
                 raise SystemExit(
-                    "Unauthorized. Ensure your identity has 'Azure Cosmos DB Built-in Data Contributor' role."
+                    "Unauthorized. Ensure your identity has 'Cosmos DB Built-in Data Contributor' role."
                 ) from e
             raise
     raise RuntimeError(f"Failed to upsert item after {max_retries} retries")

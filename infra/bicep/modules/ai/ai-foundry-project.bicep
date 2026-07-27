@@ -105,8 +105,8 @@ output projectResourceId string = aiProject.id
 @description('Name of the Azure AI Foundry project.')
 output projectName string = aiProject.name
 
-@description('Azure AI Foundry project endpoint.')
-output projectEndpoint string = aiProject.properties.endpoints['Azure AI Foundry API']
+@description('AI Foundry project endpoint.')
+output projectEndpoint string = aiProject.properties.endpoints['AI Foundry API']
 
 @description('System-assigned identity principal ID of the project.')
 output projectIdentityPrincipalId string = aiProject.identity.principalId
