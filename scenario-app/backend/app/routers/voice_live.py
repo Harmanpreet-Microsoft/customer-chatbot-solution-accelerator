@@ -685,7 +685,7 @@ async def _start_session(client_id: str, config: dict, websocket: WebSocket):
             json.dumps(
                 {
                     "type": "error",
-                    "message": "Realtime websocket requires an OpenAI endpoint host (*.openai.azure.com).",
+                    "message": "Realtime websocket requires an Azure OpenAI endpoint host (*.openai.azure.com).",
                 }
             )
         )
