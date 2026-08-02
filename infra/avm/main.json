@@ -5,8 +5,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.45.6.27763",
-      "templateHash": "12070616233163939158"
+      "version": "0.46.1.21595",
+      "templateHash": "15729196358454583172"
     }
   },
   "parameters": {
@@ -166,7 +166,7 @@
       "type": "string",
       "defaultValue": "2025-01-01-preview",
       "metadata": {
-        "description": "Optional. OpenAI API version."
+        "description": "Optional. Azure OpenAI API version."
       }
     },
     "azureAiAgentApiVersion": {
@@ -383,7 +383,7 @@
     "policiesSearchIndex": "[if(equals(parameters('deploymentScenario'), 'healthcare'), 'care_policies_index', if(equals(parameters('deploymentScenario'), 'banking'), 'banking_policies_index', 'policies_index'))]",
     "catalogToolName": "[if(equals(parameters('deploymentScenario'), 'healthcare'), 'services_agent', if(equals(parameters('deploymentScenario'), 'banking'), 'accounts_agent', 'product_agent'))]",
     "policyToolName": "[if(equals(parameters('deploymentScenario'), 'healthcare'), 'care_policy_agent', if(equals(parameters('deploymentScenario'), 'banking'), 'banking_policy_agent', 'policy_agent'))]",
-    "reactAppLayoutConfig": "{\r\n  \"appConfig\": {\r\n      \"CHAT_CHATHISTORY\": {\r\n        \"CHAT\": 70,\r\n        \"CHATHISTORY\": 30\r\n      }\r\n    }\r\n  }\r\n}"
+    "reactAppLayoutConfig": "{\n  \"appConfig\": {\n      \"CHAT_CHATHISTORY\": {\n        \"CHAT\": 70,\n        \"CHATHISTORY\": 30\n      }\n    }\n  }\n}"
   },
   "resources": {
     "resourceGroupTags": {
@@ -445,8 +445,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "13057004032172561022"
+              "version": "0.46.1.21595",
+              "templateHash": "5005969515455354504"
             }
           },
           "parameters": {
@@ -3747,8 +3747,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "15211167376897453419"
+              "version": "0.46.1.21595",
+              "templateHash": "1077806126224374403"
             }
           },
           "parameters": {
@@ -4674,8 +4674,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "6476447410274580151"
+              "version": "0.46.1.21595",
+              "templateHash": "14375623146044395014"
             }
           },
           "definitions": {
@@ -7540,8 +7540,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "9116500550183450565"
+              "version": "0.46.1.21595",
+              "templateHash": "4613446280405157854"
             }
           },
           "parameters": {
@@ -9444,8 +9444,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "5272027087445572747"
+              "version": "0.46.1.21595",
+              "templateHash": "8420279536133240728"
             }
           },
           "parameters": {
@@ -9984,8 +9984,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "11479330755037849383"
+              "version": "0.46.1.21595",
+              "templateHash": "14701803776432038764"
             }
           },
           "parameters": {
@@ -11453,8 +11453,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "6662408081790292224"
+              "version": "0.46.1.21595",
+              "templateHash": "13006336383696924611"
             }
           },
           "parameters": {
@@ -11962,8 +11962,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "9028893310045880819"
+              "version": "0.46.1.21595",
+              "templateHash": "17976113817590025731"
             }
           },
           "parameters": {
@@ -21318,8 +21318,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "6269193753809634195"
+              "version": "0.46.1.21595",
+              "templateHash": "11076758087490966511"
             }
           },
           "parameters": {
@@ -24826,8 +24826,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "8028799539155931791"
+              "version": "0.46.1.21595",
+              "templateHash": "45267059275214483"
             }
           },
           "parameters": {
@@ -25363,7 +25363,7 @@
                       },
                       "metadata": {
                         "__bicep_export!": true,
-                        "description": "Type for network configuration in Azure AI Foundry where virtual network injection occurs to secure scenarios like Agents entirely within a private network."
+                        "description": "Type for network configuration in AI Foundry where virtual network injection occurs to secure scenarios like Agents entirely within a private network."
                       }
                     },
                     "_1.secretSetOutputType": {
@@ -26189,7 +26189,7 @@
                       "$ref": "#/definitions/networkInjectionType",
                       "nullable": true,
                       "metadata": {
-                        "description": "Optional. Specifies in Azure AI Foundry where virtual network injection occurs to secure scenarios like Agents entirely within a private network."
+                        "description": "Optional. Specifies in AI Foundry where virtual network injection occurs to secure scenarios like Agents entirely within a private network."
                       }
                     },
                     "privateEndpoints": {
@@ -26244,7 +26244,7 @@
                       "type": "bool",
                       "defaultValue": true,
                       "metadata": {
-                        "description": "Optional. Allow only Microsoft Entra ID authentication. Should be enabled for security reasons."
+                        "description": "Optional. Allow only Azure AD authentication. Should be enabled for security reasons."
                       }
                     },
                     "customerManagedKey": {
@@ -26327,7 +26327,7 @@
                       "type": "bool",
                       "nullable": true,
                       "metadata": {
-                        "description": "Optional. Enable/Disable project management feature for Azure AI Foundry."
+                        "description": "Optional. Enable/Disable project management feature for AI Foundry."
                       }
                     },
                     "commitmentPlans": {
@@ -27515,7 +27515,7 @@
             "azureOpenAiCuEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "OpenAI Content Understanding endpoint URL."
+                "description": "Azure OpenAI Content Understanding endpoint URL."
               },
               "value": "[reference('aiServices').endpoints['Content Understanding']]"
             },
@@ -27545,7 +27545,7 @@
               "metadata": {
                 "description": "Azure AI Foundry project endpoint."
               },
-              "value": "[reference('aiProject').endpoints['Azure AI Foundry API']]"
+              "value": "[reference('aiProject').endpoints['AI Foundry API']]"
             },
             "projectIdentityPrincipalId": {
               "type": "string",
@@ -27626,8 +27626,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "2563730588707091687"
+              "version": "0.46.1.21595",
+              "templateHash": "14933983914799613850"
             }
           },
           "parameters": {
@@ -28342,9 +28342,9 @@
       },
       "dependsOn": [
         "ai_foundry_project",
-        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').openAI)]",
         "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
+        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').openAI)]",
         "virtualNetwork"
       ]
     },
@@ -28374,8 +28374,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "705358977237504297"
+              "version": "0.46.1.21595",
+              "templateHash": "14734711829211982487"
             }
           },
           "parameters": {
@@ -28425,7 +28425,7 @@
             "azureOpenAiCuEndpoint": {
               "type": "string",
               "metadata": {
-                "description": "OpenAI Content Understanding endpoint URL."
+                "description": "Azure OpenAI Content Understanding endpoint URL."
               },
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-12-01').endpoints['Content Understanding']]"
             },
@@ -28455,7 +28455,7 @@
               "metadata": {
                 "description": "Azure AI Foundry project endpoint."
               },
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['Azure AI Foundry API']]"
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('name'), parameters('projectName')), '2025-12-01').endpoints['AI Foundry API']]"
             },
             "projectIdentityPrincipalId": {
               "type": "string",
@@ -28512,8 +28512,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "6715448001846817199"
+              "version": "0.46.1.21595",
+              "templateHash": "5315493943580072668"
             }
           },
           "parameters": {
@@ -28680,8 +28680,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "3261808213176490944"
+              "version": "0.46.1.21595",
+              "templateHash": "16968649656855146631"
             }
           },
           "definitions": {
@@ -31369,8 +31369,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "8750708162978576025"
+              "version": "0.46.1.21595",
+              "templateHash": "716687752517927296"
             }
           },
           "parameters": {
@@ -31564,8 +31564,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "5504060809490275188"
+              "version": "0.46.1.21595",
+              "templateHash": "17841877567317429172"
             }
           },
           "definitions": {
@@ -31962,6 +31962,17 @@
             },
             "containers": {
               "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "partitionKeyPath": {
+                    "type": "string"
+                  }
+                }
+              },
               "defaultValue": [
                 {
                   "name": "conversations",
@@ -32356,7 +32367,7 @@
                           },
                           "nullable": true,
                           "metadata": {
-                            "description": "Optional. An array that contains the Resource Ids for Network Acl Bypass for the Azure Cosmos DB account."
+                            "description": "Optional. An array that contains the Resource Ids for Network Acl Bypass for the Cosmos DB account."
                           }
                         }
                       },
@@ -34098,7 +34109,7 @@
                       "type": "bool",
                       "defaultValue": false,
                       "metadata": {
-                        "description": "Optional. Enables the cassandra connector on the Azure Cosmos DB C* account."
+                        "description": "Optional. Enables the cassandra connector on the Cosmos DB C* account."
                       }
                     },
                     "enablePartitionMerge": {
@@ -34131,7 +34142,7 @@
                         "__bicep_resource_derived_type!": {
                           "source": "Microsoft.DocumentDB/databaseAccounts@2025-04-15#properties/properties/properties/cors"
                         },
-                        "description": "Optional. The CORS policy for the Azure Cosmos DB database account."
+                        "description": "Optional. The CORS policy for the Cosmos DB database account."
                       },
                       "nullable": true
                     },
@@ -34141,7 +34152,7 @@
                         "name": "FirstPartyIdentity"
                       },
                       "metadata": {
-                        "description": "Optional. The default identity for accessing key vault used in features like customer managed keys. Use `FirstPartyIdentity` to use the tenant-level Azure Cosmos DB enterprise application. The default identity needs to be explicitly set by the users."
+                        "description": "Optional. The default identity for accessing key vault used in features like customer managed keys. Use `FirstPartyIdentity` to use the tenant-level CosmosDB enterprise application. The default identity needs to be explicitly set by the users."
                       }
                     },
                     "customerManagedKey": {
@@ -34165,8 +34176,8 @@
                     "identity": "[if(not(empty(parameters('managedIdentities'))), createObject('type', if(coalesce(tryGet(parameters('managedIdentities'), 'systemAssigned'), false()), if(not(empty(variables('formattedUserAssignedIdentities'))), 'SystemAssigned,UserAssigned', 'SystemAssigned'), if(not(empty(variables('formattedUserAssignedIdentities'))), 'UserAssigned', null())), 'userAssignedIdentities', if(not(empty(variables('formattedUserAssignedIdentities'))), variables('formattedUserAssignedIdentities'), null())), null())]",
                     "builtInControlPlaneRoleNames": {
                       "Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-                      "Azure Cosmos DB Account Reader Role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'fbdf93bf-df7d-467e-a4d2-9458aa1360c8')]",
-                      "Azure Cosmos DB Operator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '230815da-be43-4aae-9cb4-875f7bd000aa')]",
+                      "Cosmos DB Account Reader Role": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'fbdf93bf-df7d-467e-a4d2-9458aa1360c8')]",
+                      "Cosmos DB Operator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '230815da-be43-4aae-9cb4-875f7bd000aa')]",
                       "CosmosBackupOperator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'db7b14f2-5adf-42da-9f96-f2ee17bab5cb')]",
                       "CosmosRestoreOperator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5432c526-bc82-444a-b7ba-57c5b0b5b34f')]",
                       "DocumentDB Account Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5bd9cd88-fe45-4216-938b-f97437e15450')]",
@@ -34347,7 +34358,7 @@
                               "templateHash": "3972888645334640168"
                             },
                             "name": "DocumentDB Database Account SQL Databases",
-                            "description": "This module deploys a SQL Database in a Azure Cosmos DB Account."
+                            "description": "This module deploys a SQL Database in a CosmosDB Account."
                           },
                           "definitions": {
                             "containerType": {
@@ -34603,7 +34614,7 @@
                                       "templateHash": "4781880351108045502"
                                     },
                                     "name": "DocumentDB Database Account SQL Database Containers",
-                                    "description": "This module deploys a SQL Database Container in a Azure Cosmos DB Account."
+                                    "description": "This module deploys a SQL Database Container in a CosmosDB Account."
                                   },
                                   "parameters": {
                                     "databaseAccountName": {
@@ -34871,7 +34882,7 @@
                               "templateHash": "8514367433037227852"
                             },
                             "name": "DocumentDB Database Account SQL Role Definitions.",
-                            "description": "This module deploys a SQL Role Definision in a Azure Cosmos DB Account."
+                            "description": "This module deploys a SQL Role Definision in a CosmosDB Account."
                           },
                           "definitions": {
                             "sqlRoleAssignmentType": {
@@ -35048,7 +35059,7 @@
                                       "templateHash": "11817543900771838380"
                                     },
                                     "name": "DocumentDB Database Account SQL Role Assignments.",
-                                    "description": "This module deploys a SQL Role Assignment in a Azure Cosmos DB Account."
+                                    "description": "This module deploys a SQL Role Assignment in a CosmosDB Account."
                                   },
                                   "parameters": {
                                     "databaseAccountName": {
@@ -35093,8 +35104,8 @@
                                   },
                                   "variables": {
                                     "builtInDataPlaneRoleNames": {
-                                      "Azure Cosmos DB Built-in Data Reader": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000001', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]",
-                                      "Azure Cosmos DB Built-in Data Contributor": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]"
+                                      "Cosmos DB Built-in Data Reader": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000001', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]",
+                                      "Cosmos DB Built-in Data Contributor": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]"
                                     },
                                     "formattedRoleDefinition": "[coalesce(tryGet(variables('builtInDataPlaneRoleNames'), parameters('roleDefinitionIdOrName')), if(contains(parameters('roleDefinitionIdOrName'), '/sqlRoleDefinitions/'), parameters('roleDefinitionIdOrName'), format('{0}/sqlRoleDefinitions/{1}', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')), parameters('roleDefinitionIdOrName'))))]",
                                     "formattedScope": "[replace(replace(coalesce(parameters('scope'), resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName'))), '/sqlDatabases/', '/dbs/'), '/containers/', '/colls/')]"
@@ -35247,7 +35258,7 @@
                               "templateHash": "11817543900771838380"
                             },
                             "name": "DocumentDB Database Account SQL Role Assignments.",
-                            "description": "This module deploys a SQL Role Assignment in a Azure Cosmos DB Account."
+                            "description": "This module deploys a SQL Role Assignment in a CosmosDB Account."
                           },
                           "parameters": {
                             "databaseAccountName": {
@@ -35292,8 +35303,8 @@
                           },
                           "variables": {
                             "builtInDataPlaneRoleNames": {
-                              "Azure Cosmos DB Built-in Data Reader": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000001', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]",
-                              "Azure Cosmos DB Built-in Data Contributor": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]"
+                              "Cosmos DB Built-in Data Reader": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000001', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]",
+                              "Cosmos DB Built-in Data Contributor": "[format('{0}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')))]"
                             },
                             "formattedRoleDefinition": "[coalesce(tryGet(variables('builtInDataPlaneRoleNames'), parameters('roleDefinitionIdOrName')), if(contains(parameters('roleDefinitionIdOrName'), '/sqlRoleDefinitions/'), parameters('roleDefinitionIdOrName'), format('{0}/sqlRoleDefinitions/{1}', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName')), parameters('roleDefinitionIdOrName'))))]",
                             "formattedScope": "[replace(replace(coalesce(parameters('scope'), resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('databaseAccountName'))), '/sqlDatabases/', '/dbs/'), '/containers/', '/colls/')]"
@@ -35414,7 +35425,7 @@
                               "templateHash": "10787709019875067397"
                             },
                             "name": "DocumentDB Database Account Cassandra Role Definitions.",
-                            "description": "This module deploys a Cassandra Role Definition in a Azure Cosmos DB Account."
+                            "description": "This module deploys a Cassandra Role Definition in a CosmosDB Account."
                           },
                           "definitions": {
                             "cassandraRoleAssignmentType": {
@@ -35571,7 +35582,7 @@
                                       "templateHash": "14764024820910071147"
                                     },
                                     "name": "DocumentDB Database Account Cassandra Role Assignments.",
-                                    "description": "This module deploys a Cassandra Role Assignment in a Azure Cosmos DB Account."
+                                    "description": "This module deploys a Cassandra Role Assignment in a CosmosDB Account."
                                   },
                                   "parameters": {
                                     "databaseAccountName": {
@@ -35725,7 +35736,7 @@
                               "templateHash": "14764024820910071147"
                             },
                             "name": "DocumentDB Database Account Cassandra Role Assignments.",
-                            "description": "This module deploys a Cassandra Role Assignment in a Azure Cosmos DB Account."
+                            "description": "This module deploys a Cassandra Role Assignment in a CosmosDB Account."
                           },
                           "parameters": {
                             "databaseAccountName": {
@@ -35854,7 +35865,7 @@
                               "templateHash": "13897098552792121791"
                             },
                             "name": "DocumentDB Database Account MongoDB Databases",
-                            "description": "This module deploys a MongoDB Database within a Azure Cosmos DB Account."
+                            "description": "This module deploys a MongoDB Database within a CosmosDB Account."
                           },
                           "definitions": {
                             "collectionType": {
@@ -35902,7 +35913,7 @@
                             "databaseAccountName": {
                               "type": "string",
                               "metadata": {
-                                "description": "Conditional. The name of the parent Azure Cosmos DB database account. Required if the template is used in a standalone deployment."
+                                "description": "Conditional. The name of the parent Cosmos DB database account. Required if the template is used in a standalone deployment."
                               }
                             },
                             "name": {
@@ -36020,7 +36031,7 @@
                                     "databaseAccountName": {
                                       "type": "string",
                                       "metadata": {
-                                        "description": "Conditional. The name of the parent Azure Cosmos DB database account. Required if the template is used in a standalone deployment."
+                                        "description": "Conditional. The name of the parent Cosmos DB database account. Required if the template is used in a standalone deployment."
                                       }
                                     },
                                     "mongodbDatabaseName": {
@@ -36179,7 +36190,7 @@
                               "templateHash": "11959636451300474346"
                             },
                             "name": "DocumentDB Database Account Gremlin Databases",
-                            "description": "This module deploys a Gremlin Database within a Azure Cosmos DB Account."
+                            "description": "This module deploys a Gremlin Database within a CosmosDB Account."
                           },
                           "definitions": {
                             "graphType": {
@@ -36659,7 +36670,7 @@
                               "templateHash": "15257396763463366586"
                             },
                             "name": "DocumentDB Database Account Cassandra Keyspaces",
-                            "description": "This module deploys a Cassandra Keyspace within a Azure Cosmos DB Account."
+                            "description": "This module deploys a Cassandra Keyspace within a CosmosDB Account."
                           },
                           "definitions": {
                             "tableType": {
@@ -36790,7 +36801,7 @@
                             "databaseAccountName": {
                               "type": "string",
                               "metadata": {
-                                "description": "Conditional. The name of the parent Azure Cosmos DB account. Required if the template is used in a standalone deployment."
+                                "description": "Conditional. The name of the parent Cosmos DB account. Required if the template is used in a standalone deployment."
                               }
                             },
                             "tables": {
@@ -36903,7 +36914,7 @@
                                       "templateHash": "15998065591386988132"
                                     },
                                     "name": "DocumentDB Database Account Cassandra Keyspaces Tables",
-                                    "description": "This module deploys a Cassandra Table within a Cassandra Keyspace in a Azure Cosmos DB Account."
+                                    "description": "This module deploys a Cassandra Table within a Cassandra Keyspace in a CosmosDB Account."
                                   },
                                   "parameters": {
                                     "name": {
@@ -37080,7 +37091,7 @@
                                       "templateHash": "6617803098467821091"
                                     },
                                     "name": "DocumentDB Database Account Cassandra Keyspaces Views",
-                                    "description": "This module deploys a Cassandra View (Materialized View) within a Cassandra Keyspace in a Azure Cosmos DB Account."
+                                    "description": "This module deploys a Cassandra View (Materialized View) within a Cassandra Keyspace in a CosmosDB Account."
                                   },
                                   "parameters": {
                                     "name": {
@@ -38104,8 +38115,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "5809745100524015651"
+              "version": "0.46.1.21595",
+              "templateHash": "1341821364014447993"
             }
           },
           "definitions": {
@@ -42554,8 +42565,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "7722311537111875045"
+              "version": "0.46.1.21595",
+              "templateHash": "15442179113759093660"
             }
           },
           "parameters": {
@@ -43531,8 +43542,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "17881259901050695278"
+              "version": "0.46.1.21595",
+              "templateHash": "11236004869715473159"
             }
           },
           "definitions": {
@@ -45295,7 +45306,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                               }
                             },
                             "additionalLoginParams": {
@@ -45315,7 +45326,7 @@
                               },
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                               }
                             },
                             "allowedExternalRedirectUrls": {
@@ -45339,14 +45350,14 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecret": {
                               "type": "securestring",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecretCertificateThumbprint": {
@@ -45500,7 +45511,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                               }
                             },
                             "microsoftAccountClientId": {
@@ -45801,14 +45812,14 @@
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                        "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                       }
                                     },
                                     "isAutoProvisioned": {
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                        "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                       }
                                     },
                                     "login": {
@@ -45834,7 +45845,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                       }
                                     },
                                     "registration": {
@@ -45843,7 +45854,7 @@
                                         "clientId": {
                                           "type": "string",
                                           "metadata": {
-                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                           }
                                         },
                                         "clientSecretCertificateIssuer": {
@@ -45878,13 +45889,13 @@
                                           "type": "string",
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                           }
                                         }
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                       }
                                     },
                                     "validation": {
@@ -45910,7 +45921,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                               }
                                             },
                                             "allowedPrincipals": {
@@ -45939,7 +45950,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                               }
                                             }
                                           },
@@ -45980,13 +45991,13 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
                                   "nullable": true,
                                   "metadata": {
-                                    "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                    "description": "Optional. The configuration settings of the Azure Active directory provider."
                                   }
                                 },
                                 "azureStaticWebApps": {
@@ -46339,7 +46350,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
@@ -50407,7 +50418,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                        "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                                       }
                                     },
                                     "additionalLoginParams": {
@@ -50427,7 +50438,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                                       }
                                     },
                                     "allowedExternalRedirectUrls": {
@@ -50451,14 +50462,14 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecret": {
                                       "type": "securestring",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecretCertificateThumbprint": {
@@ -50612,7 +50623,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                       }
                                     },
                                     "microsoftAccountClientId": {
@@ -50911,14 +50922,14 @@
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                                "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                               }
                                             },
                                             "isAutoProvisioned": {
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                                "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                               }
                                             },
                                             "login": {
@@ -50944,7 +50955,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                               }
                                             },
                                             "registration": {
@@ -50953,7 +50964,7 @@
                                                 "clientId": {
                                                   "type": "string",
                                                   "metadata": {
-                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                                   }
                                                 },
                                                 "clientSecretCertificateIssuer": {
@@ -50988,13 +50999,13 @@
                                                   "type": "string",
                                                   "nullable": true,
                                                   "metadata": {
-                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                                   }
                                                 }
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                               }
                                             },
                                             "validation": {
@@ -51020,7 +51031,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                                       }
                                                     },
                                                     "allowedPrincipals": {
@@ -51049,7 +51060,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                                       }
                                                     }
                                                   },
@@ -51090,13 +51101,13 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                            "description": "Optional. The configuration settings of the Azure Active directory provider."
                                           }
                                         },
                                         "azureStaticWebApps": {
@@ -51449,7 +51460,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
@@ -59097,8 +59108,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "17881259901050695278"
+              "version": "0.46.1.21595",
+              "templateHash": "11236004869715473159"
             }
           },
           "definitions": {
@@ -60861,7 +60872,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                               }
                             },
                             "additionalLoginParams": {
@@ -60881,7 +60892,7 @@
                               },
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                               }
                             },
                             "allowedExternalRedirectUrls": {
@@ -60905,14 +60916,14 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecret": {
                               "type": "securestring",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecretCertificateThumbprint": {
@@ -61066,7 +61077,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                               }
                             },
                             "microsoftAccountClientId": {
@@ -61367,14 +61378,14 @@
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                        "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                       }
                                     },
                                     "isAutoProvisioned": {
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                        "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                       }
                                     },
                                     "login": {
@@ -61400,7 +61411,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                       }
                                     },
                                     "registration": {
@@ -61409,7 +61420,7 @@
                                         "clientId": {
                                           "type": "string",
                                           "metadata": {
-                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                           }
                                         },
                                         "clientSecretCertificateIssuer": {
@@ -61444,13 +61455,13 @@
                                           "type": "string",
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                           }
                                         }
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                       }
                                     },
                                     "validation": {
@@ -61476,7 +61487,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                               }
                                             },
                                             "allowedPrincipals": {
@@ -61505,7 +61516,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                               }
                                             }
                                           },
@@ -61546,13 +61557,13 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
                                   "nullable": true,
                                   "metadata": {
-                                    "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                    "description": "Optional. The configuration settings of the Azure Active directory provider."
                                   }
                                 },
                                 "azureStaticWebApps": {
@@ -61905,7 +61916,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
@@ -65973,7 +65984,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                        "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                                       }
                                     },
                                     "additionalLoginParams": {
@@ -65993,7 +66004,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                                       }
                                     },
                                     "allowedExternalRedirectUrls": {
@@ -66017,14 +66028,14 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecret": {
                                       "type": "securestring",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecretCertificateThumbprint": {
@@ -66178,7 +66189,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                       }
                                     },
                                     "microsoftAccountClientId": {
@@ -66477,14 +66488,14 @@
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                                "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                               }
                                             },
                                             "isAutoProvisioned": {
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                                "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                               }
                                             },
                                             "login": {
@@ -66510,7 +66521,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                               }
                                             },
                                             "registration": {
@@ -66519,7 +66530,7 @@
                                                 "clientId": {
                                                   "type": "string",
                                                   "metadata": {
-                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                                   }
                                                 },
                                                 "clientSecretCertificateIssuer": {
@@ -66554,13 +66565,13 @@
                                                   "type": "string",
                                                   "nullable": true,
                                                   "metadata": {
-                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                                   }
                                                 }
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                               }
                                             },
                                             "validation": {
@@ -66586,7 +66597,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                                       }
                                                     },
                                                     "allowedPrincipals": {
@@ -66615,7 +66626,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                                       }
                                                     }
                                                   },
@@ -66656,13 +66667,13 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                            "description": "Optional. The configuration settings of the Azure Active directory provider."
                                           }
                                         },
                                         "azureStaticWebApps": {
@@ -67015,7 +67026,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
@@ -74705,8 +74716,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "17881259901050695278"
+              "version": "0.46.1.21595",
+              "templateHash": "11236004869715473159"
             }
           },
           "definitions": {
@@ -76469,7 +76480,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                               }
                             },
                             "additionalLoginParams": {
@@ -76489,7 +76500,7 @@
                               },
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                               }
                             },
                             "allowedExternalRedirectUrls": {
@@ -76513,14 +76524,14 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecret": {
                               "type": "securestring",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecretCertificateThumbprint": {
@@ -76674,7 +76685,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                               }
                             },
                             "microsoftAccountClientId": {
@@ -76975,14 +76986,14 @@
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                        "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                       }
                                     },
                                     "isAutoProvisioned": {
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                        "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                       }
                                     },
                                     "login": {
@@ -77008,7 +77019,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                       }
                                     },
                                     "registration": {
@@ -77017,7 +77028,7 @@
                                         "clientId": {
                                           "type": "string",
                                           "metadata": {
-                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                           }
                                         },
                                         "clientSecretCertificateIssuer": {
@@ -77052,13 +77063,13 @@
                                           "type": "string",
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                           }
                                         }
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                       }
                                     },
                                     "validation": {
@@ -77084,7 +77095,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                               }
                                             },
                                             "allowedPrincipals": {
@@ -77113,7 +77124,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                               }
                                             }
                                           },
@@ -77154,13 +77165,13 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
                                   "nullable": true,
                                   "metadata": {
-                                    "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                    "description": "Optional. The configuration settings of the Azure Active directory provider."
                                   }
                                 },
                                 "azureStaticWebApps": {
@@ -77513,7 +77524,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
@@ -81581,7 +81592,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                        "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                                       }
                                     },
                                     "additionalLoginParams": {
@@ -81601,7 +81612,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                                       }
                                     },
                                     "allowedExternalRedirectUrls": {
@@ -81625,14 +81636,14 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecret": {
                                       "type": "securestring",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecretCertificateThumbprint": {
@@ -81786,7 +81797,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                       }
                                     },
                                     "microsoftAccountClientId": {
@@ -82085,14 +82096,14 @@
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                                "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                               }
                                             },
                                             "isAutoProvisioned": {
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                                "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                               }
                                             },
                                             "login": {
@@ -82118,7 +82129,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                               }
                                             },
                                             "registration": {
@@ -82127,7 +82138,7 @@
                                                 "clientId": {
                                                   "type": "string",
                                                   "metadata": {
-                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                                   }
                                                 },
                                                 "clientSecretCertificateIssuer": {
@@ -82162,13 +82173,13 @@
                                                   "type": "string",
                                                   "nullable": true,
                                                   "metadata": {
-                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                                   }
                                                 }
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                               }
                                             },
                                             "validation": {
@@ -82194,7 +82205,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                                       }
                                                     },
                                                     "allowedPrincipals": {
@@ -82223,7 +82234,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                                       }
                                                     }
                                                   },
@@ -82264,13 +82275,13 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                            "description": "Optional. The configuration settings of the Azure Active directory provider."
                                           }
                                         },
                                         "azureStaticWebApps": {
@@ -82623,7 +82634,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
@@ -90274,8 +90285,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "17881259901050695278"
+              "version": "0.46.1.21595",
+              "templateHash": "11236004869715473159"
             }
           },
           "definitions": {
@@ -92038,7 +92049,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                               }
                             },
                             "additionalLoginParams": {
@@ -92058,7 +92069,7 @@
                               },
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                               }
                             },
                             "allowedExternalRedirectUrls": {
@@ -92082,14 +92093,14 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecret": {
                               "type": "securestring",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                               }
                             },
                             "clientSecretCertificateThumbprint": {
@@ -92243,7 +92254,7 @@
                               "type": "string",
                               "nullable": true,
                               "metadata": {
-                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                               }
                             },
                             "microsoftAccountClientId": {
@@ -92544,14 +92555,14 @@
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                        "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                       }
                                     },
                                     "isAutoProvisioned": {
                                       "type": "bool",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                        "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                       }
                                     },
                                     "login": {
@@ -92577,7 +92588,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                       }
                                     },
                                     "registration": {
@@ -92586,7 +92597,7 @@
                                         "clientId": {
                                           "type": "string",
                                           "metadata": {
-                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                            "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                           }
                                         },
                                         "clientSecretCertificateIssuer": {
@@ -92621,13 +92632,13 @@
                                           "type": "string",
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                            "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                           }
                                         }
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                       }
                                     },
                                     "validation": {
@@ -92653,7 +92664,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                               }
                                             },
                                             "allowedPrincipals": {
@@ -92682,7 +92693,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                               }
                                             }
                                           },
@@ -92723,13 +92734,13 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
                                   "nullable": true,
                                   "metadata": {
-                                    "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                    "description": "Optional. The configuration settings of the Azure Active directory provider."
                                   }
                                 },
                                 "azureStaticWebApps": {
@@ -93082,7 +93093,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                        "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                       }
                                     }
                                   },
@@ -97150,7 +97161,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Gets a JSON string containing the Microsoft Entra ID Acl settings."
+                                        "description": "Optional. Gets a JSON string containing the Azure AD Acl settings."
                                       }
                                     },
                                     "additionalLoginParams": {
@@ -97170,7 +97181,7 @@
                                       },
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Microsoft Entra ID. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
+                                        "description": "Optional. Allowed audience values to consider when validating JSON Web Tokens issued by Azure Active Directory. Note that the `ClientID` value is always considered an allowed audience, regardless of this setting."
                                       }
                                     },
                                     "allowedExternalRedirectUrls": {
@@ -97194,14 +97205,14 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecret": {
                                       "type": "securestring",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The Client Secret of this relying party application (in Microsoft Entra ID, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                        "description": "Optional. The Client Secret of this relying party application (in Azure Active Directory, this is also referred to as the Key). This setting is optional. If no client secret is configured, the OpenID Connect implicit auth flow is used to authenticate end users. Otherwise, the OpenID Connect Authorization Code Flow is used to authenticate end users. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                       }
                                     },
                                     "clientSecretCertificateThumbprint": {
@@ -97355,7 +97366,7 @@
                                       "type": "string",
                                       "nullable": true,
                                       "metadata": {
-                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                        "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://sts.windows.net/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                       }
                                     },
                                     "microsoftAccountClientId": {
@@ -97654,14 +97665,14 @@
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Set to `false` if the Microsoft Entra ID provider should not be enabled despite the set registration."
+                                                "description": "Optional. Set to `false` if the Azure Active Directory provider should not be enabled despite the set registration."
                                               }
                                             },
                                             "isAutoProvisioned": {
                                               "type": "bool",
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. Gets a value indicating whether the Microsoft Entra ID configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
+                                                "description": "Optional. Gets a value indicating whether the Azure AD configuration was auto-provisioned using 1st party tooling. This is an internal flag primarily intended to support the Azure Management Portal. Users should not read or write to this property."
                                               }
                                             },
                                             "login": {
@@ -97687,7 +97698,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID login flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory login flow."
                                               }
                                             },
                                             "registration": {
@@ -97696,7 +97707,7 @@
                                                 "clientId": {
                                                   "type": "string",
                                                   "metadata": {
-                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Microsoft Entra ID or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
+                                                    "description": "Required. The Client ID of this relying party application, known as the client_id. This setting is required for enabling OpenID Connection authentication with Azure Active Directory or other 3rd party OpenID Connect providers. More information on [OpenID Connect](http://openid.net/specs/openid-connect-core-1_0.html)."
                                                   }
                                                 },
                                                 "clientSecretCertificateIssuer": {
@@ -97731,13 +97742,13 @@
                                                   "type": "string",
                                                   "nullable": true,
                                                   "metadata": {
-                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Microsoft Entra ID, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
+                                                    "description": "Optional. The OpenID Connect Issuer URI that represents the entity which issues access tokens for this application. When using Azure Active Directory, this value is the URI of the directory tenant, e.g. https://login.microsoftonline.com/v2.0/{tenant-guid}/. This URI is a case-sensitive identifier for the token issuer. More information on [OpenID Connect Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html)."
                                                   }
                                                 }
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID app registration."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory app registration."
                                               }
                                             },
                                             "validation": {
@@ -97763,7 +97774,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed applications."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed applications."
                                                       }
                                                     },
                                                     "allowedPrincipals": {
@@ -97792,7 +97803,7 @@
                                                       },
                                                       "nullable": true,
                                                       "metadata": {
-                                                        "description": "Optional. The configuration settings of the Microsoft Entra ID allowed principals."
+                                                        "description": "Optional. The configuration settings of the Azure Active Directory allowed principals."
                                                       }
                                                     }
                                                   },
@@ -97833,13 +97844,13 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
                                           "nullable": true,
                                           "metadata": {
-                                            "description": "Optional. The configuration settings of the Microsoft Entra ID provider."
+                                            "description": "Optional. The configuration settings of the Azure Active directory provider."
                                           }
                                         },
                                         "azureStaticWebApps": {
@@ -98192,7 +98203,7 @@
                                               },
                                               "nullable": true,
                                               "metadata": {
-                                                "description": "Optional. The configuration settings of the Microsoft Entra ID token validation flow."
+                                                "description": "Optional. The configuration settings of the Azure Active Directory token validation flow."
                                               }
                                             }
                                           },
@@ -105817,8 +105828,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.45.6.27763",
-              "templateHash": "16279263826646088113"
+              "version": "0.46.1.21595",
+              "templateHash": "14428393433289701976"
             }
           },
           "parameters": {
@@ -106033,8 +106044,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "8340198449457510026"
+                      "version": "0.46.1.21595",
+                      "templateHash": "14185496479700676156"
                     }
                   },
                   "parameters": {
@@ -106155,8 +106166,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.45.6.27763",
-                      "templateHash": "8340198449457510026"
+                      "version": "0.46.1.21595",
+                      "templateHash": "14185496479700676156"
                     }
                   },
                   "parameters": {
