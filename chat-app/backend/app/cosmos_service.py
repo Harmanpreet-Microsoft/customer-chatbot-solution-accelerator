@@ -138,7 +138,7 @@ Original error: {error_msg}
 
 Solutions:
 1. Grant RBAC permissions (see commands above)
-2. Ask your Microsoft Entra ID admin to assign "Azure Cosmos DB Built-in Data Contributor" role
+2. Ask your Microsoft Entra ID admin to assign "Cosmos DB Built-in Data Contributor" role
 3. Or temporarily enable local auth: az cosmosdb update --name ecommerce-prod-cosmos-202510211322 --resource-group [RESOURCE_GROUP] --disable-key-based-metadata-write-access false
 
 Original error: {error_msg}

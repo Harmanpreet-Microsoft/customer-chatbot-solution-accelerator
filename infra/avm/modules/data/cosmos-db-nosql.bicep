@@ -44,7 +44,7 @@ param publicNetworkAccess string = 'Enabled'
 
 import { privateEndpointSingleServiceType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
 @description('Optional. Configuration details for private endpoints. For security reasons, it is recommended to use private endpoints whenever possible.')
-param privateEndpoints privateEndpointSingleServiceType[] = []
+param privateEndpoints privateEndpointSingleServiceType[]?
 
 // --- WAF: Redundancy ---
 @description('Enable zone redundancy.')
@@ -87,7 +87,7 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.19.0' = {
       networkAclBypass: 'None'
       publicNetworkAccess: publicNetworkAccess
     }
-    privateEndpoints: any(privateEndpoints)
+    privateEndpoints: privateEndpoints
     zoneRedundant: zoneRedundant
     enableAutomaticFailover: enableAutomaticFailover
     managedIdentities: managedIdentities

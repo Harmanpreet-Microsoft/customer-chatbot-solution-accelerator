@@ -46,7 +46,7 @@ param solutionUniqueText string = substring(uniqueString(subscription().id, reso
 param location string
 
 @description('Optional. Tags to apply to all resources.')
-param tags object = {  }
+param tags object = {}
 
 @allowed([
   'eastus2'
