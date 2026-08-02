@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: Existing AI Foundry Project Reference
+// Module: Existing Azure AI Foundry Project Reference
 // Description: References an existing AI Services account and project to
 //              retrieve their identities. No deployments, no connections.
 //              Use generic ai-foundry-connection and ai-foundry-model-deployment
@@ -46,13 +46,13 @@ output azureOpenAiCuEndpoint string = aiServices.properties.endpoints['Content U
 @description('System-assigned identity principal ID of the AI Services account (empty if none).')
 output principalId string = aiServices.identity.?principalId ?? ''
 
-@description('Resource ID of the AI Foundry project.')
+@description('Resource ID of the Azure AI Foundry project.')
 output projectResourceId string = aiProject.id
 
-@description('Name of the AI Foundry project.')
+@description('Name of the Azure AI Foundry project.')
 output projectName string = aiProject.name
 
-@description('AI Foundry project endpoint.')
+@description('Azure AI Foundry project endpoint.')
 output projectEndpoint string = aiProject.properties.endpoints['AI Foundry API']
 
 @description('System-assigned identity principal ID of the project (empty if none).')

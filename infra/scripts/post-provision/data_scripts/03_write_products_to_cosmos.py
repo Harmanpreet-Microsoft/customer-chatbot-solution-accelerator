@@ -27,7 +27,7 @@ scenario = resolve_scenario(args.scenario)
 # ENDPOINT = f"https://{os.getenv('AZURE_COSMOSDB_ACCOUNT')}.documents.azure.com:443/"
 
 ENDPOINT = f"https://{args.cosmosdb_account}.documents.azure.com:443/"
-print(f"Cosmos DB Endpoint: {ENDPOINT}")
+print(f"Azure Cosmos DB Endpoint: {ENDPOINT}")
 DB_NAME = os.getenv("AZURE_COSMOSDB_DATABASE", "ecommerce_db")
 CONTAINER_NAME = "products"
 CSV_PATH = str(catalog_csv_path(scenario))
@@ -78,7 +78,7 @@ def normalize_row(row: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(v, str):
             item[k] = v.strip()
 
-    # Ensure 'id' exists (Cosmos DB requirement)
+    # Ensure 'id' exists (Azure Cosmos DB requirement)
     if not item.get("id"):
         item["id"] = item.get("productId") or item.get("productId")
     if not item["id"]:
@@ -112,7 +112,7 @@ def upsert_with_retry(container, item: Dict[str, Any], max_retries: int = 6):
     raise RuntimeError(f"Failed to upsert item after {max_retries} retries")
 
 
-print("Connecting to Cosmos DB (keyless)...")
+print("Connecting to Azure Cosmos DB (keyless)...")
 database = get_or_create_database(DB_NAME)
 container = get_or_create_container(database, CONTAINER_NAME, PARTITION_KEY_PATH)
 

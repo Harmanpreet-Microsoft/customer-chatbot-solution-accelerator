@@ -100,7 +100,7 @@ This script will:
 - Create and configure Azure AI Search indexes
 - Populate search indexes with product and policy documents
 
-**Step 2: Create AI Foundry Agents**
+**Step 2: Create Azure AI Foundry Agents**
 
 Run the agent creation script to set up specialized AI agents:
 

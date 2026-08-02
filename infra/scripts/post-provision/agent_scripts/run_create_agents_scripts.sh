@@ -137,13 +137,13 @@ enable_public_access() {
 		return 0
 	fi
 	echo "=== Temporarily enabling public network access for services ==="
-	# Enable public access for AI Foundry
+	# Enable public access for Azure AI Foundry
 	# Extract the account resource ID (remove /projects/... part if present)
 	aif_account_resource_id=$(echo "$aiFoundryResourceId" | sed 's|/projects/.*||')
 	aif_resource_name=$(basename "$aif_account_resource_id")
-	# Extract resource group from the AI Foundry account resource ID
+	# Extract resource group from the Azure AI Foundry account resource ID
 	aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
-	# Extract subscription ID from the AI Foundry account resource ID
+	# Extract subscription ID from the Azure AI Foundry account resource ID
 	aif_subscription_id=$(echo "$aif_account_resource_id" | sed -n 's|.*/subscriptions/\([^/]*\)/.*|\1|p')
 
 	original_foundry_public_access=$(az cognitiveservices account show \
@@ -153,22 +153,22 @@ enable_public_access() {
 		--query "properties.publicNetworkAccess" \
 		--output tsv)
 	if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
-		echo "⚠ Info: Could not retrieve AI Foundry network access status."
-		echo "  AI Foundry network access might be managed differently."
+		echo "⚠ Info: Could not retrieve Azure AI Foundry network access status."
+		echo "  Azure AI Foundry network access might be managed differently."
 	elif [ "$original_foundry_public_access" != "Enabled" ]; then
-		echo "Current AI Foundry public access: $original_foundry_public_access"
-		echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
+		echo "Current Azure AI Foundry public access: $original_foundry_public_access"
+		echo "Enabling public access for Azure AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
 		if MSYS_NO_PATHCONV=1 az resource update \
 			--ids "$aif_account_resource_id" \
 			--api-version 2024-10-01 \
 			--set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" \
 			--output none; then
-			echo "✓ AI Foundry public access enabled"
+			echo "✓ Azure AI Foundry public access enabled"
 		else
-			echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
+			echo "⚠ Warning: Failed to enable Azure AI Foundry public access automatically."
 		fi
 	else
-		echo "✓ AI Foundry public access already enabled - no changes needed"
+		echo "✓ Azure AI Foundry public access already enabled - no changes needed"
 	fi
 	
 	if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
@@ -205,10 +205,10 @@ restore_network_access() {
 	fi
 	echo "=== Restoring original network access settings ==="
 	
-	# Restore AI Foundry access only if it was changed from the original state
+	# Restore Azure AI Foundry access only if it was changed from the original state
 	if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
-		echo "Restoring AI Foundry public access to: $original_foundry_public_access"
-		# Reconstruct the AI Foundry resource ID for restoration
+		echo "Restoring Azure AI Foundry public access to: $original_foundry_public_access"
+		# Reconstruct the Azure AI Foundry resource ID for restoration
 		aif_account_resource_id=$(echo "$aiFoundryResourceId" | sed 's|/projects/.*||')
 		# Try using the working approach to restore the original setting
 		if MSYS_NO_PATHCONV=1 az resource update \
@@ -218,20 +218,20 @@ restore_network_access() {
         	--set properties.apiProperties.qnaAzureSearchEndpointKey="" \
         	--set properties.networkAcls.bypass="AzureServices" \
 			--output none 2>/dev/null; then
-			echo "✓ AI Foundry access restored"
+			echo "✓ Azure AI Foundry access restored"
 		else
-			echo "⚠ Warning: Failed to restore AI Foundry access automatically."
+			echo "⚠ Warning: Failed to restore Azure AI Foundry access automatically."
 			echo "  Please manually restore network access in the Azure portal if needed."
 		fi
 	else
-		echo "AI Foundry access unchanged (no restoration needed)"
+		echo "Azure AI Foundry access unchanged (no restoration needed)"
 	fi
 
 	echo "=== Network access restoration completed ==="
 }
 
-# Function to assign RBAC roles to the AI Foundry Agent Identity
-# The agent identity is created automatically by AI Foundry with the naming pattern:
+# Function to assign RBAC roles to the Azure AI Foundry Agent Identity
+# The agent identity is created automatically by Azure AI Foundry with the naming pattern:
 # {aiServicesName}-{projectName}-AgentIdentity
 assign_agent_identity_roles() {
 	echo "=== Assigning RBAC roles to Agent Identity ==="
@@ -293,7 +293,7 @@ assign_agent_identity_roles() {
 
 	if [[ -z "$agent_principal_id" ]]; then
 		echo "⚠ Warning: Agent identity '$agent_identity_name' not found."
-		echo "  This identity is created automatically by AI Foundry. It may take a few minutes to appear."
+		echo "  This identity is created automatically by Azure AI Foundry. It may take a few minutes to appear."
 		echo "  If agents fail with RBAC errors, run this script again or manually assign roles."
 		return 0  # Don't fail the script - identity might be created async
 	fi
@@ -307,20 +307,20 @@ assign_agent_identity_roles() {
 	search_service_name=$(echo "$searchEndpoint" | sed -n 's|https://\([^.]*\)\..*|\1|p')
 	search_resource_id="/subscriptions/$azSubscriptionId/resourceGroups/$resource_group/providers/Microsoft.Search/searchServices/$search_service_name"
 
-	# Assign Cognitive Services OpenAI User on AI Services account
-	echo "Assigning 'Cognitive Services OpenAI User' role to agent identity on AI Services..."
+	# Assign Cognitive Services Azure OpenAI User on AI Services account
+	echo "Assigning 'Cognitive Services Azure OpenAI User' role to agent identity on AI Services..."
 	if MSYS_NO_PATHCONV=1 az role assignment create \
 		--assignee "$agent_principal_id" \
 		--role "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd" \
 		--scope "$ai_services_resource_id" \
 		--output none 2>/dev/null; then
-		echo "✓ Cognitive Services OpenAI User role assigned"
+		echo "✓ Cognitive Services Azure OpenAI User role assigned"
 	else
 		echo "  Role may already exist or failed to assign"
 	fi
 	
-	# Assign Search Index Data Reader on AI Search service
-	echo "Assigning 'Search Index Data Reader' role to agent identity on AI Search..."
+	# Assign Search Index Data Reader on Azure AI Search service
+	echo "Assigning 'Search Index Data Reader' role to agent identity on Azure AI Search..."
 	if MSYS_NO_PATHCONV=1 az role assignment create \
 		--assignee "$agent_principal_id" \
 		--role "1407120a-92aa-4202-b7e9-c0e197c71c8f" \
@@ -458,7 +458,7 @@ echo "Resource Group: $resource_group"
 echo "Project Endpoint: $projectEndpoint"
 echo "Solution Name: $solutionName"
 echo "GPT Model Name: $gptModelName"
-echo "AI Foundry Resource ID: $aiFoundryResourceId"
+echo "Azure AI Foundry Resource ID: $aiFoundryResourceId"
 echo "API App Name: $apiAppName"
 echo "Search Endpoint: $searchEndpoint"
 echo "Subscription ID: $azSubscriptionId"
@@ -516,7 +516,7 @@ fi
 # Re-enable exit on error
 set -e
 
-echo "Checking if the principal has Foundry User role on the AI Foundry"
+echo "Checking if the principal has Foundry User role on the Azure AI Foundry"
 
 # Foundry may be in a different subscription (BYO), so scope role ops to it.
 aif_subscription_id=$(echo "$aiFoundryResourceId" | sed -n 's|.*/subscriptions/\([^/]*\)/.*|\1|p')
@@ -578,7 +578,7 @@ eval $(echo "$python_output" | grep -E "^(chatAgentName|productAgentName|policyA
 
 echo "Agents creation completed."
 
-# Assign RBAC roles to the Agent Identity for OpenAI and Search access
+# Assign RBAC roles to the Agent Identity for Azure OpenAI and Search access
 assign_agent_identity_roles
 
 # Update environment variables of API App

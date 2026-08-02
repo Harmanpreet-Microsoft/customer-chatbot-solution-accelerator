@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { mapApiChatMessage } from '@/lib/chatMessageUtils';
+import axios from 'axios';
 
 let widgetApiBaseOverride: string | null = null;
 
@@ -246,7 +246,7 @@ export const getChatConfig = async (): Promise<ChatConfig> => {
   return response.data as ChatConfig;
 };
 
-/** Save a voice message to the chat session (Cosmos DB) without triggering Foundry agents. */
+/** Save a voice message to the chat session (Azure Cosmos DB) without triggering Foundry agents. */
 export const saveVoiceMessage = async (
   sessionId: string,
   content: string,

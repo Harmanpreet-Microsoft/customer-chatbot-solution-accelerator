@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: Cosmos DB (MongoDB)
+// Module: Azure Cosmos DB (MongoDB)
 // Description: Creates an Azure Cosmos DB account with MongoDB API
 // API: Microsoft.DocumentDB/databaseAccounts@2025-10-15
 // ============================================================================
@@ -7,7 +7,7 @@
 @description('Solution name suffix used to derive the resource name.')
 param solutionName string
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 param name string = 'cosmos-${solutionName}'
 
 @description('Azure region for the resource.')
@@ -102,17 +102,17 @@ resource mongoCollections 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabase
 // ============================================================================
 // Outputs
 // ============================================================================
-@description('Resource ID of the Cosmos DB account.')
+@description('Resource ID of the Azure Cosmos DB account.')
 output resourceId string = cosmos.id
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 output name string = cosmos.name
 
 @secure()
 @description('MongoDB connection string (without credentials — use Key Vault for secrets).')
 output connectionString string = cosmos.listConnectionStrings().connectionStrings[0].connectionString
 
-@description('Endpoint of the Cosmos DB account.')
+@description('Endpoint of the Azure Cosmos DB account.')
 output endpoint string = 'https://${name}.mongo.cosmos.azure.com:443/'
 
 @description('Database name.')

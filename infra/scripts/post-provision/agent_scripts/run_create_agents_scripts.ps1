@@ -268,7 +268,7 @@ Write-Host "Resource Group: $resourceGroup"
 Write-Host "Project Endpoint: $projectEndpoint"
 Write-Host "Solution Name: $solutionName"
 Write-Host "GPT Model Name: $gptModelName"
-Write-Host "AI Foundry Resource ID: $aiFoundryResourceId"
+Write-Host "Azure AI Foundry Resource ID: $aiFoundryResourceId"
 Write-Host "API App Name: $apiAppName"
 Write-Host "Search Endpoint: $searchEndpoint"
 Write-Host "Subscription ID: $azSubscriptionId"
@@ -293,7 +293,7 @@ if (-not $aifSubscriptionId) {
 Write-Host "Getting signed in user id"
 $signed_user_id = az ad signed-in-user show --query id -o tsv
 
-Write-Host "Checking if the user has Foundry User role on the AI Foundry"
+Write-Host "Checking if the user has Foundry User role on the Azure AI Foundry"
 $role_assignment = az role assignment list `
   --role "53ca6127-db72-4b80-b1b0-d745d6d5456d" `
   --scope "$aiFoundryResourceId" `
@@ -329,9 +329,9 @@ Write-Host "Installing Python requirements..."
 python -m pip install --upgrade pip
 python -m pip install --quiet -r "$requirementFile"
 
-# For WAF deployments, temporarily enable public network access on AI Foundry
+# For WAF deployments, temporarily enable public network access on Azure AI Foundry
 # (account id/name/rg/subscription already extracted above).
-Write-Host "Checking AI Foundry network settings..."
+Write-Host "Checking Azure AI Foundry network settings..."
 
 # Get current public network access setting
 $originalFoundryPublicAccess = az cognitiveservices account show --name $aifResourceName --resource-group $aifResourceGroup --subscription $aifSubscriptionId --query "properties.publicNetworkAccess" -o tsv 2>$null
@@ -339,11 +339,11 @@ $foundryAccessEnabled = $false
 
 # Check if public network access is disabled (WAF deployment)
 if ($originalFoundryPublicAccess -eq "Disabled") {
-    Write-Host "AI Foundry public network access is disabled. Temporarily enabling for agent creation..."
+    Write-Host "Azure AI Foundry public network access is disabled. Temporarily enabling for agent creation..."
     
     az resource update --ids $aifAccountResourceId --api-version 2024-10-01 --set "properties.publicNetworkAccess=Enabled" "properties.apiProperties={}" --output none 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "Successfully enabled public network access on AI Foundry."
+        Write-Host "Successfully enabled public network access on Azure AI Foundry."
         $foundryAccessEnabled = $true
     } else {
         Write-Host "Warning: Could not enable public network access. You may need to enable it manually in Azure Portal."
@@ -353,7 +353,7 @@ if ($originalFoundryPublicAccess -eq "Disabled") {
     Write-Host "Waiting for network settings to propagate (60 seconds)..."
     Start-Sleep -Seconds 60
 } else {
-    Write-Host "AI Foundry public network access is already enabled."
+    Write-Host "Azure AI Foundry public network access is already enabled."
 }
 
 # Execute the Python scripts within try/finally to ensure network settings are restored on error
@@ -410,10 +410,10 @@ finally {
     # Restore original settings - disable public network access if we enabled it
     # This block ALWAYS runs, even if an error occurred
     if ($foundryAccessEnabled) {
-        Write-Host "Restoring original AI Foundry settings (disabling public network access)..."
+        Write-Host "Restoring original Azure AI Foundry settings (disabling public network access)..."
         az resource update --ids $aifAccountResourceId --api-version 2024-10-01 --set "properties.publicNetworkAccess=Disabled" "properties.apiProperties.qnaAzureSearchEndpointKey=" "properties.networkAcls.bypass=AzureServices" --output none 2>$null
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "Successfully disabled public network access on AI Foundry."
+            Write-Host "Successfully disabled public network access on Azure AI Foundry."
         } else {
             Write-Host "Warning: Could not disable public network access. Please disable it manually in Azure Portal."
         }

@@ -9,7 +9,7 @@ from azure.core.credentials import AzureKeyCredential
 
 from .azure_credential_utils import get_azure_credential_async
 
-# OpenAI realtime voice names (passed as plain strings, not AzureStandardVoice)
+# Azure OpenAI realtime voice names (passed as plain strings, not AzureStandardVoice)
 REALTIME_VOICES = frozenset({
     "alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse",
 })

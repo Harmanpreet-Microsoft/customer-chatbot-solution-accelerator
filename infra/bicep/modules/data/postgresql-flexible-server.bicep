@@ -10,7 +10,7 @@ param location string
 @description('Tags to apply to the resource.')
 param tags object = {}
 
-@description('Azure AD administrators for the server. Each entry requires objectId, principalName, and principalType (User, Group, or ServicePrincipal).')
+@description('Microsoft Entra ID administrators for the server. Each entry requires objectId, principalName, and principalType (User, Group, or ServicePrincipal).')
 param administrators array
 
 @description('The PostgreSQL version to deploy.')

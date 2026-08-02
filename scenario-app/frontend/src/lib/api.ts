@@ -339,7 +339,7 @@ export const getVoiceLiveConfig = async (): Promise<VoiceLiveConfig> => {
   return response.data as VoiceLiveConfig;
 };
 
-/** Save a voice message to the chat session (Cosmos DB) without triggering Foundry agents. */
+/** Save a voice message to the chat session (Azure Cosmos DB) without triggering Foundry agents. */
 export const saveVoiceMessage = async (
   sessionId: string,
   content: string,

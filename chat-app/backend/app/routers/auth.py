@@ -62,7 +62,7 @@ async def get_current_user_info(request: Request):
         # Additional logging for user creation process
         if not current_user.get("is_guest"):
             logger.info(
-                "🔍 /api/auth/me: Authenticated user detected - will check/create in Cosmos DB"
+                "🔍 /api/auth/me: Authenticated user detected - will check/create in Azure Cosmos DB"
             )
 
         if current_user.get("is_guest"):
@@ -131,7 +131,7 @@ async def get_current_user_info(request: Request):
                     email=email,
                     name=name,
                     password="",
-                    user_id=user_id,  # Use Easy Auth user_principal_id as Cosmos DB user ID
+                    user_id=user_id,  # Use Easy Auth user_principal_id as Azure Cosmos DB user ID
                 )
                 logger.info(f"Created new user: {user.email}")
                 track_event_if_configured("Auth_User_Created", {"user_id": user_id, "email": email})

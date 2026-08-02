@@ -102,12 +102,12 @@ def get_database_service() -> DatabaseService:
             return CosmosDatabaseService()
         except Exception as e:
             raise RuntimeError(
-                f"Cannot connect to Cosmos DB: {e}. Please check your COSMOS_DB_ENDPOINT configuration."
+                f"Cannot connect to Azure Cosmos DB: {e}. Please check your COSMOS_DB_ENDPOINT configuration."
             )
 
-    # No fallback - raise error if Cosmos DB config is missing
+    # No fallback - raise error if Azure Cosmos DB config is missing
     raise RuntimeError(
-        "Cosmos DB is not configured. Please set COSMOS_DB_ENDPOINT environment variable."
+        "Azure Cosmos DB is not configured. Please set COSMOS_DB_ENDPOINT environment variable."
     )
 
 

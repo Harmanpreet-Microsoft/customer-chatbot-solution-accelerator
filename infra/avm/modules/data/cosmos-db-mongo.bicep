@@ -1,5 +1,5 @@
 // ============================================================================
-// Module: Cosmos DB (MongoDB)
+// Module: Azure Cosmos DB (MongoDB)
 // Description: AVM wrapper for Azure Cosmos DB with MongoDB API
 // AVM Module: avm/res/document-db/database-account:0.19.0
 // WAF: https://learn.microsoft.com/azure/well-architected/service-guides/cosmos-db
@@ -8,7 +8,7 @@
 @description('Solution name suffix used to derive the resource name.')
 param solutionName string
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 param name string = 'cosmos-${solutionName}'
 
 @description('Azure region for the resource.')
@@ -105,17 +105,17 @@ module cosmosAccount 'br/public:avm/res/document-db/database-account:0.19.0' = {
 // ============================================================================
 // Outputs
 // ============================================================================
-@description('Resource ID of the Cosmos DB account.')
+@description('Resource ID of the Azure Cosmos DB account.')
 output resourceId string = cosmosAccount.outputs.resourceId
 
-@description('Name of the Cosmos DB account.')
+@description('Name of the Azure Cosmos DB account.')
 output name string = cosmosAccount.outputs.name
 
 @secure()
 @description('MongoDB connection string (without credentials — use Key Vault for secrets).')
 output connectionString string = cosmosAccount.outputs.primaryReadWriteConnectionString
 
-@description('Endpoint of the Cosmos DB account.')
+@description('Endpoint of the Azure Cosmos DB account.')
 output endpoint string = 'https://${name}.mongo.cosmos.azure.com:443/'
 
 @description('Database name.')

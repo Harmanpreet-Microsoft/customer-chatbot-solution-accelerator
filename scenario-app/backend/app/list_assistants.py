@@ -20,8 +20,8 @@ async def list_assistants():
         await init_foundry_client()
         client = get_foundry_client()
 
-        # Get OpenAI client
-        print("Getting OpenAI client...")
+        # Get Azure OpenAI client
+        print("Getting Azure OpenAI client...")
         from config import settings
 
         openai_client = await client.get_openai_client(  # type: ignore

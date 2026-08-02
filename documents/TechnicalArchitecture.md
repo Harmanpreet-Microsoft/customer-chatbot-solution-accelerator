@@ -11,7 +11,7 @@ Orchestrates multi-agent workflows with an intelligent orchestrator agent that u
 - **Product Lookup Agent**: Searches product catalogs using Azure AI Search to help customers discover products through natural language queries and provide personalized recommendations
 - **Policy/Knowledge Agent**: Retrieves information from policy documents and knowledge bases to answer customer support questions about warranties, returns, and company policies
 
-### Azure OpenAI Service  
+### Azure OpenAI Service
 Provides large language model (LLM) capabilities using GPT-5.4-mini to power natural language understanding and conversational responses across all AI agents.
 
 ### Azure AI Search

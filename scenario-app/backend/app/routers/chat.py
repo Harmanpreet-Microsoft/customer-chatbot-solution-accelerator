@@ -291,7 +291,7 @@ async def save_voice_message(
     message: ChatMessageCreate,
     current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
 ):
-    """Save a voice message to Cosmos DB without triggering Foundry agents."""
+    """Save a voice message to Azure Cosmos DB without triggering Foundry agents."""
     try:
         user_id = current_user.get("user_id") if current_user else None
         session_id = getattr(message, "session_id", None)
@@ -433,7 +433,7 @@ async def send_message_legacy(
         else:
             raise HTTPException(status_code=500, detail="AI agent returned no response")
 
-        # Save AI response to Cosmos DB
+        # Save AI response to Azure Cosmos DB
         ai_response = ChatMessageCreate(
             content=response_content,
             message_type=ChatMessageType.ASSISTANT,
