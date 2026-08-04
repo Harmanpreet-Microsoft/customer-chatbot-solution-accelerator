@@ -18,6 +18,10 @@ COPY --from=widget-builder /src/chat-app/frontend/dist/widget.js ./dist/widget.j
 FROM mcr.microsoft.com/azurelinux/base/nginx:1.28.3-8-azl3.0.20260722
 COPY --from=app-builder /src/scenario-app/frontend/dist /usr/share/nginx/html
 COPY scenario-app/frontend/nginx.conf /etc/nginx/nginx.conf
+
+# Create empty api-proxy conf (overwritten at startup for WAF/private deployments)
+RUN mkdir -p /etc/nginx/conf.d && touch /etc/nginx/conf.d/api-proxy.conf
+
 COPY scenario-app/frontend/startup.sh /docker-entrypoint.d/startup.sh
 RUN chmod +x /docker-entrypoint.d/startup.sh
 RUN sed -i 's/\r$//' /docker-entrypoint.d/startup.sh
