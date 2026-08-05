@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Escape a value for safe inclusion inside a single-quoted JS string literal
+# (handles backslashes and single quotes, e.g. a title like "Bob's Shop").
+js_escape() {
+  printf '%s' "$1" | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g"
+}
+
 if [ -z "$VITE_SCENARIO" ]; then
   VITE_SCENARIO="${DEPLOYMENT_SCENARIO:-ecommerce}"
 fi
@@ -13,10 +19,10 @@ if [ -n "${BACKEND_API_URL}" ]; then
 cat > /usr/share/nginx/html/runtime-config.js << EOF
 window.__RUNTIME_CONFIG__ = {
   VITE_API_BASE_URL: window.location.origin,
-  VITE_CHAT_API_BASE_URL: '${VITE_CHAT_API_BASE_URL}',
-  VITE_CHAT_WIDGET_THEME: '${VITE_CHAT_WIDGET_THEME}',
-  VITE_SCENARIO: '${VITE_SCENARIO}',
-  VITE_HOST_APP_TITLE: '${VITE_HOST_APP_TITLE}'
+  VITE_CHAT_API_BASE_URL: '$(js_escape "${VITE_CHAT_API_BASE_URL}")',
+  VITE_CHAT_WIDGET_THEME: '$(js_escape "${VITE_CHAT_WIDGET_THEME}")',
+  VITE_SCENARIO: '$(js_escape "${VITE_SCENARIO}")',
+  VITE_HOST_APP_TITLE: '$(js_escape "${VITE_HOST_APP_TITLE}")'
 };
 EOF
 else
@@ -42,11 +48,11 @@ else
 
 cat > /usr/share/nginx/html/runtime-config.js << EOF
 window.__RUNTIME_CONFIG__ = {
-  VITE_API_BASE_URL: '${VITE_API_BASE_URL}',
-  VITE_CHAT_API_BASE_URL: '${VITE_CHAT_API_BASE_URL}',
-  VITE_CHAT_WIDGET_THEME: '${VITE_CHAT_WIDGET_THEME}',
-  VITE_SCENARIO: '${VITE_SCENARIO}',
-  VITE_HOST_APP_TITLE: '${VITE_HOST_APP_TITLE}'
+  VITE_API_BASE_URL: '$(js_escape "${VITE_API_BASE_URL}")',
+  VITE_CHAT_API_BASE_URL: '$(js_escape "${VITE_CHAT_API_BASE_URL}")',
+  VITE_CHAT_WIDGET_THEME: '$(js_escape "${VITE_CHAT_WIDGET_THEME}")',
+  VITE_SCENARIO: '$(js_escape "${VITE_SCENARIO}")',
+  VITE_HOST_APP_TITLE: '$(js_escape "${VITE_HOST_APP_TITLE}")'
 };
 EOF
 fi
@@ -55,14 +61,16 @@ fi
 # When BACKEND_API_URL is set the scenario backend API is private and this
 # frontend's nginx proxies /api/ requests to it over the VNet.
 if [ -n "${BACKEND_API_URL}" ]; then
-  BACKEND_HOST=$(echo "${BACKEND_API_URL}" | sed 's|https://||; s|http://||; s|/.*||')
+  # Strip any trailing slash so proxy_pass + the /api/ location prefix don't produce a malformed path.
+  BACKEND_API_URL="${BACKEND_API_URL%/}"
+  BACKEND_HOST=$(printf '%s' "${BACKEND_API_URL}" | sed 's|https\?://||; s|/.*||')
   cat > /etc/nginx/conf.d/api-proxy.conf << PROXYEOF
 # Reverse proxy for backend API - WAF private networking deployment
 location /api/ {
     resolver 168.63.129.16 valid=30s;
     set \$backend "${BACKEND_API_URL}";
     proxy_pass \$backend;
-    proxy_set_header Host ${BACKEND_HOST};
+    proxy_set_header Host "${BACKEND_HOST}";
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto \$scheme;
