@@ -836,26 +836,26 @@ module chat_backend_app './modules/compute/app-service.bicep' = {
     enableTelemetry: enableTelemetry
     diagnosticSettings: monitoringDiagnosticSettings
     applicationInsightResourceId: enableMonitoring ? app_insights!.outputs.resourceId : ''
-    publicNetworkAccess: 'Enabled' // enablePrivateNetworking ? 'Disabled' : 'Enabled'
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
     virtualNetworkSubnetId: enablePrivateNetworking ? virtualNetwork!.outputs.webserverfarmSubnetResourceId : ''
     vnetRouteAllEnabled: enablePrivateNetworking
     imagePullTraffic: enablePrivateNetworking
     acrUseManagedIdentityCreds: true
-    // privateEndpoints: enablePrivateNetworking
-    //   ? [
-    //       {
-    //         name: 'pep-chat-api-${solutionSuffix}'
-    //         customNetworkInterfaceName: 'nic-chat-api-${solutionSuffix}'
-    //         privateDnsZoneGroup: {
-    //           privateDnsZoneGroupConfigs: [
-    //             { privateDnsZoneResourceId: privateDnsZoneDeployments[dnsZoneIndex.webApp]!.outputs.resourceId }
-    //           ]
-    //         }
-    //         service: 'sites'
-    //         subnetResourceId: virtualNetwork!.outputs.backendSubnetResourceId
-    //       }
-    //     ]
-    //   : []
+    privateEndpoints: enablePrivateNetworking
+      ? [
+          {
+            name: 'pep-chat-api-${solutionSuffix}'
+            customNetworkInterfaceName: 'nic-chat-api-${solutionSuffix}'
+            privateDnsZoneGroup: {
+              privateDnsZoneGroupConfigs: [
+                { privateDnsZoneResourceId: privateDnsZoneDeployments[dnsZoneIndex.webApp]!.outputs.resourceId }
+              ]
+            }
+            service: 'sites'
+            subnetResourceId: virtualNetwork!.outputs.backendSubnetResourceId
+          }
+        ]
+      : []
     appSettings: {
       AZURE_OPENAI_DEPLOYMENT_MODEL: gptModelName
       AZURE_OPENAI_ENDPOINT: aiFoundryEndpoint
@@ -931,8 +931,8 @@ module chat_frontend_app './modules/compute/app-service.bicep' = {
     imagePullTraffic: enablePrivateNetworking
     appSettings: {
       NODE_ENV: 'production'
-      VITE_API_BASE_URL: chat_backend_app.outputs.appUrl // enablePrivateNetworking ? '' : chat_backend_app.outputs.appUrl
-      // BACKEND_API_URL: enablePrivateNetworking ? chat_backend_app.outputs.appUrl : ''
+      VITE_API_BASE_URL: enablePrivateNetworking ? '' : chat_backend_app.outputs.appUrl
+      BACKEND_API_URL: enablePrivateNetworking ? chat_backend_app.outputs.appUrl : ''
       DEPLOYMENT_SCENARIO: deploymentScenario
       VITE_SCENARIO: deploymentScenario
       CHAT_WELCOME_TITLE: chatWelcomeTitle
@@ -958,26 +958,26 @@ module scenario_backend_app './modules/compute/app-service.bicep' = {
     enableTelemetry: enableTelemetry
     diagnosticSettings: monitoringDiagnosticSettings
     applicationInsightResourceId: enableMonitoring ? app_insights!.outputs.resourceId : ''
-    publicNetworkAccess: 'Enabled' //enablePrivateNetworking ? 'Disabled' : 'Enabled'
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
     virtualNetworkSubnetId: enablePrivateNetworking ? virtualNetwork!.outputs.webserverfarmSubnetResourceId : ''
     vnetRouteAllEnabled: enablePrivateNetworking
     imagePullTraffic: enablePrivateNetworking
     acrUseManagedIdentityCreds: true
-    // privateEndpoints: enablePrivateNetworking
-    //   ? [
-    //       {
-    //         name: 'pep-scenario-api-${solutionSuffix}'
-    //         customNetworkInterfaceName: 'nic-scenario-api-${solutionSuffix}'
-    //         privateDnsZoneGroup: {
-    //           privateDnsZoneGroupConfigs: [
-    //             { privateDnsZoneResourceId: privateDnsZoneDeployments[dnsZoneIndex.webApp]!.outputs.resourceId }
-    //           ]
-    //         }
-    //         service: 'sites'
-    //         subnetResourceId: virtualNetwork!.outputs.backendSubnetResourceId
-    //       }
-    //     ]
-    //   : []
+    privateEndpoints: enablePrivateNetworking
+      ? [
+          {
+            name: 'pep-scenario-api-${solutionSuffix}'
+            customNetworkInterfaceName: 'nic-scenario-api-${solutionSuffix}'
+            privateDnsZoneGroup: {
+              privateDnsZoneGroupConfigs: [
+                { privateDnsZoneResourceId: privateDnsZoneDeployments[dnsZoneIndex.webApp]!.outputs.resourceId }
+              ]
+            }
+            service: 'sites'
+            subnetResourceId: virtualNetwork!.outputs.backendSubnetResourceId
+          }
+        ]
+      : []
     appSettings: {
       AZURE_OPENAI_DEPLOYMENT_MODEL: gptModelName
       AZURE_OPENAI_ENDPOINT: aiFoundryEndpoint
@@ -1049,9 +1049,9 @@ module scenario_frontend_app './modules/compute/app-service.bicep' = {
     acrUseManagedIdentityCreds: true
     appSettings: {
       NODE_ENV: 'production'
-      VITE_API_BASE_URL: scenario_backend_app.outputs.appUrl // enablePrivateNetworking ? '' : scenario_backend_app.outputs.appUrl
-      VITE_CHAT_API_BASE_URL: chat_backend_app.outputs.appUrl
-      // BACKEND_API_URL: enablePrivateNetworking ? scenario_backend_app.outputs.appUrl : ''
+      VITE_API_BASE_URL: enablePrivateNetworking ? '' : scenario_backend_app.outputs.appUrl
+      BACKEND_API_URL: enablePrivateNetworking ? scenario_backend_app.outputs.appUrl : ''
+      VITE_CHAT_API_BASE_URL: enablePrivateNetworking ? 'https://${chatWebAppName}.azurewebsites.net' : chat_backend_app.outputs.appUrl
       DEPLOYMENT_SCENARIO: deploymentScenario
       VITE_SCENARIO: deploymentScenario
       VITE_HOST_APP_TITLE: hostAppTitle

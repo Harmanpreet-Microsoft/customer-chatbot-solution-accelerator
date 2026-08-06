@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.46.1.21595",
-      "templateHash": "15729196358454583172"
+      "templateHash": "5166718318626472799"
     }
   },
   "parameters": {
@@ -28342,8 +28342,8 @@
       },
       "dependsOn": [
         "ai_foundry_project",
-        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
+        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').openAI)]",
         "virtualNetwork"
       ]
@@ -43466,9 +43466,7 @@
           },
           "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(parameters('enableMonitoring'), if(variables('useExistingLogAnalytics'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', split(parameters('existingLogAnalyticsWorkspaceId'), '/')[2], split(parameters('existingLogAnalyticsWorkspaceId'), '/')[4]), 'Microsoft.OperationalInsights/workspaces', split(parameters('existingLogAnalyticsWorkspaceId'), '/')[8]), reference('log_analytics').outputs.resourceId.value), '')))), createObject('value', createArray()))]",
           "applicationInsightResourceId": "[if(parameters('enableMonitoring'), createObject('value', reference('app_insights').outputs.resourceId.value), createObject('value', ''))]",
-          "publicNetworkAccess": {
-            "value": "Enabled"
-          },
+          "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
           "virtualNetworkSubnetId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference('virtualNetwork').outputs.webserverfarmSubnetResourceId.value), createObject('value', ''))]",
           "vnetRouteAllEnabled": {
             "value": "[parameters('enablePrivateNetworking')]"
@@ -43479,6 +43477,7 @@
           "acrUseManagedIdentityCreds": {
             "value": true
           },
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-chat-api-{0}', variables('solutionSuffix')), 'customNetworkInterfaceName', format('nic-chat-api-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').webApp)).outputs.resourceId.value))), 'service', 'sites', 'subnetResourceId', reference('virtualNetwork').outputs.backendSubnetResourceId.value))), createObject('value', createArray()))]",
           "appSettings": {
             "value": {
               "AZURE_OPENAI_DEPLOYMENT_MODEL": "[parameters('gptModelName')]",
@@ -59039,6 +59038,7 @@
         "foundry_search_connection",
         "hostingplan",
         "log_analytics",
+        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').webApp)]",
         "virtualNetwork"
       ]
     },
@@ -59092,7 +59092,8 @@
           "appSettings": {
             "value": {
               "NODE_ENV": "production",
-              "VITE_API_BASE_URL": "[reference('chat_backend_app').outputs.appUrl.value]",
+              "VITE_API_BASE_URL": "[if(parameters('enablePrivateNetworking'), '', reference('chat_backend_app').outputs.appUrl.value)]",
+              "BACKEND_API_URL": "[if(parameters('enablePrivateNetworking'), reference('chat_backend_app').outputs.appUrl.value, '')]",
               "DEPLOYMENT_SCENARIO": "[parameters('deploymentScenario')]",
               "VITE_SCENARIO": "[parameters('deploymentScenario')]",
               "CHAT_WELCOME_TITLE": "[variables('chatWelcomeTitle')]",
@@ -74646,9 +74647,7 @@
           },
           "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(parameters('enableMonitoring'), if(variables('useExistingLogAnalytics'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', split(parameters('existingLogAnalyticsWorkspaceId'), '/')[2], split(parameters('existingLogAnalyticsWorkspaceId'), '/')[4]), 'Microsoft.OperationalInsights/workspaces', split(parameters('existingLogAnalyticsWorkspaceId'), '/')[8]), reference('log_analytics').outputs.resourceId.value), '')))), createObject('value', createArray()))]",
           "applicationInsightResourceId": "[if(parameters('enableMonitoring'), createObject('value', reference('app_insights').outputs.resourceId.value), createObject('value', ''))]",
-          "publicNetworkAccess": {
-            "value": "Enabled"
-          },
+          "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
           "virtualNetworkSubnetId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference('virtualNetwork').outputs.webserverfarmSubnetResourceId.value), createObject('value', ''))]",
           "vnetRouteAllEnabled": {
             "value": "[parameters('enablePrivateNetworking')]"
@@ -74659,6 +74658,7 @@
           "acrUseManagedIdentityCreds": {
             "value": true
           },
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-scenario-api-{0}', variables('solutionSuffix')), 'customNetworkInterfaceName', format('nic-scenario-api-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').webApp)).outputs.resourceId.value))), 'service', 'sites', 'subnetResourceId', reference('virtualNetwork').outputs.backendSubnetResourceId.value))), createObject('value', createArray()))]",
           "appSettings": {
             "value": {
               "AZURE_OPENAI_DEPLOYMENT_MODEL": "[parameters('gptModelName')]",
@@ -90213,6 +90213,7 @@
         "foundry_search_connection",
         "hostingplan",
         "log_analytics",
+        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').webApp)]",
         "virtualNetwork"
       ]
     },
@@ -90268,8 +90269,9 @@
           "appSettings": {
             "value": {
               "NODE_ENV": "production",
-              "VITE_API_BASE_URL": "[reference('scenario_backend_app').outputs.appUrl.value]",
-              "VITE_CHAT_API_BASE_URL": "[reference('chat_backend_app').outputs.appUrl.value]",
+              "VITE_API_BASE_URL": "[if(parameters('enablePrivateNetworking'), '', reference('scenario_backend_app').outputs.appUrl.value)]",
+              "BACKEND_API_URL": "[if(parameters('enablePrivateNetworking'), reference('scenario_backend_app').outputs.appUrl.value, '')]",
+              "VITE_CHAT_API_BASE_URL": "[if(parameters('enablePrivateNetworking'), format('https://{0}.azurewebsites.net', variables('chatWebAppName')), reference('chat_backend_app').outputs.appUrl.value)]",
               "DEPLOYMENT_SCENARIO": "[parameters('deploymentScenario')]",
               "VITE_SCENARIO": "[parameters('deploymentScenario')]",
               "VITE_HOST_APP_TITLE": "[variables('hostAppTitle')]",

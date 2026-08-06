@@ -21,6 +21,10 @@ FROM mcr.microsoft.com/azurelinux/base/nginx:1.28.3-8-azl3.0.20260722
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# Create empty api-proxy conf (overwritten at startup for WAF/private deployments)
+RUN mkdir -p /etc/nginx/conf.d && touch /etc/nginx/conf.d/api-proxy.conf
+
 COPY startup.sh /docker-entrypoint.d/startup.sh
 RUN chmod +x /docker-entrypoint.d/startup.sh
 RUN sed -i 's/\r$//' /docker-entrypoint.d/startup.sh
