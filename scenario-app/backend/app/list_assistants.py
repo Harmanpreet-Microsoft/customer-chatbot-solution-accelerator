@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-List all assistants in Azure AI Foundry project
+List all agents in Azure AI Foundry project using the new Agent Service API.
 """
 import asyncio
 import logging
@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 async def list_assistants():
-    print("Listing assistants in Azure AI Foundry project...")
+    print("Listing agents in Azure AI Foundry project...")
 
     try:
         from foundry_client import get_foundry_client, init_foundry_client
@@ -20,31 +20,26 @@ async def list_assistants():
         await init_foundry_client()
         client = get_foundry_client()
 
-        # Get Azure OpenAI client
-        print("Getting Azure OpenAI client...")
-        from config import settings
+        # List all agents using the new API
+        print("Fetching agents...")
+        agents = await client.agents.list_agents()
 
-        openai_client = await client.get_openai_client(  # type: ignore
-            api_version=settings.azure_openai_api_version
-        )
+        agent_list = []
+        async for agent in agents:
+            agent_list.append(agent)
 
-        # List all assistants
-        print("Fetching assistants...")
-        assistants = await openai_client.beta.assistants.list(limit=100)
-
-        print(f"\n✅ Found {len(assistants.data)} assistants:")
-        for assistant in assistants.data:
-            print(f"   - ID: {assistant.id}")
-            print(f"     Name: {assistant.name or 'No name'}")
-            print(f"     Description: {assistant.description or 'No description'}")
-            print(f"     Model: {assistant.model}")
-            print(f"     Created: {assistant.created_at}")
+        print(f"\nFound {len(agent_list)} agents:")
+        for agent in agent_list:
+            print(f"   - Name: {agent.name or 'No name'}")
+            print(f"     ID: {getattr(agent, 'id', 'N/A')}")
+            print(f"     Version: {getattr(agent, 'version', 'N/A')}")
+            print(f"     Description: {getattr(agent, 'description', 'No description')}")
             print()
 
-        return assistants.data
+        return agent_list
 
     except Exception as e:
-        print(f"❌ Failed to list assistants: {e}")
+        print(f"Failed to list agents: {e}")
         import traceback
 
         traceback.print_exc()

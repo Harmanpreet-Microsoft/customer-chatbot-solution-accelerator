@@ -375,7 +375,7 @@ async def send_message_legacy(
             AIProjectClient(endpoint=ai_project_endpoint, credential=credential) as project_client,
             AzureAIProjectAgentProvider(
                 project_client=project_client,
-                credential=credential
+                credential=credential,
             ) as provider,
         ):
             # Retry logic for rate limit errors

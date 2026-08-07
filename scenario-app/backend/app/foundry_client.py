@@ -9,10 +9,11 @@ from .utils.azure_credential_utils import get_azure_credential_async
 
 _async_cred: Optional[Any] = None
 _async_client: Optional[AIProjectClient] = None
+_openai_client: Optional[Any] = None
 
 
 async def init_foundry_client(endpoint: Optional[str] = None) -> None:
-    global _async_cred, _async_client
+    global _async_cred, _async_client, _openai_client
     if _async_client is not None:
         return
 
@@ -26,6 +27,7 @@ async def init_foundry_client(endpoint: Optional[str] = None) -> None:
     client_id = str(settings.azure_client_id) if settings.azure_client_id else None
     _async_cred = await get_azure_credential_async(client_id=client_id)
     _async_client = AIProjectClient(endpoint=endpoint, credential=_async_cred)  # type: ignore
+    _openai_client = _async_client.get_openai_client()  # type: ignore
 
 
 def get_foundry_client() -> AIProjectClient:
@@ -36,8 +38,18 @@ def get_foundry_client() -> AIProjectClient:
     return _async_client
 
 
+def get_openai_client():
+    """Get the OpenAI client for conversations and responses API."""
+    if _openai_client is None:
+        raise RuntimeError(
+            "OpenAI client not initialized. Call init_foundry_client() at startup."
+        )
+    return _openai_client
+
+
 async def shutdown_foundry_client() -> None:
-    global _async_client, _async_cred
+    global _async_client, _async_cred, _openai_client
+    _openai_client = None
     if _async_client is not None:
         try:
             await _async_client.close()

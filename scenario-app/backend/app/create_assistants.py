@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-Create Azure AI Foundry assistants programmatically
+Create Azure AI Foundry agents programmatically using the new Agent Service API.
 """
 import asyncio
 import logging
+
+from azure.ai.projects.models import PromptAgentDefinition
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
 
 async def create_assistants():
-    print("Creating assistants in Azure AI Foundry project...")
+    print("Creating agents in Azure AI Foundry project...")
 
     try:
         from config import settings
@@ -21,16 +23,10 @@ async def create_assistants():
         await init_foundry_client()
         client = get_foundry_client()
 
-        # Get Azure OpenAI client
-        print("Getting Azure OpenAI client...")
-        openai_client = await client.get_openai_client(  # type: ignore
-            api_version=settings.azure_openai_api_version
-        )
-
-        # Define assistants to create
-        assistants_to_create = [
+        # Define agents to create
+        agents_to_create = [
             {
-                "name": "Orchestrator Agent",
+                "name": "orchestrator-agent",
                 "description": "Main orchestrator that routes customer inquiries to specialized agents for product searches, order tracking, and policy questions.",
                 "instructions": """You are the main orchestrator for Contoso Paints e-commerce customer service. Your role is to:
 
@@ -48,7 +44,7 @@ Always aim to provide accurate, helpful responses while maintaining excellent cu
                 "model": "gpt-4o-mini",
             },
             {
-                "name": "Product Lookup Agent",
+                "name": "product-lookup-agent",
                 "description": "Specialized agent for product searches, recommendations, and catalog inquiries.",
                 "instructions": """You are a product specialist for Contoso Paints e-commerce. Your expertise includes:
 
@@ -62,7 +58,7 @@ Always help customers find the right products for their needs. Use the product s
                 "model": "gpt-4o-mini",
             },
             {
-                "name": "Order Status Agent",
+                "name": "order-status-agent",
                 "description": "Specialized agent for order tracking, status updates, and order management.",
                 "instructions": """You are an order specialist for Contoso Paints e-commerce. You help customers with:
 
@@ -76,7 +72,7 @@ Always provide accurate order information and help resolve any order-related con
                 "model": "gpt-4o-mini",
             },
             {
-                "name": "Knowledge Agent",
+                "name": "knowledge-agent",
                 "description": "Specialized agent for policies, FAQs, warranties, and general support information.",
                 "instructions": """You are a knowledge specialist for Contoso Paints e-commerce. You provide information about:
 
@@ -91,39 +87,40 @@ Always provide accurate, helpful information from official policies and document
             },
         ]
 
-        created_assistants = []
+        created_agents = []
 
-        for assistant_config in assistants_to_create:
-            print(f"\nCreating {assistant_config['name']}...")
+        for agent_config in agents_to_create:
+            print(f"\nCreating {agent_config['name']}...")
 
             try:
-                # Create assistant
-                assistant = await openai_client.beta.assistants.create(
-                    name=assistant_config["name"],
-                    description=assistant_config["description"],
-                    instructions=assistant_config["instructions"],
-                    model=assistant_config["model"],
-                    tools=[],  # We'll add tools later through plugins
+                # Create agent version using new API
+                agent = await client.agents.create_version(
+                    agent_name=agent_config["name"],
+                    definition=PromptAgentDefinition(
+                        model=agent_config["model"],
+                        instructions=agent_config["instructions"],
+                        tools=[],
+                    ),
                 )
 
-                print(f"✅ Created {assistant.name}")
-                print(f"   ID: {assistant.id}")
-                print(f"   Model: {assistant.model}")
+                print(f"Created {agent.name}")
+                print(f"   Name: {agent.name}")
+                print(f"   Version: {agent.version}")
 
-                created_assistants.append(
+                created_agents.append(
                     {
-                        "name": assistant_config["name"],
-                        "id": assistant.id,
-                        "role": assistant_config["name"].lower().replace(" ", "_"),
+                        "name": agent_config["name"],
+                        "version": agent.version,
+                        "role": agent_config["name"].replace("-", "_"),
                     }
                 )
 
             except Exception as e:
-                print(f"❌ Failed to create {assistant_config['name']}: {e}")
+                print(f"Failed to create {agent_config['name']}: {e}")
 
         # Print environment variable updates
-        if created_assistants:
-            print("\n🎯 Update your .env file with these new assistant IDs:")
+        if created_agents:
+            print("\nUpdate your .env file with these agent names:")
             print("=" * 60)
 
             env_mapping = {
@@ -133,18 +130,18 @@ Always provide accurate, helpful information from official policies and document
                 "knowledge_agent": "FOUNDRY_KNOWLEDGE_AGENT_ID",
             }
 
-            for assistant in created_assistants:
-                role = assistant["role"]
+            for agent in created_agents:
+                role = agent["role"]
                 if role in env_mapping:
                     env_var = env_mapping[role]
-                    print(f'{env_var}="{assistant["id"]}"')
+                    print(f'{env_var}="{agent["name"]}"')
 
             print("=" * 60)
 
-        return created_assistants
+        return created_agents
 
     except Exception as e:
-        print(f"❌ Failed to create assistants: {e}")
+        print(f"Failed to create agents: {e}")
         import traceback
 
         traceback.print_exc()
