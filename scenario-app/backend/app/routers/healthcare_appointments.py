@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import get_current_user
 from ..cosmos_service import get_cosmos_service
-from ..models import Product
 
 router = APIRouter(prefix="/api/appointments", tags=["healthcare"])
 

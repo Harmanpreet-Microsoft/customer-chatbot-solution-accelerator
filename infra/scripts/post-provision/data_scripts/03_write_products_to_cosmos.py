@@ -17,10 +17,10 @@ p.add_argument("--cosmosdb_account", required=True)
 p.add_argument("--scenario", default=None)
 args = p.parse_args()
 
-import sys
-from pathlib import Path
+import sys  # noqa: F811, E402
+from pathlib import Path  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
-from scenarios.scenario_loader import catalog_csv_path, resolve_scenario
+from scenarios.scenario_loader import catalog_csv_path, resolve_scenario  # noqa: E402
 
 scenario = resolve_scenario(args.scenario)
 

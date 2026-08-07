@@ -25,7 +25,7 @@ async def get_cart(current_user: Dict[str, Any] = Depends(get_current_user)):
             raise HTTPException(status_code=401, detail="User not authenticated")
 
         cart = await get_db_service().get_cart(user_id)
-        
+
         # Return empty cart if none exists
         if not cart:
             cart = Cart(
@@ -63,7 +63,7 @@ async def add_to_cart(
         # Check stock availability
         if product.stock_quantity < request.quantity:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Insufficient stock. Only {product.stock_quantity} items available."
             )
 
@@ -90,7 +90,7 @@ async def add_to_cart(
             new_quantity = existing_item.quantity + request.quantity
             if new_quantity > product.stock_quantity:
                 raise HTTPException(
-                    status_code=400, 
+                    status_code=400,
                     detail=f"Cannot add {request.quantity} more items. Cart would exceed available stock of {product.stock_quantity}."
                 )
             existing_item.quantity = new_quantity
@@ -121,7 +121,7 @@ async def add_to_cart(
 
 @router.put("/update", response_model=APIResponse)
 async def update_cart_item(
-    request: UpdateCartItemRequest, 
+    request: UpdateCartItemRequest,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Update cart item quantity"""
