@@ -15,7 +15,6 @@ async def create_assistants():
     print("Creating agents in Azure AI Foundry project...")
 
     try:
-        from config import settings
         from foundry_client import get_foundry_client, init_foundry_client
 
         # Initialize Foundry client
