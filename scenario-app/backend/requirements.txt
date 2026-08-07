@@ -11,6 +11,9 @@ python-multipart==0.0.32
 azure-identity==1.25.2
 azure-cosmos==4.14.6
 azure-search-documents==11.7.0b1
+azure-ai-projects>=2.3.0
+agent-framework-azure-ai==1.0.0rc6
+agent-framework-core==1.0.0rc6
 
 # Telemetry and Monitoring
 opentelemetry-exporter-otlp-proto-grpc

@@ -28,13 +28,13 @@ logging.getLogger("app.auth").setLevel(logging.WARNING)
 
 # Handle both local debugging and Docker deployment
 try:
-    from .auth import get_current_user
+    from .auth import get_current_user  # noqa: F401
     from .config import settings
     from .routers import auth
     from .scenario_config import current_scenario
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from app.auth import get_current_user
+    from app.auth import get_current_user  # noqa: F401
     from app.config import settings
     from app.routers import auth
     from app.scenario_config import current_scenario

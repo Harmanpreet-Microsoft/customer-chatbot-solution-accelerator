@@ -13,7 +13,7 @@ async def call_foundry_agent(
     azure_client_id: Optional[str] = None,
 ) -> str:
     try:
-        from agent_framework_azure_ai import AzureAIProjectAgentProvider
+        from agent_framework.azure import AzureAIProjectAgentProvider
         from azure.ai.projects.aio import AIProjectClient
 
         try:

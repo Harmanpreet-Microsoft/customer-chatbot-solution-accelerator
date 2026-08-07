@@ -9,7 +9,6 @@ from .models import (
     CustomerCreate,
     CustomerUpdate,
     Order,
-    OrderCreate,
     OrderStatus,
     Product,
     ProductCreate,

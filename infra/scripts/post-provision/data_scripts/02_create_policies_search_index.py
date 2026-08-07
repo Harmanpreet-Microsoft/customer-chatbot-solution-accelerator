@@ -34,10 +34,10 @@ p.add_argument("--embedding_model_name", required=True)
 p.add_argument("--scenario", default=None)
 args = p.parse_args()
 
-import sys
-from pathlib import Path
+import sys  # noqa: E402
+from pathlib import Path  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
-from scenarios.scenario_loader import load_manifest, policies_dir, resolve_scenario
+from scenarios.scenario_loader import load_manifest, policies_dir, resolve_scenario  # noqa: E402
 
 scenario = resolve_scenario(args.scenario)
 manifest = load_manifest(scenario)

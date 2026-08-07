@@ -1,25 +1,40 @@
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 
-project_client = AIProjectClient.from_connection_string(
+project = AIProjectClient(
     credential=DefaultAzureCredential(),
-    conn_str="<%= connectionString %>")
+    endpoint="<%= connectionString %>")
 
-agent = project_client.agents.get_agent("<%= agentId %>")
+# Get the OpenAI client for conversations and responses
+openai = project.get_openai_client()
 
-thread = project_client.agents.create_thread()
-print(f"Created thread, ID: {thread.id}")
+# Create a conversation with the user message
+conversation = openai.conversations.create(
+    items=[
+        {
+            "type": "message",
+            "role": "user",
+            "content": "<%= userMessage %>",
+        }
+    ],
+)
+print(f"Created conversation, ID: {conversation.id}")
 
-message = project_client.agents.create_message(
-    thread_id=thread.id,
-    role="user",
-    content="<%= userMessage %>"
+# Send a response using the agent reference
+response = openai.responses.create(
+    input="<%= userMessage %>",
+    conversation=conversation.id,
+    extra_body={
+        "agent_reference": {
+            "name": "<%= agentId %>",
+            "type": "agent_reference",
+        }
+    },
 )
 
-run = project_client.agents.create_and_process_run(
-    thread_id=thread.id,
-    agent_id=agent.id)
-messages = project_client.agents.list_messages(thread_id=thread.id)
-
-for text_message in messages.text_messages:
-    print(text_message.as_dict())
+# Print the response output
+for item in response.output:
+    if item.type == "message":
+        for block in item.content:
+            if hasattr(block, "text"):
+                print(f"assistant: {block.text}")
