@@ -1,5 +1,5 @@
 """
-Foundry agent utilities — call the multi-agent pipeline for grounded enterprise answers.
+Foundry agent utilities - call the multi-agent pipeline for grounded enterprise answers.
 """
 import logging
 from typing import Optional
@@ -16,11 +16,11 @@ async def call_foundry_agent(
     azure_client_id: Optional[str] = None,
 ) -> str:
     """
-    Call the Foundry multi-agent pipeline (chat → product/policy agents → Azure AI Search).
+    Call the Foundry multi-agent pipeline (chat -> product/policy agents -> Azure AI Search).
     Returns the grounded text response.
     """
     try:
-        from agent_framework_azure_ai import AzureAIProjectAgentProvider
+        from agent_framework.azure import AzureAIProjectAgentProvider
         from azure.ai.projects.aio import AIProjectClient
 
         try:

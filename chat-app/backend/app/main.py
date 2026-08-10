@@ -67,7 +67,7 @@ for logger_name in AZURE_LOGGING_PACKAGES:
     logging.getLogger(logger_name).setLevel(
         getattr(logging, AZURE_PACKAGE_LOGGING_LEVEL, logging.WARNING)
     )
-logging.getLogger("agent_framework_azure_ai._client").setLevel(logging.ERROR)
+logging.getLogger("azure.ai.projects").setLevel(logging.WARNING)
 try:
     from .auth import get_current_user
     from .config import settings

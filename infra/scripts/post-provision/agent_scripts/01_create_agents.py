@@ -4,14 +4,7 @@ import sys
 from pathlib import Path
 
 from azure.ai.projects.aio import AIProjectClient
-from azure.ai.projects.models import (
-    AISearchIndexResource,
-    AzureAISearchTool,
-    AzureAISearchToolResource,
-    ConnectionType,
-    FunctionTool,
-    PromptAgentDefinition,
-)
+from azure.ai.projects.models import ConnectionType
 from agent_framework.azure import AzureAIProjectAgentProvider
 from azure.identity.aio import AzureCliCredential
 from dotenv import load_dotenv
@@ -19,7 +12,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
-from scenarios.scenario_loader import load_agent_instructions, load_manifest, resolve_scenario, catalog_tool_name, policy_tool_name
+from scenarios.scenario_loader import (  # noqa: E402
+    load_agent_instructions, load_manifest, resolve_scenario,
+    catalog_tool_name, policy_tool_name,
+)
 
 p = argparse.ArgumentParser()
 p.add_argument("--ai_project_endpoint", required=True)

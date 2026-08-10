@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional
 from .database import EcommerceDatabaseService
 from .models import (
     Cart,
-    CartItem,
     Customer,
     CustomerCreate,
     CustomerUpdate,
@@ -19,6 +18,7 @@ from .models import (
     ShippingAddress,
     UserRole,
 )
+
 
 def _sample_products() -> List[Product]:
     return [
@@ -331,4 +331,3 @@ class EcommerceMemoryService(EcommerceDatabaseService):
         o.updated_at = datetime.utcnow()
         self._orders[order_id] = o
         return o
-

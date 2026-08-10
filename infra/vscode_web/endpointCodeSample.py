@@ -1,31 +1,40 @@
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
-from azure.ai.agents.models import ListSortOrder
 
 project = AIProjectClient(
     credential=DefaultAzureCredential(),
     endpoint="<%= endpoint %>")
 
-agent = project.agents.get_agent("<%= agentId %>")
+# Get the OpenAI client for conversations and responses
+openai = project.get_openai_client()
 
-thread = project.agents.threads.create()
-print(f"Created thread, ID: {thread.id}")
+# Create a conversation with the user message
+conversation = openai.conversations.create(
+    items=[
+        {
+            "type": "message",
+            "role": "user",
+            "content": "<%= userMessage %>",
+        }
+    ],
+)
+print(f"Created conversation, ID: {conversation.id}")
 
-message = project.agents.messages.create(
-    thread_id=thread.id,
-    role="user",
-    content="<%= userMessage %>"
+# Send a response using the agent reference
+response = openai.responses.create(
+    input="<%= userMessage %>",
+    conversation=conversation.id,
+    extra_body={
+        "agent_reference": {
+            "name": "<%= agentId %>",
+            "type": "agent_reference",
+        }
+    },
 )
 
-run = project.agents.runs.create_and_process(
-    thread_id=thread.id,
-    agent_id=agent.id)
-
-if run.status == "failed":
-    print(f"Run failed: {run.last_error}")
-else:
-    messages = project.agents.messages.list(thread_id=thread.id, order=ListSortOrder.ASCENDING)
-
-    for message in messages:
-        if message.text_messages:
-            print(f"{message.role}: {message.text_messages[-1].text.value}")
+# Print the response output
+for item in response.output:
+    if item.type == "message":
+        for block in item.content:
+            if hasattr(block, "text"):
+                print(f"assistant: {block.text}")
