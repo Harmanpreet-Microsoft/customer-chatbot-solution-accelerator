@@ -472,8 +472,9 @@ This stage creates:
 
 ### 5.4 Configure Authentication (Optional)
 
-1. Follow [App Authentication Configuration](./AppAuthentication.md)
-2. Wait up to 10 minutes for authentication changes to take effect
+1. Follow [App Authentication Configuration](./AppAuthentication.md) for the scenario host app (`app-scenario-<suffix>`).
+2. Repeat the same steps for the chat app (`app-chat-<suffix>`), using the same identity provider.
+3. Wait up to 10 minutes for authentication changes to take effect.
 
 ### 5.5 Verify Deployment
 
