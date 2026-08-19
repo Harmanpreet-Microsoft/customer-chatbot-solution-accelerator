@@ -11,15 +11,24 @@ if [ -z "$VITE_SCENARIO" ]; then
 fi
 
 # WAF/private networking deployment: BACKEND_API_URL is set when the scenario
-# backend API is private. The SPA then calls its own origin (nginx reverse-proxies
-# /api/ to the private scenario backend over the VNet). The embedded chat widget
-# points at the public chat frontend (VITE_CHAT_API_BASE_URL), which in turn
-# proxies to the private chat backend.
+# backend API is private. The SPA calls its own origin (nginx reverse-proxies
+# /api/ to the private scenario backend, and /chat-api/ to the private chat
+# backend, over the VNet). The embedded chat widget therefore talks to the
+# scenario's own origin, avoiding a cross-origin call to the auth-protected chat
+# frontend (which would fail CORS on the Easy Auth login redirect).
 if [ -n "${BACKEND_API_URL}" ]; then
+  # Derive the private chat backend URL from the scenario hostname
+  # (app-scenario-<suffix> -> api-chat-<suffix>); fall back to rewriting an
+  # app-chat-* value if VITE_CHAT_API_BASE_URL points at the chat frontend.
+  _scn_host="${WEBSITE_HOSTNAME:-}"
+  case "$_scn_host" in
+    app-scenario-*.*) CHAT_BACKEND_API_URL="https://api-chat-${_scn_host#app-scenario-}" ;;
+    *) CHAT_BACKEND_API_URL=$(printf '%s' "${VITE_CHAT_API_BASE_URL}" | sed 's|//app-chat-|//api-chat-|') ;;
+  esac
 cat > /usr/share/nginx/html/runtime-config.js << EOF
 window.__RUNTIME_CONFIG__ = {
   VITE_API_BASE_URL: window.location.origin,
-  VITE_CHAT_API_BASE_URL: '$(js_escape "${VITE_CHAT_API_BASE_URL}")',
+  VITE_CHAT_API_BASE_URL: '/chat-api',
   VITE_CHAT_WIDGET_THEME: '$(js_escape "${VITE_CHAT_WIDGET_THEME}")',
   VITE_SCENARIO: '$(js_escape "${VITE_SCENARIO}")',
   VITE_HOST_APP_TITLE: '$(js_escape "${VITE_HOST_APP_TITLE}")'
@@ -64,6 +73,8 @@ if [ -n "${BACKEND_API_URL}" ]; then
   # Strip any trailing slash so proxy_pass + the /api/ location prefix don't produce a malformed path.
   BACKEND_API_URL="${BACKEND_API_URL%/}"
   BACKEND_HOST=$(printf '%s' "${BACKEND_API_URL}" | sed 's|https\?://||; s|/.*||')
+  CHAT_BACKEND_API_URL="${CHAT_BACKEND_API_URL%/}"
+  CHAT_BACKEND_HOST=$(printf '%s' "${CHAT_BACKEND_API_URL}" | sed 's|https\?://||; s|/.*||')
   cat > /etc/nginx/conf.d/api-proxy.conf << PROXYEOF
 # Reverse proxy for backend API - WAF private networking deployment
 location /api/ {
@@ -80,6 +91,30 @@ location /api/ {
     proxy_buffering off;
 
     # WebSocket support (needed for /api/voice/ws/... connections)
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+# Reverse proxy for the private chat backend - WAF private networking deployment.
+# The embedded chat widget calls /chat-api/* on this same origin; strip the
+# prefix and forward to the private chat backend over the VNet so the browser
+# never makes a cross-origin (CORS) call to the auth-protected chat frontend.
+location /chat-api/ {
+    resolver 168.63.129.16 valid=30s;
+    set \$chat_backend "${CHAT_BACKEND_API_URL}";
+    rewrite ^/chat-api/(.*)\$ /\$1 break;
+    proxy_pass \$chat_backend;
+    proxy_set_header Host "${CHAT_BACKEND_HOST}";
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_ssl_server_name on;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 60s;
+    proxy_buffering off;
+
+    # WebSocket support (voice /api/voice/ws/... connections)
     proxy_http_version 1.1;
     proxy_set_header Upgrade \$http_upgrade;
     proxy_set_header Connection "upgrade";

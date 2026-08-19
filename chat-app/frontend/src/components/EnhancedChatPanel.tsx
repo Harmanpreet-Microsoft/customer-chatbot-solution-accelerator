@@ -480,9 +480,12 @@ export const EnhancedChatPanel = ({
     }
 
     const apiBase = getApiBaseUrl();
-    const apiUrl = new URL(apiBase);
+    // apiBase may be an absolute URL or a same-origin path prefix (e.g. '/chat-api'
+    // when the widget is proxied through the host origin), so resolve against it.
+    const apiUrl = new URL(apiBase || '/', window.location.origin);
     const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${apiUrl.host}/api/voice/ws/${clientIdRef.current}`;
+    const basePath = apiUrl.pathname.replace(/\/$/, '');
+    const wsUrl = `${wsProtocol}//${apiUrl.host}${basePath}/api/voice/ws/${clientIdRef.current}`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
