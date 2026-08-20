@@ -88,6 +88,9 @@ param managedIdentities object = { systemAssigned: true }
 @description('Optional. Whether to use managed identity credentials for Azure Container Registry.')
 param acrUseManagedIdentityCreds bool = false
 
+@description('Optional. Cross-Origin Resource Sharing (CORS) settings for the app.')
+param cors object = {}
+
 // ============================================================================
 // AVM Module Deployment
 // ============================================================================
@@ -111,6 +114,7 @@ module appService 'br/public:avm/res/web/site:0.23.1' = {
       appCommandLine: appCommandLine
       vnetRouteAllEnabled: vnetRouteAllEnabled
       acrUseManagedIdentityCreds: acrUseManagedIdentityCreds
+      cors: !empty(cors) ? cors : null
     }
     e2eEncryptionEnabled: true
     configs: [

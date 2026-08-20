@@ -524,6 +524,11 @@ module chat_frontend_app './modules/compute/app-service.bicep' = {
     linuxFxVersion: helloWorldDefaultImageName
     serverFarmResourceId: hostingplan.outputs.resourceId
     acrUseManagedIdentityCreds: true
+    // Allow the scenario frontend origin so its embedded chat widget can call this app.
+    cors: {
+      allowedOrigins: [ 'https://${scenarioWebAppName}.azurewebsites.net' ]
+      supportCredentials: true
+    }
     appSettings: {
       NODE_ENV: 'production'
       VITE_API_BASE_URL: chat_backend_app.outputs.appUrl

@@ -10,21 +10,19 @@ if [ -z "$VITE_SCENARIO" ]; then
   VITE_SCENARIO="${DEPLOYMENT_SCENARIO:-ecommerce}"
 fi
 
-# WAF/private networking deployment: BACKEND_API_URL is set when the scenario
-# backend API is private. The SPA calls its own origin (nginx reverse-proxies
-# /api/ to the private scenario backend, and /chat-api/ to the private chat
-# backend, over the VNet). The embedded chat widget therefore talks to the
-# scenario's own origin, avoiding a cross-origin call to the auth-protected chat
-# frontend (which would fail CORS on the Easy Auth login redirect).
+# WAF/private networking deployment (BACKEND_API_URL set): the SPA calls its own
+# origin and nginx reverse-proxies /api/ and /chat-api/ to the private backends
+# over the VNet, avoiding a cross-origin call to the auth-protected chat frontend.
 if [ -n "${BACKEND_API_URL}" ]; then
-  # Derive the private chat backend URL from the scenario hostname
-  # (app-scenario-<suffix> -> api-chat-<suffix>); fall back to rewriting an
-  # app-chat-* value if VITE_CHAT_API_BASE_URL points at the chat frontend.
-  _scn_host="${WEBSITE_HOSTNAME:-}"
-  case "$_scn_host" in
-    app-scenario-*.*) CHAT_BACKEND_API_URL="https://api-chat-${_scn_host#app-scenario-}" ;;
-    *) CHAT_BACKEND_API_URL=$(printf '%s' "${VITE_CHAT_API_BASE_URL}" | sed 's|//app-chat-|//api-chat-|') ;;
-  esac
+  # Prefer the infra-provided CHAT_BACKEND_API_URL; otherwise derive it from the
+  # default bicep naming (won't match if the app service names are customized).
+  if [ -z "${CHAT_BACKEND_API_URL:-}" ]; then
+    _scn_host="${WEBSITE_HOSTNAME:-}"
+    case "$_scn_host" in
+      app-scenario-*.*) CHAT_BACKEND_API_URL="https://api-chat-${_scn_host#app-scenario-}" ;;
+      *) CHAT_BACKEND_API_URL=$(printf '%s' "${VITE_CHAT_API_BASE_URL}" | sed 's|//app-chat-|//api-chat-|') ;;
+    esac
+  fi
 cat > /usr/share/nginx/html/runtime-config.js << EOF
 window.__RUNTIME_CONFIG__ = {
   VITE_API_BASE_URL: window.location.origin,
