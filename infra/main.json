@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.46.1.21595",
-      "templateHash": "6462978155776172807"
+      "templateHash": "15706420920984431109"
     }
   },
   "parameters": {
@@ -5048,7 +5048,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.46.1.21595",
-              "templateHash": "18185621956314540221"
+              "templateHash": "15076250984768619028"
             }
           },
           "parameters": {
@@ -5411,7 +5411,7 @@
             ],
             "effectiveAppServicePlanSku": "[if(or(parameters('enableScalability'), parameters('enableRedundancy')), 'P1v3', parameters('appServicePlanSku'))]",
             "resourceTags": "[union(variables('existingTags'), parameters('tags'), createObject('TemplateName', 'Customer Chat bot', 'CreatedBy', variables('createdBy'), 'DeploymentName', deployment().name, 'Type', if(parameters('enablePrivateNetworking'), 'WAF', 'Non-WAF')))]",
-            "virtualMachineAvailabilityZone": 1,
+            "virtualMachineAvailabilityZone": -1,
             "helloWorldDefaultImageName": "DOCKER|mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
             "chatApiAppName": "[format('api-chat-{0}', variables('solutionSuffix'))]",
             "chatWebAppName": "[format('app-chat-{0}', variables('solutionSuffix'))]",
@@ -33384,9 +33384,9 @@
               },
               "dependsOn": [
                 "ai_foundry_project",
-                "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').openAI)]",
                 "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').aiServices)]",
                 "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
+                "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').openAI)]",
                 "virtualNetwork"
               ]
             },
