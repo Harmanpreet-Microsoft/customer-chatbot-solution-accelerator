@@ -739,7 +739,7 @@ fi
 requirementFile="infra/scripts/post-provision/data_scripts/requirements.txt"
 
 # Download and install Python requirements
-python -m pip install --upgrade pip
+python -m pip install --upgrade pip --index-url https://packagefeedproxy.microsoft.io/pypi/simple/
 python -m pip install --quiet -r "$requirementFile"
 
 # Enable public network access for required services

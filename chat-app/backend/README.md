@@ -139,7 +139,7 @@ chat-app/backend/
 
 ```bash
 # Install test dependencies
-pip install pytest pytest-asyncio
+pip install -r requirements-dev.txt
 
 # Run tests
 pytest

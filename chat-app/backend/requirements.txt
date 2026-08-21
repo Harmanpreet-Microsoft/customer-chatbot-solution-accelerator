@@ -1,3 +1,5 @@
+--index-url https://packagefeedproxy.microsoft.io/pypi/simple/
+
 cachetools==7.0.5
 python-dotenv==1.2.2
 python-multipart==0.0.32
