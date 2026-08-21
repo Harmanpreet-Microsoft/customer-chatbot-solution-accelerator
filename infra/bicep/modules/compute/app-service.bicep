@@ -63,6 +63,9 @@ param identity object = { type: 'SystemAssigned' }
 @description('Optional. Whether to use managed identity credentials for ACR authentication.')
 param acrUseManagedIdentityCreds bool = false
 
+@description('Optional. Cross-Origin Resource Sharing (CORS) settings for the app.')
+param cors object = {}
+
 // ============================================================================
 // Resource Deployment
 // ============================================================================
@@ -84,6 +87,7 @@ resource appService 'Microsoft.Web/sites@2025-05-01' = {
       webSocketsEnabled: webSocketsEnabled
       appCommandLine: appCommandLine
       acrUseManagedIdentityCreds : acrUseManagedIdentityCreds
+      cors: !empty(cors) ? cors : null
     }
     endToEndEncryptionEnabled: true
   }

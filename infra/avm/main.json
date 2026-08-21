@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.46.1.21595",
-      "templateHash": "5166718318626472799"
+      "templateHash": "11564598993201729613"
     }
   },
   "parameters": {
@@ -383,7 +383,7 @@
     "policiesSearchIndex": "[if(equals(parameters('deploymentScenario'), 'healthcare'), 'care_policies_index', if(equals(parameters('deploymentScenario'), 'banking'), 'banking_policies_index', 'policies_index'))]",
     "catalogToolName": "[if(equals(parameters('deploymentScenario'), 'healthcare'), 'services_agent', if(equals(parameters('deploymentScenario'), 'banking'), 'accounts_agent', 'product_agent'))]",
     "policyToolName": "[if(equals(parameters('deploymentScenario'), 'healthcare'), 'care_policy_agent', if(equals(parameters('deploymentScenario'), 'banking'), 'banking_policy_agent', 'policy_agent'))]",
-    "reactAppLayoutConfig": "{\n  \"appConfig\": {\n      \"CHAT_CHATHISTORY\": {\n        \"CHAT\": 70,\n        \"CHATHISTORY\": 30\n      }\n    }\n  }\n}"
+    "reactAppLayoutConfig": "{\r\n  \"appConfig\": {\r\n      \"CHAT_CHATHISTORY\": {\r\n        \"CHAT\": 70,\r\n        \"CHATHISTORY\": 30\r\n      }\r\n    }\r\n  }\r\n}"
   },
   "resources": {
     "resourceGroupTags": {
@@ -28343,8 +28343,8 @@
       "dependsOn": [
         "ai_foundry_project",
         "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
-        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').openAI)]",
+        "[format('privateDnsZoneDeployments[{0}]', variables('dnsZoneIndex').aiServices)]",
         "virtualNetwork"
       ]
     },
@@ -43542,7 +43542,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.46.1.21595",
-              "templateHash": "11236004869715473159"
+              "templateHash": "7013914849030540136"
             }
           },
           "definitions": {
@@ -44079,6 +44079,13 @@
               "metadata": {
                 "description": "Optional. Whether to use managed identity credentials for Azure Container Registry."
               }
+            },
+            "cors": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Optional. Cross-Origin Resource Sharing (CORS) settings for the app."
+              }
             }
           },
           "resources": {
@@ -44157,7 +44164,8 @@
                       "webSocketsEnabled": "[parameters('webSocketsEnabled')]",
                       "appCommandLine": "[parameters('appCommandLine')]",
                       "vnetRouteAllEnabled": "[parameters('vnetRouteAllEnabled')]",
-                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]"
+                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]",
+                      "cors": "[if(not(empty(parameters('cors'))), parameters('cors'), null())]"
                     }
                   },
                   "e2eEncryptionEnabled": {
@@ -59089,6 +59097,14 @@
           "imagePullTraffic": {
             "value": "[parameters('enablePrivateNetworking')]"
           },
+          "cors": {
+            "value": {
+              "allowedOrigins": [
+                "[format('https://{0}.azurewebsites.net', variables('scenarioWebAppName'))]"
+              ],
+              "supportCredentials": true
+            }
+          },
           "appSettings": {
             "value": {
               "NODE_ENV": "production",
@@ -59110,7 +59126,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.46.1.21595",
-              "templateHash": "11236004869715473159"
+              "templateHash": "7013914849030540136"
             }
           },
           "definitions": {
@@ -59647,6 +59663,13 @@
               "metadata": {
                 "description": "Optional. Whether to use managed identity credentials for Azure Container Registry."
               }
+            },
+            "cors": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Optional. Cross-Origin Resource Sharing (CORS) settings for the app."
+              }
             }
           },
           "resources": {
@@ -59725,7 +59748,8 @@
                       "webSocketsEnabled": "[parameters('webSocketsEnabled')]",
                       "appCommandLine": "[parameters('appCommandLine')]",
                       "vnetRouteAllEnabled": "[parameters('vnetRouteAllEnabled')]",
-                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]"
+                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]",
+                      "cors": "[if(not(empty(parameters('cors'))), parameters('cors'), null())]"
                     }
                   },
                   "e2eEncryptionEnabled": {
@@ -74717,7 +74741,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.46.1.21595",
-              "templateHash": "11236004869715473159"
+              "templateHash": "7013914849030540136"
             }
           },
           "definitions": {
@@ -75254,6 +75278,13 @@
               "metadata": {
                 "description": "Optional. Whether to use managed identity credentials for Azure Container Registry."
               }
+            },
+            "cors": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Optional. Cross-Origin Resource Sharing (CORS) settings for the app."
+              }
             }
           },
           "resources": {
@@ -75332,7 +75363,8 @@
                       "webSocketsEnabled": "[parameters('webSocketsEnabled')]",
                       "appCommandLine": "[parameters('appCommandLine')]",
                       "vnetRouteAllEnabled": "[parameters('vnetRouteAllEnabled')]",
-                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]"
+                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]",
+                      "cors": "[if(not(empty(parameters('cors'))), parameters('cors'), null())]"
                     }
                   },
                   "e2eEncryptionEnabled": {
@@ -90272,6 +90304,7 @@
               "VITE_API_BASE_URL": "[if(parameters('enablePrivateNetworking'), '', reference('scenario_backend_app').outputs.appUrl.value)]",
               "BACKEND_API_URL": "[if(parameters('enablePrivateNetworking'), reference('scenario_backend_app').outputs.appUrl.value, '')]",
               "VITE_CHAT_API_BASE_URL": "[if(parameters('enablePrivateNetworking'), format('https://{0}.azurewebsites.net', variables('chatWebAppName')), reference('chat_backend_app').outputs.appUrl.value)]",
+              "CHAT_BACKEND_API_URL": "[if(parameters('enablePrivateNetworking'), reference('chat_backend_app').outputs.appUrl.value, '')]",
               "DEPLOYMENT_SCENARIO": "[parameters('deploymentScenario')]",
               "VITE_SCENARIO": "[parameters('deploymentScenario')]",
               "VITE_HOST_APP_TITLE": "[variables('hostAppTitle')]",
@@ -90288,7 +90321,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.46.1.21595",
-              "templateHash": "11236004869715473159"
+              "templateHash": "7013914849030540136"
             }
           },
           "definitions": {
@@ -90825,6 +90858,13 @@
               "metadata": {
                 "description": "Optional. Whether to use managed identity credentials for Azure Container Registry."
               }
+            },
+            "cors": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Optional. Cross-Origin Resource Sharing (CORS) settings for the app."
+              }
             }
           },
           "resources": {
@@ -90903,7 +90943,8 @@
                       "webSocketsEnabled": "[parameters('webSocketsEnabled')]",
                       "appCommandLine": "[parameters('appCommandLine')]",
                       "vnetRouteAllEnabled": "[parameters('vnetRouteAllEnabled')]",
-                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]"
+                      "acrUseManagedIdentityCreds": "[parameters('acrUseManagedIdentityCreds')]",
+                      "cors": "[if(not(empty(parameters('cors'))), parameters('cors'), null())]"
                     }
                   },
                   "e2eEncryptionEnabled": {
