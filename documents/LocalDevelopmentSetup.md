@@ -285,7 +285,7 @@ You should see `(.venv)` in your prompt.
 
 ```bash
 # Chat backend
-pip install --upgrade pip
+pip install --upgrade pip --index-url https://packagefeedproxy.microsoft.io/pypi/simple/
 pip install -r chat-app/backend/requirements.txt
 
 # Scenario backend (only if you plan to run it)
