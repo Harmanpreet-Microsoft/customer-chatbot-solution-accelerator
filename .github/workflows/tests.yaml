@@ -45,6 +45,7 @@ jobs:
 
       - name: Install Backend Dependencies
         run: |
+          python -m pip install --upgrade pip --index-url https://packagefeedproxy.microsoft.io/pypi/simple/
           python -m pip install -r chat-app/backend/requirements.txt
           python -m pip install -r scenario-app/backend/requirements.txt
 

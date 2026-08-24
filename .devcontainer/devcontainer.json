@@ -33,6 +33,10 @@
             ]
         }
     },
+    "containerEnv": {
+        "NPM_CONFIG_REGISTRY": "https://pkgs.dev.azure.com/ms-feed-12/1es-public/_packaging/npm-public/npm/registry/",
+        "PIP_INDEX_URL": "https://packagefeedproxy.microsoft.io/pypi/simple/"
+    },
     "forwardPorts": [3000, 3100],
     "remoteUser": "vscode",
     "hostRequirements": {

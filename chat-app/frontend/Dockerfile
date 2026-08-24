@@ -4,8 +4,8 @@ FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS builder
 # Set working directory
 WORKDIR /app
  
-# Copy package files
-COPY package*.json ./
+# Copy package files and npm registry config (Microsoft proxy feed)
+COPY package*.json .npmrc ./
  
 # Install dependencies with legacy peer deps for React 19 compatibility
 RUN npm ci --legacy-peer-deps

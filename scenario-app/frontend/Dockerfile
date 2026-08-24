@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS widget-builder
 WORKDIR /src/chat-app/frontend
-COPY chat-app/frontend/package*.json ./
+COPY chat-app/frontend/package*.json chat-app/frontend/.npmrc ./
 RUN npm ci --legacy-peer-deps
 COPY chat-app/frontend/ ./
 RUN npm run build
@@ -9,7 +9,7 @@ FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS app-builder
 WORKDIR /src/scenario-app/frontend
 ARG VITE_SCENARIO=ecommerce
 ENV VITE_SCENARIO=$VITE_SCENARIO
-COPY scenario-app/frontend/package*.json ./
+COPY scenario-app/frontend/package*.json scenario-app/frontend/.npmrc ./
 RUN npm ci --legacy-peer-deps
 COPY scenario-app/frontend/ ./
 RUN npm run build
