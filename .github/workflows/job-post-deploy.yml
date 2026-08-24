@@ -50,7 +50,7 @@ jobs:
           pip3 --version
 
           # Upgrade pip
-          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip --index-url https://packagefeedproxy.microsoft.io/pypi/simple/ 
 
       - name: Enable Public Network Access (avm-waf only)
         if: inputs.DEPLOYMENT_FLAVOR == 'avm-waf'
