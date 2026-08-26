@@ -1,0 +1,835 @@
+name: Deploy Job 
+
+on:
+  workflow_call:
+    inputs:
+      trigger_type:
+        description: 'Trigger type (workflow_dispatch, pull_request, schedule)'
+        required: true
+        type: string
+      runner_os:
+        description: 'Runner OS (ubuntu-latest or windows-latest)'
+        required: true
+        type: string
+      azure_location:
+        description: 'Azure Location For Deployment'
+        required: false
+        default: 'australiaeast'
+        type: string
+      resource_group_name:
+        description: 'Resource Group Name (Optional)'
+        required: false
+        default: ''
+        type: string
+      deployment_flavor:
+        description: 'Deployment Flavour (bicep | avm | avm-waf)'
+        required: false
+        default: 'bicep'
+        type: string
+      enable_scalability:
+        description: 'Enable Scalability (only used when WAF is enabled)'
+        required: false
+        default: true
+        type: boolean
+      EXP:
+        description: 'Enable EXP'
+        required: false
+        default: false
+        type: boolean
+      build_docker_image:
+        description: 'Build And Push Docker Image (Optional)'
+        required: false
+        default: false
+        type: boolean
+      cleanup_resources:
+        description: 'Cleanup Deployed Resources'
+        required: false
+        default: false
+        type: boolean
+      run_e2e_tests:
+        description: 'Run End-to-End Tests'
+        required: false
+        default: 'GoldenPath-Testing'
+        type: string
+      existing_webapp_url:
+        description: 'Existing Container WebApp URL (Skips Deployment)'
+        required: false
+        default: ''
+        type: string
+      AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID:
+        description: 'Log Analytics Workspace Resource ID (Optional)'
+        required: false
+        default: ''
+        type: string
+      AZURE_EXISTING_AIPROJECT_RESOURCE_ID:
+        description: 'AI Project Resource ID (Optional)'
+        required: false
+        default: ''
+        type: string
+      docker_image_tag:
+        description: 'Docker Image Tag from build job'
+        required: false
+        default: ''
+        type: string
+    outputs:
+      RESOURCE_GROUP_NAME:
+        description: "Resource Group Name"
+        value: ${{ jobs.azure-setup.outputs.RESOURCE_GROUP_NAME }}
+      CONTAINER_WEB_APPURL:
+        description: "Container Web App URL"
+        value: ${{ jobs.deploy-linux.outputs.CONTAINER_WEB_APPURL || jobs.deploy-windows.outputs.CONTAINER_WEB_APPURL }}
+      ENV_NAME:
+        description: "Environment Name"
+        value: ${{ jobs.azure-setup.outputs.ENV_NAME }}
+      AZURE_LOCATION:
+        description: "Azure Location"
+        value: ${{ jobs.azure-setup.outputs.AZURE_LOCATION }}
+      AZURE_ENV_AI_SERVICE_LOCATION:
+        description: "Azure AI Service Location"
+        value: ${{ jobs.azure-setup.outputs.AZURE_ENV_AI_SERVICE_LOCATION }}
+      IMAGE_TAG:
+        description: "Docker Image Tag Used"
+        value: ${{ jobs.azure-setup.outputs.IMAGE_TAG }}
+      QUOTA_FAILED:
+        description: "Quota Check Failed Flag"
+        value: ${{ jobs.azure-setup.outputs.QUOTA_FAILED }}
+
+env:
+  GPT_MIN_CAPACITY: ${{ vars.GPT_MIN_CAPACITY || 50 }}
+  EMBEDDING_MIN_CAPACITY: ${{ vars.EMBEDDING_MIN_CAPACITY || 10 }}
+  GPT_REALTIME_MIN_CAPACITY: ${{ vars.GPT_REALTIME_MIN_CAPACITY || 1 }}
+  BRANCH_NAME: ${{ github.event.workflow_run.head_branch || github.head_ref || github.ref_name }}
+  DEPLOYMENT_FLAVOR: ${{ inputs.trigger_type == 'workflow_dispatch' && (inputs.deployment_flavor || 'bicep') || 'bicep' }}
+  EXP: ${{ inputs.trigger_type == 'workflow_dispatch' && (inputs.EXP || false) || false }}
+  CLEANUP_RESOURCES: ${{ inputs.trigger_type != 'workflow_dispatch' || inputs.cleanup_resources }}
+  RUN_E2E_TESTS: ${{ inputs.trigger_type == 'workflow_dispatch' && (inputs.run_e2e_tests || 'GoldenPath-Testing') || 'GoldenPath-Testing' }}
+  BUILD_DOCKER_IMAGE: ${{ inputs.trigger_type == 'workflow_dispatch' && (inputs.build_docker_image || false) || false }}
+  RG_TAGS: ${{ vars.RG_TAGS }}
+
+jobs:
+  azure-setup:
+    name: Azure Setup
+    if: inputs.trigger_type != 'workflow_dispatch' || inputs.existing_webapp_url == '' || inputs.existing_webapp_url == null
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      RESOURCE_GROUP_NAME: ${{ steps.check_create_rg.outputs.RESOURCE_GROUP_NAME }}
+      ENV_NAME: ${{ steps.generate_env_name.outputs.ENV_NAME }}
+      AZURE_LOCATION: ${{ steps.set_region.outputs.AZURE_LOCATION }}
+      AZURE_ENV_AI_SERVICE_LOCATION: ${{ steps.set_region.outputs.AZURE_ENV_AI_SERVICE_LOCATION }}
+      IMAGE_TAG: ${{ steps.determine_image_tag.outputs.IMAGE_TAG }}
+      QUOTA_FAILED: ${{ steps.quota_failure_output.outputs.QUOTA_FAILED }}
+      
+    steps:
+      - name: Validate Workflow Input Parameters
+        shell: bash
+        env:
+          INPUT_AZURE_LOCATION: ${{ inputs.azure_location }}
+          INPUT_RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+          INPUT_EXP: ${{ inputs.EXP }}
+          INPUT_DEPLOYMENT_FLAVOR: ${{ inputs.deployment_flavor }}
+          INPUT_CLEANUP_RESOURCES: ${{ inputs.cleanup_resources }}
+          INPUT_RUN_E2E_TESTS: ${{ inputs.run_e2e_tests }}
+          INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID: ${{ inputs.AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID }}
+          INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID: ${{ inputs.AZURE_EXISTING_AIPROJECT_RESOURCE_ID }}
+          INPUT_DOCKER_IMAGE_TAG: ${{ inputs.docker_image_tag }}
+        run: |
+          echo "🔍 Validating workflow input parameters..."
+          VALIDATION_FAILED=false
+          
+          # Validate azure_location (Azure region format)
+          if [[ -n "$INPUT_AZURE_LOCATION" ]]; then
+            if [[ ! "$INPUT_AZURE_LOCATION" =~ ^[a-z0-9]+$ ]]; then
+              echo "❌ ERROR: azure_location '$INPUT_AZURE_LOCATION' is invalid. Must contain only lowercase letters and numbers (e.g., 'australiaeast', 'westus2')"
+              VALIDATION_FAILED=true
+            else
+              echo "✅ azure_location: '$INPUT_AZURE_LOCATION' is valid"
+            fi
+          fi
+          
+          # Validate resource_group_name (Azure resource group naming convention)
+          if [[ -n "$INPUT_RESOURCE_GROUP_NAME" ]]; then
+            if [[ ! "$INPUT_RESOURCE_GROUP_NAME" =~ ^[a-zA-Z0-9._\(\)-]+$ ]] || [[ "$INPUT_RESOURCE_GROUP_NAME" =~ \.$ ]]; then
+              echo "❌ ERROR: resource_group_name '$INPUT_RESOURCE_GROUP_NAME' is invalid. Must contain only alphanumerics, periods, underscores, hyphens, and parentheses. Cannot end with period."
+              VALIDATION_FAILED=true
+            elif [[ ${#INPUT_RESOURCE_GROUP_NAME} -gt 90 ]]; then
+              echo "❌ ERROR: resource_group_name '$INPUT_RESOURCE_GROUP_NAME' exceeds 90 characters"
+              VALIDATION_FAILED=true
+            else
+              echo "✅ resource_group_name: '$INPUT_RESOURCE_GROUP_NAME' is valid"
+            fi
+          fi
+          
+          # Validate deployment_flavor (bicep | avm | avm-waf)
+          if [[ "$INPUT_DEPLOYMENT_FLAVOR" != "bicep" && "$INPUT_DEPLOYMENT_FLAVOR" != "avm" && "$INPUT_DEPLOYMENT_FLAVOR" != "avm-waf" ]]; then
+            echo "❌ ERROR: deployment_flavor must be one of: bicep, avm, avm-waf, got: '$INPUT_DEPLOYMENT_FLAVOR'"
+            VALIDATION_FAILED=true
+          else
+            echo "✅ deployment_flavor: '$INPUT_DEPLOYMENT_FLAVOR' is valid"
+          fi
+          
+          # Validate EXP (boolean)
+          if [[ "$INPUT_EXP" != "true" && "$INPUT_EXP" != "false" ]]; then
+            echo "❌ ERROR: EXP must be 'true' or 'false', got: '$INPUT_EXP'"
+            VALIDATION_FAILED=true
+          else
+            echo "✅ EXP: '$INPUT_EXP' is valid"
+          fi
+          
+          # Validate cleanup_resources (boolean)
+          if [[ "$INPUT_CLEANUP_RESOURCES" != "true" && "$INPUT_CLEANUP_RESOURCES" != "false" ]]; then
+            echo "❌ ERROR: cleanup_resources must be 'true' or 'false', got: '$INPUT_CLEANUP_RESOURCES'"
+            VALIDATION_FAILED=true
+          else
+            echo "✅ cleanup_resources: '$INPUT_CLEANUP_RESOURCES' is valid"
+          fi
+          
+          # Validate run_e2e_tests (specific allowed values)
+          if [[ -n "$INPUT_RUN_E2E_TESTS" ]]; then
+            ALLOWED_VALUES=("None" "GoldenPath-Testing" "Smoke-Testing")
+            if [[ ! " ${ALLOWED_VALUES[@]} " =~ " ${INPUT_RUN_E2E_TESTS} " ]]; then
+              echo "❌ ERROR: run_e2e_tests '$INPUT_RUN_E2E_TESTS' is invalid. Allowed values: ${ALLOWED_VALUES[*]}"
+              VALIDATION_FAILED=true
+            else
+              echo "✅ run_e2e_tests: '$INPUT_RUN_E2E_TESTS' is valid"
+            fi
+          fi
+          
+          # Validate AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID (Azure Resource ID format)
+          if [[ -n "$INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID" ]]; then
+            if [[ ! "$INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID" =~ ^/subscriptions/[a-fA-F0-9-]+/[rR]esource[gG]roups/[^/]+/providers/[mM]icrosoft\.[oO]perational[iI]nsights/workspaces/[^/]+$ ]]; then
+              echo "❌ ERROR: AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID is invalid. Must be a valid Azure Resource ID format:"
+              echo "   /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}"
+              echo "   Got: '$INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID'"
+              VALIDATION_FAILED=true
+            else
+              echo "✅ AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID: Valid Resource ID format"
+            fi
+          fi
+          
+          # Validate AZURE_EXISTING_AIPROJECT_RESOURCE_ID (Azure Resource ID format)
+          if [[ -n "$INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID" ]]; then
+            if [[ ! "$INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID" =~ ^/subscriptions/[a-fA-F0-9-]+/resourceGroups/[^/]+/providers/(Microsoft\.MachineLearningServices/(workspaces|projects)/[^/]+|Microsoft\.CognitiveServices/accounts/[^/]+/projects/[^/]+)$ ]]; then
+              echo "❌ ERROR: AZURE_EXISTING_AIPROJECT_RESOURCE_ID is invalid. Must be a valid Azure Resource ID format:"
+              echo "   /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.CognitiveServices/accounts/{accountName}/projects/{projectName}"
+              echo "   Got: '$INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID'"
+              VALIDATION_FAILED=true
+            else
+              echo "✅ AZURE_EXISTING_AIPROJECT_RESOURCE_ID: Valid Resource ID format"
+            fi
+          fi
+          
+          # Validate docker_image_tag (Docker tag pattern)
+          if [[ -n "$INPUT_DOCKER_IMAGE_TAG" ]]; then
+            # Docker tags: lowercase and uppercase letters, digits, underscores, periods, and hyphens
+            # Cannot start with period or hyphen, max 128 characters
+            if [[ ! "$INPUT_DOCKER_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$ ]]; then
+              echo "❌ ERROR: docker_image_tag '$INPUT_DOCKER_IMAGE_TAG' is invalid. Must:"
+              echo "   - Start with alphanumeric or underscore"
+              echo "   - Contain only alphanumerics, underscores, periods, hyphens"
+              echo "   - Be max 128 characters"
+              VALIDATION_FAILED=true
+            else
+              echo "✅ docker_image_tag: '$INPUT_DOCKER_IMAGE_TAG' is valid"
+            fi
+          fi
+          
+          # Fail workflow if any validation failed
+          if [[ "$VALIDATION_FAILED" == "true" ]]; then
+            echo ""
+            echo "❌ Parameter validation failed. Please correct the errors above and try again."
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All input parameters validated successfully!"
+          
+      - name: Validate and Auto-Configure EXP
+        shell: bash
+        env:
+          INPUT_EXP: ${{ inputs.EXP }}
+          INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID: ${{ inputs.AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID }}
+          INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID: ${{ inputs.AZURE_EXISTING_AIPROJECT_RESOURCE_ID }}
+        run: |
+          echo "🔍 Validating EXP configuration..."
+          
+          if [[ "$INPUT_EXP" != "true" ]]; then
+            if [[ -n "$INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID" ]] || [[ -n "$INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID" ]]; then
+              echo "🔧 AUTO-ENABLING EXP: EXP parameter values were provided but EXP was not explicitly enabled."
+              echo ""
+              echo "You provided values for:"
+              [[ -n "$INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID" ]] && echo "  - Azure Log Analytics Workspace ID: '$INPUT_AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID'"
+              [[ -n "$INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID" ]] && echo "  - Azure AI Project Resource ID: '$INPUT_AZURE_EXISTING_AIPROJECT_RESOURCE_ID'"
+              echo ""
+              echo "✅ Automatically enabling EXP to use these values."
+              echo "EXP=true" >> $GITHUB_ENV
+              echo "📌 EXP has been automatically enabled for this deployment."
+            fi
+          fi
+          
+      - name: Checkout Code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Login to Azure (OIDC)
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Run Quota Check
+        id: quota-check
+        shell: bash
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          INPUT_TRIGGER_TYPE: ${{ inputs.trigger_type }}
+          INPUT_AZURE_LOCATION: ${{ inputs.azure_location }}
+          AZURE_REGIONS_FALLBACK: ${{ vars.AZURE_REGIONS }}
+          AZURE_NONAI_LOCATIONS_FALLBACK: ${{ vars.AZURE_NONAI_LOCATIONS }}
+          GPT_MIN_CAPACITY: ${{ env.GPT_MIN_CAPACITY }}
+          EMBEDDING_MIN_CAPACITY: ${{ env.EMBEDDING_MIN_CAPACITY }}
+          GPT_REALTIME_MIN_CAPACITY: ${{ env.GPT_REALTIME_MIN_CAPACITY }}
+        run: |
+          set -euo pipefail
+          if [[ "$INPUT_TRIGGER_TYPE" == "workflow_dispatch" && -n "$INPUT_AZURE_LOCATION" ]]; then
+            if [[ -n "${AZURE_REGIONS_FALLBACK:-}" ]]; then
+              export AZURE_REGIONS="$AZURE_REGIONS_FALLBACK"
+            else
+              export AZURE_REGIONS="eastus2,francecentral,swedencentral"
+            fi
+            echo "📋 Manual trigger: selected Non-AI region is '$INPUT_AZURE_LOCATION'"
+            echo "📋 Manual trigger: validating AI quota across AI-allowed regions '$AZURE_REGIONS'"
+          else
+            if [[ -n "${AZURE_REGIONS_FALLBACK:-}" ]]; then
+              export AZURE_REGIONS="$AZURE_REGIONS_FALLBACK"
+              echo "📋 Automatic trigger: validating AI quota across configured regions '$AZURE_REGIONS'"
+            elif [[ -n "${AZURE_NONAI_LOCATIONS_FALLBACK:-}" ]]; then
+              export AZURE_REGIONS="$AZURE_NONAI_LOCATIONS_FALLBACK"
+              echo "⚠️ AZURE_REGIONS is empty. Falling back to AZURE_NONAI_LOCATIONS for AI quota validation: '$AZURE_REGIONS'"
+            else
+              echo "❌ ERROR: No region lists configured. Set GitHub variable AZURE_REGIONS (preferred) or AZURE_NONAI_LOCATIONS."
+              exit 1
+            fi
+          fi
+
+          chmod +x infra/scripts/pre-provision/checkquota.sh
+          infra/scripts/pre-provision/checkquota.sh
+
+      - name: Set Quota Failure Output
+        id: quota_failure_output
+        if: env.QUOTA_FAILED == 'true'
+        shell: bash
+        run: |
+          echo "QUOTA_FAILED=true" >> $GITHUB_OUTPUT
+          echo "Quota check failed - will notify via separate notification job"
+      
+      - name: Fail Pipeline if Quota Check Fails
+        if: env.QUOTA_FAILED == 'true'
+        shell: bash
+        run: exit 1
+      
+      - name: Check Azure Search Quota - Manual Trigger (bicep/avm, Basic Tier)
+        id: search-quota-manual-basic
+        if: inputs.trigger_type == 'workflow_dispatch' && env.DEPLOYMENT_FLAVOR != 'avm-waf'
+        shell: bash
+        env:
+          INPUT_AZURE_LOCATION: ${{ inputs.azure_location }}
+          ALLOWED_AZURE_LOCATIONS: ${{ vars.AZURE_NONAI_LOCATIONS }}
+        run: |
+          SEARCH_TIER="basic"
+          SEARCH_TIER_DISPLAY="Basic"
+
+          check_region_quota() {
+            local REGION="$1"
+            SEARCH_USAGE=$(az rest --method get \
+              --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.Search/locations/${REGION}/usages?api-version=2024-03-01-preview" \
+              -o json 2>/dev/null || echo '{"value":[]}')
+            if [ "$(echo "$SEARCH_USAGE" | jq '.value | length')" -eq 0 ]; then
+              echo "   ⚠️ Could not retrieve Azure Search quota for $REGION. Skipping."
+              TIER_AVAILABLE=-1; return
+            fi
+            TIER_USAGE=$(echo "$SEARCH_USAGE" | jq -r --arg tier "$SEARCH_TIER" '[.value[] | select(.name.value == $tier) | .currentValue] | first // 0')
+            TIER_LIMIT=$(echo "$SEARCH_USAGE" | jq -r --arg tier "$SEARCH_TIER" '[.value[] | select(.name.value == $tier) | .limit] | first // 0')
+            TIER_USAGE=${TIER_USAGE:-0}; TIER_LIMIT=${TIER_LIMIT:-0}
+            TIER_AVAILABLE=$((TIER_LIMIT - TIER_USAGE))
+            echo "   $SEARCH_TIER_DISPLAY Tier: Used=$TIER_USAGE | Limit=$TIER_LIMIT | Available=$TIER_AVAILABLE"
+          }
+
+          NONAI_REGIONS=()
+          if [[ -n "$ALLOWED_AZURE_LOCATIONS" ]]; then
+            IFS=', ' read -r -a NONAI_REGIONS <<< "$ALLOWED_AZURE_LOCATIONS"
+          fi
+
+          SEARCH_VALID_REGION=""
+          CHECKED_REGIONS=()
+          FALLBACK_USED=false
+
+          echo "📋 Manual trigger (bicep/avm): checking user-selected Non-AI region '$INPUT_AZURE_LOCATION' for $SEARCH_TIER_DISPLAY tier Search quota"
+          echo "----------------------------------------"
+          echo "🔍 Checking region: $INPUT_AZURE_LOCATION"
+          check_region_quota "$INPUT_AZURE_LOCATION"
+          if [ "$TIER_AVAILABLE" -ge 1 ]; then
+            echo "   ✅ Region '$INPUT_AZURE_LOCATION' has sufficient $SEARCH_TIER_DISPLAY tier Search quota!"
+            SEARCH_VALID_REGION="$INPUT_AZURE_LOCATION"
+            CHECKED_REGIONS+=("$INPUT_AZURE_LOCATION: ✅ available=$TIER_AVAILABLE (user-selected)")
+          else
+            [ "$TIER_AVAILABLE" -lt 0 ] \
+              && CHECKED_REGIONS+=("$INPUT_AZURE_LOCATION: ⚠️ skipped (user-selected)") \
+              || CHECKED_REGIONS+=("$INPUT_AZURE_LOCATION: ❌ available=$TIER_AVAILABLE (user-selected)")
+            if [ ${#NONAI_REGIONS[@]} -gt 0 ]; then
+              echo ""
+              echo "ℹ️ User-selected region '$INPUT_AZURE_LOCATION' does not have sufficient $SEARCH_TIER_DISPLAY tier Search quota. Scanning AZURE_NONAI_LOCATIONS for a fallback..."
+              for REGION in "${NONAI_REGIONS[@]}"; do
+                [[ "$REGION" == "$INPUT_AZURE_LOCATION" ]] && continue
+                echo "----------------------------------------"
+                echo "🔍 Checking region: $REGION"
+                check_region_quota "$REGION"
+                if [ "$TIER_AVAILABLE" -lt 0 ]; then
+                  CHECKED_REGIONS+=("$REGION: ⚠️ skipped")
+                elif [ "$TIER_AVAILABLE" -ge 1 ]; then
+                  CHECKED_REGIONS+=("$REGION: ✅ available=$TIER_AVAILABLE")
+                  SEARCH_VALID_REGION="$REGION"
+                  FALLBACK_USED=true
+                  echo "✅ Using '$REGION' as fallback Non-AI deployment region."
+                  break
+                else
+                  CHECKED_REGIONS+=("$REGION: ❌ available=$TIER_AVAILABLE")
+                fi
+              done
+            fi
+          fi
+
+          echo ""
+          echo "========================================"
+
+          if [[ "$FALLBACK_USED" == "true" ]]; then
+            echo "## ⚠️ Azure Search Region Fallback Applied" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "User-selected Non-AI region **\`$INPUT_AZURE_LOCATION\`** does not have enough Azure Search **$SEARCH_TIER_DISPLAY** tier quota." >> $GITHUB_STEP_SUMMARY
+            echo "Deployment will use **\`$SEARCH_VALID_REGION\`** " >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -z "$SEARCH_VALID_REGION" ]; then
+            echo "❌ No region with sufficient Azure Search $SEARCH_TIER_DISPLAY tier quota found!"
+            echo "Regions checked:"
+            for entry in "${CHECKED_REGIONS[@]}"; do echo "  - $entry"; done
+            echo "## ❌ Azure Search Quota Check Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No region in \`AZURE_NONAI_LOCATIONS\` has sufficient Azure Search **$SEARCH_TIER_DISPLAY** tier quota." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Region | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+            for entry in "${CHECKED_REGIONS[@]}"; do
+              region="${entry%%:*}"; status="${entry#*: }"
+              echo "| \`$region\` | $status |" >> $GITHUB_STEP_SUMMARY
+            done
+            exit 1
+          fi
+
+          echo "✅ Selected Non-AI region for AZURE_LOCATION: $SEARCH_VALID_REGION"
+          echo "SEARCH_VALID_REGION=$SEARCH_VALID_REGION" >> $GITHUB_ENV
+          echo "SEARCH_VALID_REGION=$SEARCH_VALID_REGION" >> $GITHUB_OUTPUT
+
+      - name: Check Azure Search Quota - Manual Trigger (avm-waf, Standard Tier)
+        id: search-quota-manual-standard
+        if: inputs.trigger_type == 'workflow_dispatch' && env.DEPLOYMENT_FLAVOR == 'avm-waf'
+        shell: bash
+        env:
+          INPUT_AZURE_LOCATION: ${{ inputs.azure_location }}
+          ALLOWED_AZURE_LOCATIONS: ${{ vars.AZURE_NONAI_LOCATIONS }}
+        run: |
+          SEARCH_TIER="standard"
+          SEARCH_TIER_DISPLAY="Standard"
+
+          check_region_quota() {
+            local REGION="$1"
+            SEARCH_USAGE=$(az rest --method get \
+              --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.Search/locations/${REGION}/usages?api-version=2024-03-01-preview" \
+              -o json 2>/dev/null || echo '{"value":[]}')
+            if [ "$(echo "$SEARCH_USAGE" | jq '.value | length')" -eq 0 ]; then
+              echo "   ⚠️ Could not retrieve Azure Search quota for $REGION. Skipping."
+              TIER_AVAILABLE=-1; return
+            fi
+            TIER_USAGE=$(echo "$SEARCH_USAGE" | jq -r --arg tier "$SEARCH_TIER" '[.value[] | select(.name.value == $tier) | .currentValue] | first // 0')
+            TIER_LIMIT=$(echo "$SEARCH_USAGE" | jq -r --arg tier "$SEARCH_TIER" '[.value[] | select(.name.value == $tier) | .limit] | first // 0')
+            TIER_USAGE=${TIER_USAGE:-0}; TIER_LIMIT=${TIER_LIMIT:-0}
+            TIER_AVAILABLE=$((TIER_LIMIT - TIER_USAGE))
+            echo "   $SEARCH_TIER_DISPLAY Tier: Used=$TIER_USAGE | Limit=$TIER_LIMIT | Available=$TIER_AVAILABLE"
+          }
+
+          NONAI_REGIONS=()
+          if [[ -n "$ALLOWED_AZURE_LOCATIONS" ]]; then
+            IFS=', ' read -r -a NONAI_REGIONS <<< "$ALLOWED_AZURE_LOCATIONS"
+          fi
+
+          SEARCH_VALID_REGION=""
+          CHECKED_REGIONS=()
+          FALLBACK_USED=false
+
+          echo "📋 Manual trigger (avm-waf): checking user-selected Non-AI region '$INPUT_AZURE_LOCATION' for $SEARCH_TIER_DISPLAY tier Search quota"
+          echo "----------------------------------------"
+          echo "🔍 Checking region: $INPUT_AZURE_LOCATION"
+          check_region_quota "$INPUT_AZURE_LOCATION"
+          if [ "$TIER_AVAILABLE" -ge 1 ]; then
+            echo "   ✅ Region '$INPUT_AZURE_LOCATION' has sufficient $SEARCH_TIER_DISPLAY tier Search quota!"
+            SEARCH_VALID_REGION="$INPUT_AZURE_LOCATION"
+            CHECKED_REGIONS+=("$INPUT_AZURE_LOCATION: ✅ available=$TIER_AVAILABLE (user-selected)")
+          else
+            [ "$TIER_AVAILABLE" -lt 0 ] \
+              && CHECKED_REGIONS+=("$INPUT_AZURE_LOCATION: ⚠️ skipped (user-selected)") \
+              || CHECKED_REGIONS+=("$INPUT_AZURE_LOCATION: ❌ available=$TIER_AVAILABLE (user-selected)")
+            if [ ${#NONAI_REGIONS[@]} -gt 0 ]; then
+              echo ""
+              echo "ℹ️ User-selected region '$INPUT_AZURE_LOCATION' does not have sufficient $SEARCH_TIER_DISPLAY tier Search quota. Scanning AZURE_NONAI_LOCATIONS for a fallback..."
+              for REGION in "${NONAI_REGIONS[@]}"; do
+                [[ "$REGION" == "$INPUT_AZURE_LOCATION" ]] && continue
+                echo "----------------------------------------"
+                echo "🔍 Checking region: $REGION"
+                check_region_quota "$REGION"
+                if [ "$TIER_AVAILABLE" -lt 0 ]; then
+                  CHECKED_REGIONS+=("$REGION: ⚠️ skipped")
+                elif [ "$TIER_AVAILABLE" -ge 1 ]; then
+                  CHECKED_REGIONS+=("$REGION: ✅ available=$TIER_AVAILABLE")
+                  SEARCH_VALID_REGION="$REGION"
+                  FALLBACK_USED=true
+                  echo "✅ Using '$REGION' as fallback Non-AI deployment region."
+                  break
+                else
+                  CHECKED_REGIONS+=("$REGION: ❌ available=$TIER_AVAILABLE")
+                fi
+              done
+            fi
+          fi
+
+          echo ""
+          echo "========================================"
+
+          if [[ "$FALLBACK_USED" == "true" ]]; then
+            echo "## ⚠️ Azure Search Region Fallback Applied (Standard Tier)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "User-selected Non-AI region **\`$INPUT_AZURE_LOCATION\`** does not have enough Azure Search **$SEARCH_TIER_DISPLAY** tier quota." >> $GITHUB_STEP_SUMMARY
+            echo "Deployment will use **\`$SEARCH_VALID_REGION\`** " >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -z "$SEARCH_VALID_REGION" ]; then
+            echo "❌ No region with sufficient Azure Search $SEARCH_TIER_DISPLAY tier quota found!"
+            echo "Regions checked:"
+            for entry in "${CHECKED_REGIONS[@]}"; do echo "  - $entry"; done
+            echo "## ❌ Azure Search Quota Check Failed (Standard Tier)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No region in \`AZURE_NONAI_LOCATIONS\` has sufficient Azure Search **$SEARCH_TIER_DISPLAY** tier quota." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Region | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+            for entry in "${CHECKED_REGIONS[@]}"; do
+              region="${entry%%:*}"; status="${entry#*: }"
+              echo "| \`$region\` | $status |" >> $GITHUB_STEP_SUMMARY
+            done
+            exit 1
+          fi
+
+          echo "✅ Selected Non-AI region for AZURE_LOCATION: $SEARCH_VALID_REGION"
+          echo "SEARCH_VALID_REGION=$SEARCH_VALID_REGION" >> $GITHUB_ENV
+          echo "SEARCH_VALID_REGION=$SEARCH_VALID_REGION" >> $GITHUB_OUTPUT
+
+      - name: Check Azure Search Quota - Auto Trigger (Basic Tier)
+        id: search-quota-auto
+        if: inputs.trigger_type != 'workflow_dispatch'
+        shell: bash
+        env:
+          ALLOWED_AZURE_LOCATIONS: ${{ vars.AZURE_NONAI_LOCATIONS }}
+        run: |
+          SEARCH_TIER="basic"
+          SEARCH_TIER_DISPLAY="Basic"
+
+          check_region_quota() {
+            local REGION="$1"
+            SEARCH_USAGE=$(az rest --method get \
+              --url "https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.Search/locations/${REGION}/usages?api-version=2024-03-01-preview" \
+              -o json 2>/dev/null || echo '{"value":[]}')
+            if [ "$(echo "$SEARCH_USAGE" | jq '.value | length')" -eq 0 ]; then
+              echo "   ⚠️ Could not retrieve Azure Search quota for $REGION. Skipping."
+              TIER_AVAILABLE=-1; return
+            fi
+            TIER_USAGE=$(echo "$SEARCH_USAGE" | jq -r --arg tier "$SEARCH_TIER" '[.value[] | select(.name.value == $tier) | .currentValue] | first // 0')
+            TIER_LIMIT=$(echo "$SEARCH_USAGE" | jq -r --arg tier "$SEARCH_TIER" '[.value[] | select(.name.value == $tier) | .limit] | first // 0')
+            TIER_USAGE=${TIER_USAGE:-0}; TIER_LIMIT=${TIER_LIMIT:-0}
+            TIER_AVAILABLE=$((TIER_LIMIT - TIER_USAGE))
+            echo "   $SEARCH_TIER_DISPLAY Tier: Used=$TIER_USAGE | Limit=$TIER_LIMIT | Available=$TIER_AVAILABLE"
+          }
+
+          NONAI_REGIONS=()
+          if [[ -n "$ALLOWED_AZURE_LOCATIONS" ]]; then
+            IFS=', ' read -r -a NONAI_REGIONS <<< "$ALLOWED_AZURE_LOCATIONS"
+          fi
+
+          if [ ${#NONAI_REGIONS[@]} -eq 0 ]; then
+            echo "❌ ERROR: GitHub variable 'AZURE_NONAI_LOCATIONS' is empty. Cannot determine Non-AI deployment region."
+            exit 1
+          fi
+
+          echo "📋 Auto trigger: scanning AZURE_NONAI_LOCATIONS for $SEARCH_TIER_DISPLAY tier Search quota"
+          echo "🔍 Regions to check: ${NONAI_REGIONS[*]}"
+
+          SEARCH_VALID_REGION=""
+          CHECKED_REGIONS=()
+
+          for REGION in "${NONAI_REGIONS[@]}"; do
+            echo "----------------------------------------"
+            echo "🔍 Checking region: $REGION"
+            check_region_quota "$REGION"
+            if [ "$TIER_AVAILABLE" -lt 0 ]; then
+              CHECKED_REGIONS+=("$REGION: ⚠️ skipped")
+              continue
+            fi
+            if [ "$TIER_AVAILABLE" -ge 1 ]; then
+              echo "   ✅ Region '$REGION' has sufficient $SEARCH_TIER_DISPLAY tier Search quota!"
+              SEARCH_VALID_REGION="$REGION"
+              CHECKED_REGIONS+=("$REGION: ✅ available=$TIER_AVAILABLE")
+              break
+            else
+              echo "   ❌ Insufficient quota in $REGION"
+              CHECKED_REGIONS+=("$REGION: ❌ available=$TIER_AVAILABLE")
+            fi
+          done
+
+          echo ""
+          echo "========================================"
+
+          if [ -z "$SEARCH_VALID_REGION" ]; then
+            echo "❌ No region with sufficient Azure Search $SEARCH_TIER_DISPLAY tier quota found!"
+            echo "Regions checked:"
+            for entry in "${CHECKED_REGIONS[@]}"; do echo "  - $entry"; done
+            echo "## ❌ Azure Search Quota Check Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No region in \`AZURE_NONAI_LOCATIONS\` has sufficient Azure Search **$SEARCH_TIER_DISPLAY** tier quota." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Region | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+            for entry in "${CHECKED_REGIONS[@]}"; do
+              region="${entry%%:*}"; status="${entry#*: }"
+              echo "| \`$region\` | $status |" >> $GITHUB_STEP_SUMMARY
+            done
+            exit 1
+          fi
+
+          echo "✅ Selected Non-AI region for AZURE_LOCATION: $SEARCH_VALID_REGION"
+          echo "SEARCH_VALID_REGION=$SEARCH_VALID_REGION" >> $GITHUB_ENV
+          echo "SEARCH_VALID_REGION=$SEARCH_VALID_REGION" >> $GITHUB_OUTPUT
+
+      - name: Set Deployment Region
+        id: set_region
+        shell: bash
+        env:
+          INPUT_TRIGGER_TYPE: ${{ inputs.trigger_type }}
+          INPUT_AZURE_LOCATION: ${{ inputs.azure_location }}
+        run: |
+          echo "Selected AI Service Region (QuotaRegions from GPT quota check): $VALID_REGION"
+          echo "AZURE_ENV_AI_SERVICE_LOCATION=$VALID_REGION" >> $GITHUB_ENV
+          echo "AZURE_ENV_AI_SERVICE_LOCATION=$VALID_REGION" >> $GITHUB_OUTPUT
+
+          # AZURE_LOCATION = region validated by Azure Search service quota check
+          echo "Selected Deployment Region (from Search quota check): $SEARCH_VALID_REGION"
+          echo "AZURE_LOCATION=$SEARCH_VALID_REGION" >> $GITHUB_ENV
+          echo "AZURE_LOCATION=$SEARCH_VALID_REGION" >> $GITHUB_OUTPUT
+
+          if [[ "$INPUT_TRIGGER_TYPE" == "workflow_dispatch" && -n "$INPUT_AZURE_LOCATION" ]]; then
+            if [[ "$SEARCH_VALID_REGION" == "$INPUT_AZURE_LOCATION" ]]; then
+              echo "ℹ️ Manual trigger: AZURE_LOCATION resolved to user-selected region '$INPUT_AZURE_LOCATION'"
+            else
+              echo "ℹ️ Manual trigger: user-selected region '$INPUT_AZURE_LOCATION' had constrained Search quota; using fallback '$SEARCH_VALID_REGION'"
+            fi
+          else
+            echo "ℹ️ Automatic trigger: AZURE_LOCATION resolved from allowed regions list"
+          fi
+
+      - name: Generate Resource Group Name
+        id: generate_rg_name
+        shell: bash
+        env:
+          INPUT_RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+        run: |
+          # Check if a resource group name was provided as input
+          if [[ -n "$INPUT_RESOURCE_GROUP_NAME" ]]; then
+            echo "Using provided Resource Group name: $INPUT_RESOURCE_GROUP_NAME"
+            echo "RESOURCE_GROUP_NAME=$INPUT_RESOURCE_GROUP_NAME" >> $GITHUB_ENV
+          else
+            echo "Generating a unique resource group name..."
+            ACCL_NAME="byocc"  # Account name as specified
+            SHORT_UUID=$(uuidgen | cut -d'-' -f1)
+            UNIQUE_RG_NAME="arg-${ACCL_NAME}-${SHORT_UUID}"
+            echo "RESOURCE_GROUP_NAME=${UNIQUE_RG_NAME}" >> $GITHUB_ENV
+            echo "Generated RESOURCE_GROUP_NAME: ${UNIQUE_RG_NAME}"
+          fi
+
+      - name: Install Bicep CLI
+        shell: bash
+        run: az bicep install
+
+      - name: Check and Create Resource Group
+        id: check_create_rg
+        shell: bash
+        run: |
+          set -e
+          OWNER_TAG_VALUE="${{ github.actor }}"
+          echo "🔍 Checking if resource group '$RESOURCE_GROUP_NAME' exists..."
+          rg_exists=$(az group exists --name $RESOURCE_GROUP_NAME)
+          if [ "$rg_exists" = "false" ]; then
+            echo "📦 Resource group does not exist. Creating new resource group '$RESOURCE_GROUP_NAME' in location '$AZURE_LOCATION'..."
+            echo "🏷️  Adding Owner tag: Owner=${OWNER_TAG_VALUE}"
+            az group create --name $RESOURCE_GROUP_NAME --location $AZURE_LOCATION --tags ${{ env.RG_TAGS }} "Owner=${OWNER_TAG_VALUE}" || { echo "❌ Error creating resource group"; exit 1; }
+            echo "✅ Resource group '$RESOURCE_GROUP_NAME' created successfully."
+          else
+            echo "✅ Resource group '$RESOURCE_GROUP_NAME' already exists. Deploying to existing resource group."
+            echo "🏷️  Adding Owner tag on existing resource group: Owner=${OWNER_TAG_VALUE}"
+            az group update --name "$RESOURCE_GROUP_NAME" --set tags.Owner="${OWNER_TAG_VALUE}" --output none || echo "⚠️  Warning: failed to update Owner tag on existing resource group '$RESOURCE_GROUP_NAME'."
+          fi
+          echo "RESOURCE_GROUP_NAME=$RESOURCE_GROUP_NAME" >> $GITHUB_OUTPUT
+          echo "RESOURCE_GROUP_NAME=$RESOURCE_GROUP_NAME" >> $GITHUB_ENV
+
+      - name: Generate Unique Solution Prefix
+        id: generate_solution_prefix
+        shell: bash
+        run: |
+          set -e
+          COMMON_PART="psldg"
+          TIMESTAMP=$(date +%s)  
+          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 6) 
+          UNIQUE_SOLUTION_PREFIX="${COMMON_PART}${UPDATED_TIMESTAMP}"
+          echo "SOLUTION_PREFIX=${UNIQUE_SOLUTION_PREFIX}" >> $GITHUB_ENV
+          echo "Generated SOLUTION_PREFIX: ${UNIQUE_SOLUTION_PREFIX}" 
+
+      - name: Determine Docker Image Tag
+        id: determine_image_tag
+        shell: bash
+        env:
+          INPUT_DOCKER_IMAGE_TAG: ${{ inputs.docker_image_tag }}
+        run: |
+          if [[ "${{ env.BUILD_DOCKER_IMAGE }}" == "true" ]]; then
+            if [[ -n "$INPUT_DOCKER_IMAGE_TAG" ]]; then
+              IMAGE_TAG="$INPUT_DOCKER_IMAGE_TAG"
+              echo "🔗 Using Docker image tag from build job: $IMAGE_TAG"
+            else
+              echo "❌ Docker build job failed or was skipped, but BUILD_DOCKER_IMAGE is true"
+              exit 1
+            fi
+          else
+            echo "🏷️ Using existing Docker image based on branch..."
+            BRANCH_NAME="${{ env.BRANCH_NAME }}"
+            echo "Current branch: $BRANCH_NAME"
+            
+            if [[ "$BRANCH_NAME" == "main" ]]; then
+              IMAGE_TAG="latest_v3"
+            elif [[ "$BRANCH_NAME" == "dev" ]]; then
+              IMAGE_TAG="dev"
+            elif [[ "$BRANCH_NAME" == "demo" ]]; then
+              IMAGE_TAG="demo" 
+            else
+              IMAGE_TAG="latest_v3"
+              echo "Using default for branch '$BRANCH_NAME' - image tag: latest_v3"
+            fi
+            echo "Using existing Docker image tag: $IMAGE_TAG"
+          fi
+          
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate Unique Environment Name
+        id: generate_env_name
+        shell: bash
+        run: |
+          COMMON_PART="pslc"
+          TIMESTAMP=$(date +%s)
+          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 6)
+          UNIQUE_ENV_NAME="${COMMON_PART}${UPDATED_TIMESTAMP}"
+          echo "ENV_NAME=${UNIQUE_ENV_NAME}" >> $GITHUB_ENV
+          echo "Generated Environment Name: ${UNIQUE_ENV_NAME}"
+          echo "ENV_NAME=${UNIQUE_ENV_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Display Workflow Configuration to GitHub Summary
+        shell: bash
+        env:
+          INPUT_TRIGGER_TYPE: ${{ inputs.trigger_type }}
+          INPUT_AZURE_LOCATION: ${{ inputs.azure_location }}
+          INPUT_RESOURCE_GROUP_NAME: ${{ inputs.resource_group_name }}
+        run: |
+          echo "## 📋 Workflow Configuration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Configuration | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ env.BRANCH_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Deployment Flavour** | \`${{ inputs.deployment_flavor || 'bicep' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **EXP Enabled** | ${{ env.EXP == 'true' && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run E2E Tests** | \`${{ env.RUN_E2E_TESTS }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Cleanup Resources** | ${{ env.CLEANUP_RESOURCES == 'true' && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Docker Image** | ${{ env.BUILD_DOCKER_IMAGE == 'true' && '✅ Yes' || '❌ No' }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "$INPUT_TRIGGER_TYPE" == "workflow_dispatch" && -n "$INPUT_AZURE_LOCATION" ]]; then
+            echo "| **Azure Location** | \`$INPUT_AZURE_LOCATION\` (User Selected) |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ -n "$INPUT_RESOURCE_GROUP_NAME" ]]; then
+            echo "| **Resource Group** | \`$INPUT_RESOURCE_GROUP_NAME\` (Pre-specified) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| **Resource Group** | \`${{ env.RESOURCE_GROUP_NAME }}\` (Auto-generated) |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "$INPUT_TRIGGER_TYPE" != "workflow_dispatch" ]]; then
+            echo "ℹ️ **Note:** Automatic Trigger - Using Non-WAF + Non-EXP configuration" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **Note:** Manual Trigger - Using user-specified configuration" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  deploy-linux:
+    name: Deploy on Linux
+    needs: azure-setup
+    if: inputs.runner_os == 'ubuntu-latest' && !cancelled() && needs.azure-setup.result == 'success'
+    uses: ./.github/workflows/job-deploy-linux.yml
+    with:
+      ENV_NAME: ${{ needs.azure-setup.outputs.ENV_NAME }}
+      AZURE_ENV_AI_SERVICE_LOCATION: ${{ needs.azure-setup.outputs.AZURE_ENV_AI_SERVICE_LOCATION }}
+      AZURE_LOCATION: ${{ needs.azure-setup.outputs.AZURE_LOCATION }}
+      RESOURCE_GROUP_NAME: ${{ needs.azure-setup.outputs.RESOURCE_GROUP_NAME }}
+      IMAGE_TAG: ${{ needs.azure-setup.outputs.IMAGE_TAG }}
+      AZURE_NONAI_LOCATIONS: ${{ vars.AZURE_NONAI_LOCATIONS }}
+      BUILD_DOCKER_IMAGE: ${{ inputs.build_docker_image || 'false' }}
+      EXP: ${{ inputs.EXP || 'false' }}
+      DEPLOYMENT_FLAVOR: ${{ inputs.deployment_flavor || 'bicep' }}
+      ENABLE_SCALABILITY: ${{ inputs.enable_scalability == true && 'true' || 'false' }}
+      AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID: ${{ inputs.AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID }}
+      AZURE_EXISTING_AIPROJECT_RESOURCE_ID: ${{ inputs.AZURE_EXISTING_AIPROJECT_RESOURCE_ID }}
+    secrets: inherit
+
+  deploy-windows:
+    name: Deploy on Windows
+    needs: azure-setup
+    if: inputs.runner_os == 'windows-latest' && !cancelled() && needs.azure-setup.result == 'success'
+    uses: ./.github/workflows/job-deploy-windows.yml
+    with:
+      ENV_NAME: ${{ needs.azure-setup.outputs.ENV_NAME }}
+      AZURE_ENV_AI_SERVICE_LOCATION: ${{ needs.azure-setup.outputs.AZURE_ENV_AI_SERVICE_LOCATION }}
+      AZURE_LOCATION: ${{ needs.azure-setup.outputs.AZURE_LOCATION }}
+      RESOURCE_GROUP_NAME: ${{ needs.azure-setup.outputs.RESOURCE_GROUP_NAME }}
+      IMAGE_TAG: ${{ needs.azure-setup.outputs.IMAGE_TAG }}
+      AZURE_NONAI_LOCATIONS: ${{ vars.AZURE_NONAI_LOCATIONS }}
+      BUILD_DOCKER_IMAGE: ${{ inputs.build_docker_image || 'false' }}
+      EXP: ${{ inputs.EXP || 'false' }}
+      DEPLOYMENT_FLAVOR: ${{ inputs.deployment_flavor || 'bicep' }}
+      ENABLE_SCALABILITY: ${{ inputs.enable_scalability == true && 'true' || 'false' }}
+      AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID: ${{ inputs.AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_RID }}
+      AZURE_EXISTING_AIPROJECT_RESOURCE_ID: ${{ inputs.AZURE_EXISTING_AIPROJECT_RESOURCE_ID }}
+    secrets: inherit
+
+  post-deploy:
+    name: Post Deployment Steps
+    needs: [azure-setup, deploy-linux, deploy-windows]
+    if: ${{ !cancelled() && (needs.deploy-linux.result == 'success' || needs.deploy-windows.result == 'success') }}
+    uses: ./.github/workflows/job-post-deploy.yml
+    with:
+      RESOURCE_GROUP_NAME: ${{ needs.azure-setup.outputs.RESOURCE_GROUP_NAME }}
+      DEPLOYMENT_FLAVOR: ${{ inputs.deployment_flavor || 'bicep' }}
+    secrets: inherit

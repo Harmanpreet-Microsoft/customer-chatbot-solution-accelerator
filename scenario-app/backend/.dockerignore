@@ -1,0 +1,44 @@
+# Never bake developer-local secrets or env overrides into the image.
+# App Service / azd app settings are the source of truth in deployed envs.
+.env
+.env.*
+!.env.example
+!.env.sample
+!env.sample
+
+# Python build artifacts / caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor / OS junk
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# VCS
+.git/
+.gitignore
+
+.env
+.env.*
+!.env.example
+__pycache__
+*.pyc
+.venv
+venv
+.pytest_cache
+.mypy_cache
+*.md

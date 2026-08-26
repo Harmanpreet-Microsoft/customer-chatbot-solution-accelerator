@@ -1,0 +1,47 @@
+name: AZD Template Validation
+on:
+  schedule:
+    - cron: '30 1 * * 4'  # Every Thursday at 7:00 AM IST (1:30 AM UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  template_validation:
+    runs-on: ubuntu-latest
+    environment: production
+    name: azd template validation
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set timestamp
+        shell: bash
+        run: echo "HHMM=$(date -u +'%H%M')" >> "$GITHUB_ENV"
+
+      - name: Validate Azure Template
+        uses: microsoft/template-validation-action@bae4895d0a8abd4f0d5aad68ae8647b3027f4c91 # v0.4.4
+        with:
+          validateAzd: ${{ vars.TEMPLATE_VALIDATE_AZD }}
+          validateTests: ${{ vars.TEMPLATE_VALIDATE_TESTS }}
+          useDevContainer: ${{ vars.TEMPLATE_USE_DEV_CONTAINER }}
+        id: validation
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}-${{ env.HHMM }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_ENV_AI_SERVICE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_AI_MODEL_CAPACITY: 1
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AZURE_DEV_COLLECT_TELEMETRY: ${{ vars.AZURE_DEV_COLLECT_TELEMETRY }}
+
+      - name: print result
+        if: always()
+        run: cat ${{ steps.validation.outputs.resultFile }}

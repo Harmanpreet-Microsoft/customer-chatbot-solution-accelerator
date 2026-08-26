@@ -1,316 +1,317 @@
-// ========== main.bicep ========== //
+// ============================================================================
+// main.bicep — Deployment Router
+// Description: Routes deployment to the appropriate infrastructure flavor.
+//   - 'bicep'   → Vanilla Bicep modules (Docker deployment)
+//   - 'avm'     → AVM-based modules (non-WAF)
+//   - 'avm-waf' → AVM-based modules with WAF-aligned features
+//              (monitoring, private networking, scalability, redundancy)
+// ============================================================================
 targetScope = 'resourceGroup'
-var abbrs = loadJsonContent('./abbreviations.json')
+
+// ============================================================================
+// Routing Parameter
+// ============================================================================
+
+@allowed(['bicep', 'avm', 'avm-waf'])
+@description('Required. Deployment flavor: bicep (vanilla Docker), avm (AVM non-WAF), or avm-waf (AVM WAF-aligned).')
+param deploymentFlavor string
+
+// ============================================================================
+// Parameters — Core (shared across all flavors)
+// ============================================================================
+
+@description('Optional. A unique application/solution name for all resources in this deployment. This should be 3-16 characters long.')
 @minLength(3)
-@maxLength(20)
-@description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
-param environmentName string
+@maxLength(16)
+param solutionName string = 'ccsa'
 
-@description('Optional: Existing Log Analytics Workspace Resource ID')
-param existingLogAnalyticsWorkspaceId string = ''
+@maxLength(5)
+@description('Optional. A unique text suffix appended to resource names for uniqueness.')
+param solutionUniqueText string = substring(uniqueString(subscription().id, resourceGroup().name, solutionName), 0, 5)
 
-@description('Use this parameter to use an existing AI project resource ID')
-param azureExistingAIProjectResourceId string = ''
+@metadata({
+  azd: { type: 'location' }
+})
+@allowed([
+  'australiaeast'
+  'centralus'
+  'eastasia'
+  'eastus2'
+  'japaneast'
+  'northeurope'
+  'southeastasia'
+  'uksouth'
+])
+@description('Required. Primary Azure region for resource deployment.')
+param location string
 
-// @minLength(1)
-// @description('Location for the Content Understanding service deployment:')
-// @allowed(['swedencentral', 'australiaeast'])
-// @metadata({
-//   azd: {
-//     type: 'location'
-//   }
-// })
-// param contentUnderstandingLocation string = 'swedencentral'
-var contentUnderstandingLocation = ''
+@description('Optional. Tags to apply to all resources.')
+param tags object = {}
 
-@minLength(1)
-@description('Secondary location for databases creation(example:eastus2):')
-param secondaryLocation string = 'eastus2'
+@allowed([
+  'eastus2'
+  'francecentral'
+  'swedencentral'
+  'centralus'
+  'southindia'
+])
+@metadata({
+  azd: {
+    type: 'location'
+    usageName: [
+      'OpenAI.GlobalStandard.gpt-5.4-mini,50'
+      'OpenAI.GlobalStandard.text-embedding-3-small,10'
+      'OpenAI.GlobalStandard.gpt-realtime-mini,1'
+    ]
+  }
+})
+@description('Required. Location for Azure AI Foundry and model deployments.')
+param azureAiServiceLocation string
 
-@minLength(1)
-@description('GPT model deployment type:')
+@description('Deployment scenario: ecommerce, healthcare, or banking')
+@allowed([
+  'ecommerce'
+  'healthcare'
+  'banking'
+])
+param deploymentScenario string = 'ecommerce'
+
+// ============================================================================
+// Parameters — AI Configuration
+// ============================================================================
+
 @allowed([
   'Standard'
   'GlobalStandard'
 ])
+@description('Optional. GPT model deployment type.')
 param deploymentType string = 'GlobalStandard'
 
-@description('Name of the GPT model to deploy:')
-param gptModelName string = 'gpt-4o-mini'
+@description('Optional. Name of the GPT model to deploy.')
+param gptModelName string = 'gpt-5.4-mini'
 
-@description('Version of the GPT model to deploy:')
-param gptModelVersion string = '2024-07-18'
-
-param azureOpenAIApiVersion string = '2025-01-01-preview'
-
-param azureAiAgentApiVersion string = '2025-05-01'
+@description('Optional. Version of the GPT model to deploy.')
+param gptModelVersion string = '2026-03-17'
 
 @minValue(10)
-@description('Capacity of the GPT deployment:')
-// You can increase this, but capacity is limited per model/region, so you will get errors if you go over
-// https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits
-param gptDeploymentCapacity int = 10
+@description('Optional. Capacity of the GPT deployment (TPM in thousands).')
+param gptDeploymentCapacity int = 50
 
-@minLength(1)
-@description('Name of the Text Embedding model to deploy:')
 @allowed([
-  'text-embedding-ada-002'
+  'text-embedding-3-small'
 ])
-param embeddingModel string = 'text-embedding-ada-002'
+@description('Optional. Name of the embedding model to deploy.')
+param embeddingModel string = 'text-embedding-3-small'
 
 @minValue(10)
-@description('Capacity of the Embedding Model deployment')
+@description('Optional. Capacity of the embedding model deployment.')
 param embeddingDeploymentCapacity int = 10
 
-param imageTag string = 'latest'
+@allowed([
+  'gpt-realtime-mini'
+])
+@description('Optional. Name of the realtime model to deploy.')
+param gptRealtimeModelName string = 'gpt-realtime-mini'
 
-param AZURE_LOCATION string=''
-var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
+@description('Optional. Version of the realtime model to deploy.')
+param gptRealtimeModelVersion string = '2025-12-15'
 
-var uniqueId = toLower(uniqueString(subscription().id, environmentName, solutionLocation))
+@minValue(1)
+@description('Optional. Capacity of the realtime model deployment.')
+param gptRealtimeDeploymentCapacity int = 1
 
-@metadata({
-  azd:{
-    type: 'location'
-    usageName: [
-      'OpenAI.GlobalStandard.gpt-4o-mini,150'
-      // 'OpenAI.GlobalStandard.text-embedding-ada-002,80'
-    ]
-  }
-})
-@description('Location for AI Foundry deployment. This is the location where the AI Foundry resources will be deployed.')
-param aiDeploymentsLocation string
+@description('Optional. OpenAI API version.')
+param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
-@description('Optional. The tags to apply to all deployed Azure resources.')
-param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
+@description('Optional. Azure AI Agent API version.')
+param azureAiAgentApiVersion string = '2025-05-01'
 
-@description('Optional. created by user name')
-param createdBy string = contains(deployer(), 'userPrincipalName')? split(deployer().userPrincipalName, '@')[0]: deployer().objectId
+// ============================================================================
+// Parameters — Compute
+// ============================================================================
 
-var solutionPrefix = 'ccb${padLeft(take(uniqueId, 12), 12, '0')}'
+@allowed(['F1', 'D1', 'B1', 'B2', 'B3', 'S1', 'S2', 'S3', 'P1', 'P2', 'P3', 'P1v3', 'P1v4'])
+@description('Optional. App Service Plan SKU.')
+param appServicePlanSku string = 'B2'
 
-var acrName = 'ccbcontainerreg' //change to real ACR name 
-//'ncccbacr1'
+// ============================================================================
+// Parameters — Existing Resources
+// ============================================================================
 
-//Get the current deployer's information
-var deployerInfo = deployer()
-var deployingUserPrincipalId = deployerInfo.objectId
+@description('Optional. Resource ID of an existing Log Analytics workspace. Empty creates a new one when monitoring is enabled.')
+param existingLogAnalyticsWorkspaceId string = ''
 
+@description('Optional. Resource ID of an existing Azure AI Foundry project. Empty creates a new one.')
+param existingFoundryProjectResourceId string = ''
 
-// ========== Resource Group Tag ========== //
-resource resourceGroupTags 'Microsoft.Resources/tags@2025-04-01' = {
-  name: 'default'
-  properties: {
-    tags: {
-      ...resourceGroup().tags
-      ...tags
-      TemplateName: 'Customer Chat bot'
-      Type: 'Non-WAF'
-      CreatedBy: createdBy
-      DeploymentName: deployment().name
-    }
-  }
-}
+// ============================================================================
+// Parameters — Identity
+// ============================================================================
 
-// ========== Managed Identity ========== //
-module managedIdentityModule 'deploy_managed_identity.bicep' = {
-  name: 'deploy_managed_identity'
+@allowed(['User', 'ServicePrincipal'])
+@description('Optional. Principal type of the deploying identity. Use ServicePrincipal for CI/CD pipelines with OIDC.')
+param deployingUserPrincipalType string = 'User'
+
+// ============================================================================
+// Parameters — Monitoring & Telemetry
+// ============================================================================
+
+@description('Optional. Enable monitoring (App Insights + Log Analytics).')
+param enableMonitoring bool = false
+
+@description('Optional. Enable/Disable usage telemetry for AVM modules.')
+param enableTelemetry bool = true
+
+// ============================================================================
+// Parameters — WAF-specific (private networking, scalability, redundancy)
+// ============================================================================
+
+@description('Optional. Enable private networking (VNet, private endpoints, DNS zones).')
+param enablePrivateNetworking bool = false
+
+@description('Optional. Enable scalability features (zone redundant App Service Plan).')
+param enableScalability bool = false
+
+@description('Optional. Enable redundancy (zone redundant Azure Cosmos DB, multi-region failover).')
+param enableRedundancy bool = false
+
+@description('Optional. Secondary Azure Cosmos DB location for high availability.')
+param secondaryLocation string = 'canadacentral'
+
+@secure()
+@description('Optional. VM admin username for jumpbox (required when enablePrivateNetworking is true).')
+param vmAdminUsername string?
+
+@secure()
+@description('Optional. VM admin password for jumpbox (required when enablePrivateNetworking is true).')
+param vmAdminPassword string?
+
+@description('Optional. Jumpbox VM size.')
+param vmSize string = 'Standard_D2s_v5'
+
+// ============================================================================
+// Derived Variables
+// ============================================================================
+
+var isAvm = deploymentFlavor == 'avm' || deploymentFlavor == 'avm-waf'
+var isBicep = deploymentFlavor == 'bicep'
+
+// ========== Bicep (vanilla) deployment ========== //
+module bicepDeployment './bicep/main.bicep' = if (isBicep) {
+  name: 'module-bicep-${solutionName}'
   params: {
-    miName:'${abbrs.security.managedIdentity}${solutionPrefix}'
-    solutionName: solutionPrefix
-    solutionLocation: solutionLocation
-  }
-  scope: resourceGroup(resourceGroup().name)
-}
-
-// ==========Key Vault Module ========== //
-// module kvault 'deploy_keyvault.bicep' = {
-//   name: 'deploy_keyvault'
-//   params: {
-//     keyvaultName: '${abbrs.security.keyVault}${solutionPrefix}'
-//     solutionLocation: solutionLocation
-//     managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
-//   }
-//   scope: resourceGroup(resourceGroup().name)
-// }
-
-// ==========AI Foundry and related resources ========== //
-module aifoundry 'deploy_ai_foundry.bicep' = {
-  name: 'deploy_ai_foundry'
-  params: {
-    solutionName: solutionPrefix
-    solutionLocation: aiDeploymentsLocation
-    // keyVaultName: kvault.outputs.keyvaultName
-    // cuLocation: contentUnderstandingLocation
+    solutionName: solutionName
+    solutionUniqueText: solutionUniqueText
+    location: location
+    tags: tags
+    azureAiServiceLocation: azureAiServiceLocation
     deploymentType: deploymentType
     gptModelName: gptModelName
     gptModelVersion: gptModelVersion
-    // azureOpenAIApiVersion: azureOpenAIApiVersion
     gptDeploymentCapacity: gptDeploymentCapacity
     embeddingModel: embeddingModel
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
-    managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
+    gptRealtimeModelName: gptRealtimeModelName
+    gptRealtimeModelVersion: gptRealtimeModelVersion
+    gptRealtimeDeploymentCapacity: gptRealtimeDeploymentCapacity
+    azureOpenaiAPIVersion: azureOpenaiAPIVersion
+    azureAiAgentApiVersion: azureAiAgentApiVersion
+    appServicePlanSku: appServicePlanSku
+    enableMonitoring: enableMonitoring
+    deploymentScenario: deploymentScenario
     existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
-    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
-    deployingUserPrincipalId: deployingUserPrincipalId
+    existingFoundryProjectResourceId: existingFoundryProjectResourceId
+    deployingUserPrincipalType: deployingUserPrincipalType
   }
-  scope: resourceGroup(resourceGroup().name)
 }
 
-
-// ========== Cosmos DB module ========== //
-module cosmosDBModule 'deploy_cosmos_db.bicep' = {
-  name: 'deploy_cosmos_db'
+// ========== AVM deployment ========== //
+module avmDeployment './avm/main.bicep' = if (isAvm) {
+  name: 'module-avm-${solutionName}'
   params: {
-    accountName: '${abbrs.databases.cosmosDBDatabase}${solutionPrefix}'
-    solutionLocation: secondaryLocation
-    // keyVaultName: kvault.outputs.keyvaultName
+    solutionName: solutionName
+    solutionUniqueText: solutionUniqueText
+    location: location
+    tags: tags
+    azureAiServiceLocation: azureAiServiceLocation
+    deploymentType: deploymentType
+    gptModelName: gptModelName
+    gptModelVersion: gptModelVersion
+    gptDeploymentCapacity: gptDeploymentCapacity
+    embeddingModel: embeddingModel
+    embeddingDeploymentCapacity: embeddingDeploymentCapacity
+    gptRealtimeDeploymentCapacity: gptRealtimeDeploymentCapacity
+    azureOpenaiAPIVersion: azureOpenaiAPIVersion
+    azureAiAgentApiVersion: azureAiAgentApiVersion
+    appServicePlanSku: appServicePlanSku
+    enableMonitoring: enableMonitoring
+    enableScalability: enableScalability
+    enableRedundancy: enableRedundancy
+    enablePrivateNetworking: enablePrivateNetworking
+    enableTelemetry: enableTelemetry
+    secondaryLocation: secondaryLocation
+    existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
+    existingFoundryProjectResourceId: existingFoundryProjectResourceId
+    deployingUserPrincipalType: deployingUserPrincipalType
+    vmAdminUsername: vmAdminUsername
+    vmAdminPassword: vmAdminPassword
+    vmSize: vmSize
+    deploymentScenario: deploymentScenario
   }
-  scope: resourceGroup(resourceGroup().name)
 }
 
+// ============================================================================
+// Outputs (unified across flavors)
+// ============================================================================
 
-module hostingplan 'deploy_app_service_plan.bicep' = {
-  name: 'deploy_app_service_plan'
-  params: {
-    solutionLocation: solutionLocation
-    HostingPlanName: '${abbrs.compute.appServicePlan}${solutionPrefix}'
-  }
-}
-
-module backend_docker 'deploy_backend_docker.bicep' = {
-  name: 'deploy_backend_docker'
-  params: {
-    name: 'api-${solutionPrefix}'
-    solutionLocation: solutionLocation
-    imageTag: imageTag
-    acrName: acrName
-    appServicePlanId: hostingplan.outputs.name
-    applicationInsightsId: aifoundry.outputs.applicationInsightsId
-    userassignedIdentityId: managedIdentityModule.outputs.managedIdentityBackendAppOutput.id
-    // keyVaultName: kvault.outputs.keyvaultName
-    aiServicesName: aifoundry.outputs.aiServicesName
-    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
-    aiSearchName: aifoundry.outputs.aiSearchName 
-    appSettings: {
-      AZURE_OPENAI_DEPLOYMENT_MODEL: gptModelName
-      AZURE_OPENAI_ENDPOINT: aifoundry.outputs.aiServicesTarget
-      AZURE_OPENAI_API_VERSION: azureOpenAIApiVersion //
-      AZURE_OPENAI_RESOURCE: aifoundry.outputs.aiServicesName
-      AZURE_AI_AGENT_ENDPOINT: aifoundry.outputs.projectEndpoint
-      AZURE_AI_AGENT_API_VERSION: azureAiAgentApiVersion
-      AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME: gptModelName
-      USE_CHAT_HISTORY_ENABLED: 'True'
-      AZURE_COSMOSDB_ACCOUNT: cosmosDBModule.outputs.cosmosAccountName
-      AZURE_COSMOSDB_CONVERSATIONS_CONTAINER: cosmosDBModule.outputs.cosmosContainerName
-      AZURE_COSMOSDB_DATABASE: cosmosDBModule.outputs.cosmosDatabaseName
-      AZURE_COSMOSDB_ENABLE_FEEDBACK: '' //'True'
-    
-      API_UID: managedIdentityModule.outputs.managedIdentityBackendAppOutput.clientId
-      AZURE_AI_SEARCH_ENDPOINT: aifoundry.outputs.aiSearchTarget
-      AZURE_AI_SEARCH_INDEX: 'call_transcripts_index'
-      AZURE_AI_SEARCH_CONNECTION_NAME: aifoundry.outputs.aiSearchConnectionName
-
-      USE_AI_PROJECT_CLIENT: 'True'
-      DISPLAY_CHART_DEFAULT: 'False'
-      APPLICATIONINSIGHTS_CONNECTION_STRING: aifoundry.outputs.applicationInsightsConnectionString
-      DUMMY_TEST: 'True'
-      SOLUTION_NAME: solutionPrefix
-      APP_ENV: 'Prod'//
-
-      ALLOWED_ORIGINS_STR: '*'
-      AZURE_FOUNDRY_ENDPOINT: aifoundry.outputs.projectEndpoint
-      //AZURE_OPENAI_API_KEY: ''
-      //AZURE_SEARCH_API_KEY: ''
-      AZURE_SEARCH_ENDPOINT: aifoundry.outputs.aiSearchTarget
-      AZURE_SEARCH_INDEX: 'policies'//
-      AZURE_SEARCH_PRODUCT_INDEX: 'products'//
-      COSMOS_DB_DATABASE_NAME: cosmosDBModule.outputs.cosmosDatabaseName //
-      COSMOS_DB_ENDPOINT: 'https://${cosmosDBModule.outputs.cosmosAccountName}.documents.azure.com:443/' //
-      //COSMOS_DB_KEY: '' 
-      // FOUNDRY_KNOWLEDGE_AGENT_ID: ''
-      // FOUNDRY_ORCHESTRATOR_AGENT_ID: ''
-      // FOUNDRY_ORDER_AGENT_ID: ''
-      // FOUNDRY_PRODUCT_AGENT_ID: ''
-      USE_FOUNDRY_AGENTS: 'True'
-      AZURE_OPENAI_DEPLOYMENT_NAME: gptModelName //
-      RATE_LIMIT_REQUESTS: 100 //
-      RATE_LIMIT_WINDOW: 60 //
-      FOUNDRY_CHAT_AGENT_ID: ''//
-      FOUNDRY_CUSTOM_PRODUCT_AGENT_ID: ''//
-      FOUNDRY_POLICY_AGENT_ID: ''//
-
-
-    }
-  }
-  scope: resourceGroup(resourceGroup().name)
-}
-
-module frontend_docker 'deploy_frontend_docker.bicep' = {
-  name: 'deploy_frontend_docker'
-  params: {
-    name: '${abbrs.compute.webApp}${solutionPrefix}'
-    solutionLocation:solutionLocation
-    imageTag: imageTag
-    acrName: acrName
-    appServicePlanId: hostingplan.outputs.name
-    applicationInsightsId: aifoundry.outputs.applicationInsightsId
-    appSettings:{
-      NODE_ENV:'production'
-      VITE_API_BASE_URL:backend_docker.outputs.appUrl
-    }
-  }
-  scope: resourceGroup(resourceGroup().name)
-}
-
-output SOLUTION_NAME string = solutionPrefix
-output RESOURCE_GROUP_NAME string = resourceGroup().name
-output RESOURCE_GROUP_LOCATION string = solutionLocation
-output ENVIRONMENT_NAME string = environmentName
-output AZURE_CONTENT_UNDERSTANDING_LOCATION string = contentUnderstandingLocation
-output AZURE_SECONDARY_LOCATION string = secondaryLocation
-output APPINSIGHTS_INSTRUMENTATIONKEY string = backend_docker.outputs.appInsightInstrumentationKey
-output AZURE_AI_PROJECT_CONN_STRING string = aifoundry.outputs.projectEndpoint
-output AZURE_AI_AGENT_API_VERSION string = azureAiAgentApiVersion
-output AZURE_AI_PROJECT_NAME string = aifoundry.outputs.aiProjectName
-output AZURE_COSMOSDB_ACCOUNT string = cosmosDBModule.outputs.cosmosAccountName
-output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = cosmosDBModule.outputs.cosmosContainerName
-output AZURE_COSMOSDB_DATABASE string = cosmosDBModule.outputs.cosmosDatabaseName
-output AZURE_COSMOSDB_ENABLE_FEEDBACK string = 'True'
-output AZURE_OPENAI_DEPLOYMENT_MODEL string = gptModelName
-output AZURE_OPENAI_EMBEDDING_MODEL string = embeddingModel
-output AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY int = embeddingDeploymentCapacity
-output AZURE_OPENAI_ENDPOINT string = aifoundry.outputs.aiServicesTarget
-output AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE string = deploymentType
-
-output AZURE_AI_SEARCH_ENDPOINT string = aifoundry.outputs.aiSearchTarget
-
-
-output AZURE_OPENAI_API_VERSION string = azureOpenAIApiVersion
-output AZURE_OPENAI_RESOURCE string = aifoundry.outputs.aiServicesName
-output REACT_APP_LAYOUT_CONFIG string = backend_docker.outputs.reactAppLayoutConfig
-
-output API_UID string = managedIdentityModule.outputs.managedIdentityBackendAppOutput.clientId
-output USE_AI_PROJECT_CLIENT string = 'False'
-output USE_CHAT_HISTORY_ENABLED string = 'True'
-output DISPLAY_CHART_DEFAULT string = 'False'
-output AZURE_AI_AGENT_ENDPOINT string = aifoundry.outputs.projectEndpoint
-output AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME string = gptModelName
-output ACR_NAME string = acrName
-output AZURE_ENV_IMAGETAG string = imageTag
-
-output AI_SERVICE_NAME string = aifoundry.outputs.aiServicesName
-output API_APP_NAME string = backend_docker.outputs.appName
-output API_PID string = managedIdentityModule.outputs.managedIdentityBackendAppOutput.objectId
-
-output API_APP_URL string = backend_docker.outputs.appUrl
-output WEB_APP_URL string = frontend_docker.outputs.appUrl
-output APPLICATIONINSIGHTS_CONNECTION_STRING string = aifoundry.outputs.applicationInsightsConnectionString
-output AGENT_ID_CHAT string = ''
-
-output MANAGED_IDENTITY_CLIENT_ID string = managedIdentityModule.outputs.managedIdentityOutput.clientId
-output AI_FOUNDRY_RESOURCE_ID string = aifoundry.outputs.aiFoundryResourceId
-output AI_SEARCH_SERVICE_RESOURCE_ID string = aifoundry.outputs.searchServiceResourceId
-output COSMOS_DB_ENDPOINT string = 'https://${cosmosDBModule.outputs.cosmosAccountName}.documents.azure.com:443/'
-output COSMOS_DB_DATABASE_NAME string = cosmosDBModule.outputs.cosmosDatabaseName
-output APP_ENV string = 'Prod'
+output SOLUTION_NAME string = isAvm ? avmDeployment!.outputs.SOLUTION_NAME : bicepDeployment!.outputs.SOLUTION_NAME
+output RESOURCE_GROUP_NAME string = isAvm ? avmDeployment!.outputs.RESOURCE_GROUP_NAME : bicepDeployment!.outputs.RESOURCE_GROUP_NAME
+output RESOURCE_GROUP_LOCATION string = isAvm ? avmDeployment!.outputs.RESOURCE_GROUP_LOCATION : bicepDeployment!.outputs.RESOURCE_GROUP_LOCATION
+output AI_SERVICE_NAME string = isAvm ? avmDeployment!.outputs.AI_SERVICE_NAME : bicepDeployment!.outputs.AI_SERVICE_NAME
+output AI_FOUNDRY_RESOURCE_ID string = isAvm ? avmDeployment!.outputs.AI_FOUNDRY_RESOURCE_ID : bicepDeployment!.outputs.AI_FOUNDRY_RESOURCE_ID
+output AI_SEARCH_SERVICE_RESOURCE_ID string = isAvm ? avmDeployment!.outputs.AI_SEARCH_SERVICE_RESOURCE_ID : bicepDeployment!.outputs.AI_SEARCH_SERVICE_RESOURCE_ID
+output API_APP_NAME string = isAvm ? avmDeployment!.outputs.API_APP_NAME : bicepDeployment!.outputs.API_APP_NAME
+output API_APP_URL string = isAvm ? avmDeployment!.outputs.API_APP_URL : bicepDeployment!.outputs.API_APP_URL
+output API_PID string = isAvm ? avmDeployment!.outputs.API_PID : bicepDeployment!.outputs.API_PID
+output APP_ENV string = isAvm ? avmDeployment!.outputs.APP_ENV : bicepDeployment!.outputs.APP_ENV
+output APPINSIGHTS_INSTRUMENTATIONKEY string = isAvm ? avmDeployment!.outputs.APPINSIGHTS_INSTRUMENTATIONKEY : bicepDeployment!.outputs.APPINSIGHTS_INSTRUMENTATIONKEY
+output APPLICATIONINSIGHTS_CONNECTION_STRING string = isAvm ? avmDeployment!.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING : bicepDeployment!.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
+output AZURE_AI_AGENT_API_VERSION string = isAvm ? avmDeployment!.outputs.AZURE_AI_AGENT_API_VERSION : bicepDeployment!.outputs.AZURE_AI_AGENT_API_VERSION
+output AZURE_AI_AGENT_ENDPOINT string = isAvm ? avmDeployment!.outputs.AZURE_AI_AGENT_ENDPOINT : bicepDeployment!.outputs.AZURE_AI_AGENT_ENDPOINT
+output AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME string = isAvm ? avmDeployment!.outputs.AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME : bicepDeployment!.outputs.AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME
+output AZURE_AI_PROJECT_CONN_STRING string = isAvm ? avmDeployment!.outputs.AZURE_AI_PROJECT_CONN_STRING : bicepDeployment!.outputs.AZURE_AI_PROJECT_CONN_STRING
+output AZURE_AI_PROJECT_NAME string = isAvm ? avmDeployment!.outputs.AZURE_AI_PROJECT_NAME : bicepDeployment!.outputs.AZURE_AI_PROJECT_NAME
+output AZURE_AI_SEARCH_ENDPOINT string = isAvm ? avmDeployment!.outputs.AZURE_AI_SEARCH_ENDPOINT : bicepDeployment!.outputs.AZURE_AI_SEARCH_ENDPOINT
+output AZURE_COSMOSDB_ACCOUNT string = isAvm ? avmDeployment!.outputs.AZURE_COSMOSDB_ACCOUNT : bicepDeployment!.outputs.AZURE_COSMOSDB_ACCOUNT
+output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = isAvm ? avmDeployment!.outputs.AZURE_COSMOSDB_CONVERSATIONS_CONTAINER : bicepDeployment!.outputs.AZURE_COSMOSDB_CONVERSATIONS_CONTAINER
+output AZURE_COSMOSDB_DATABASE string = isAvm ? avmDeployment!.outputs.AZURE_COSMOSDB_DATABASE : bicepDeployment!.outputs.AZURE_COSMOSDB_DATABASE
+output AZURE_FOUNDRY_ENDPOINT string = isAvm ? avmDeployment!.outputs.AZURE_FOUNDRY_ENDPOINT : bicepDeployment!.outputs.AZURE_FOUNDRY_ENDPOINT
+output AZURE_OPENAI_API_VERSION string = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_API_VERSION : bicepDeployment!.outputs.AZURE_OPENAI_API_VERSION
+output AZURE_OPENAI_DEPLOYMENT_MODEL string = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_DEPLOYMENT_MODEL : bicepDeployment!.outputs.AZURE_OPENAI_DEPLOYMENT_MODEL
+output AZURE_OPENAI_EMBEDDING_MODEL string = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_EMBEDDING_MODEL : bicepDeployment!.outputs.AZURE_OPENAI_EMBEDDING_MODEL
+output AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY int = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY : bicepDeployment!.outputs.AZURE_OPENAI_EMBEDDING_MODEL_CAPACITY
+output AZURE_OPENAI_ENDPOINT string = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_ENDPOINT : bicepDeployment!.outputs.AZURE_OPENAI_ENDPOINT
+output AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE string = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE : bicepDeployment!.outputs.AZURE_OPENAI_MODEL_DEPLOYMENT_TYPE
+output AZURE_OPENAI_RESOURCE string = isAvm ? avmDeployment!.outputs.AZURE_OPENAI_RESOURCE : bicepDeployment!.outputs.AZURE_OPENAI_RESOURCE
+output COSMOS_DB_DATABASE_NAME string = isAvm ? avmDeployment!.outputs.COSMOS_DB_DATABASE_NAME : bicepDeployment!.outputs.COSMOS_DB_DATABASE_NAME
+output COSMOS_DB_ENDPOINT string = isAvm ? avmDeployment!.outputs.COSMOS_DB_ENDPOINT : bicepDeployment!.outputs.COSMOS_DB_ENDPOINT
+output DISPLAY_CHART_DEFAULT string = isAvm ? avmDeployment!.outputs.DISPLAY_CHART_DEFAULT : bicepDeployment!.outputs.DISPLAY_CHART_DEFAULT
+output FOUNDRY_CHAT_AGENT string = isAvm ? avmDeployment!.outputs.FOUNDRY_CHAT_AGENT : bicepDeployment!.outputs.FOUNDRY_CHAT_AGENT
+output FOUNDRY_POLICY_AGENT string = isAvm ? avmDeployment!.outputs.FOUNDRY_POLICY_AGENT : bicepDeployment!.outputs.FOUNDRY_POLICY_AGENT
+output FOUNDRY_PRODUCT_AGENT string = isAvm ? avmDeployment!.outputs.FOUNDRY_PRODUCT_AGENT : bicepDeployment!.outputs.FOUNDRY_PRODUCT_AGENT
+output AGENT_ID_CHAT string = isAvm ? avmDeployment!.outputs.AGENT_ID_CHAT : bicepDeployment!.outputs.AGENT_ID_CHAT
+output REACT_APP_LAYOUT_CONFIG string = isAvm ? avmDeployment!.outputs.REACT_APP_LAYOUT_CONFIG : bicepDeployment!.outputs.REACT_APP_LAYOUT_CONFIG
+output USE_AI_PROJECT_CLIENT string = isAvm ? avmDeployment!.outputs.USE_AI_PROJECT_CLIENT : bicepDeployment!.outputs.USE_AI_PROJECT_CLIENT
+output USE_CHAT_HISTORY_ENABLED string = isAvm ? avmDeployment!.outputs.USE_CHAT_HISTORY_ENABLED : bicepDeployment!.outputs.USE_CHAT_HISTORY_ENABLED
+output WEB_APP_URL string = isAvm ? avmDeployment!.outputs.WEB_APP_URL : bicepDeployment!.outputs.WEB_APP_URL
+output CHAT_API_APP_URL string = isAvm ? avmDeployment!.outputs.CHAT_API_APP_URL : bicepDeployment!.outputs.CHAT_API_APP_URL
+output CHAT_WEB_APP_URL string = isAvm ? avmDeployment!.outputs.CHAT_WEB_APP_URL : bicepDeployment!.outputs.CHAT_WEB_APP_URL
+output SCENARIO_API_APP_URL string = isAvm ? avmDeployment!.outputs.SCENARIO_API_APP_URL : bicepDeployment!.outputs.SCENARIO_API_APP_URL
+output SCENARIO_WEB_APP_URL string = isAvm ? avmDeployment!.outputs.SCENARIO_WEB_APP_URL : bicepDeployment!.outputs.SCENARIO_WEB_APP_URL
+output CHAT_API_APP_NAME string = isAvm ? avmDeployment!.outputs.CHAT_API_APP_NAME : bicepDeployment!.outputs.CHAT_API_APP_NAME
+output CHAT_WEB_APP_NAME string = isAvm ? avmDeployment!.outputs.CHAT_WEB_APP_NAME : bicepDeployment!.outputs.CHAT_WEB_APP_NAME
+output SCENARIO_API_APP_NAME string = isAvm ? avmDeployment!.outputs.SCENARIO_API_APP_NAME : bicepDeployment!.outputs.SCENARIO_API_APP_NAME
+output SCENARIO_WEB_APP_NAME string = isAvm ? avmDeployment!.outputs.SCENARIO_WEB_APP_NAME : bicepDeployment!.outputs.SCENARIO_WEB_APP_NAME
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = isAvm ? avmDeployment!.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT : bicepDeployment!.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output AZURE_CONTAINER_REGISTRY_NAME string = isAvm ? avmDeployment!.outputs.AZURE_CONTAINER_REGISTRY_NAME : bicepDeployment!.outputs.AZURE_CONTAINER_REGISTRY_NAME
+output AZURE_ENV_SCENARIO string = deploymentScenario

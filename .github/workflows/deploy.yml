@@ -1,51 +1,63 @@
 name: Deploy-Test-Cleanup Pipeline
 
+permissions:
+  contents: read
+  id-token: write
+
 on:
     push:
       branches:
         - main
         - dev
         - demo
+      paths:
+        - 'src/**'
+        - 'infra/**'
+        - 'azure*.yaml'
+        - '.github/workflows/deploy.yml'
     schedule:
       - cron: '0 5,17 * * *'  # Runs at 5:00 AM and 5:00 PM GMT
     workflow_dispatch:
 
 env:
-  GPT_MIN_CAPACITY: 10
+  GPT_MIN_CAPACITY: 50
   EMBEDDING_MIN_CAPACITY: 10
+  GPT_REALTIME_MIN_CAPACITY: 1
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     outputs:
       RESOURCE_GROUP_NAME: ${{ steps.check_create_rg.outputs.RESOURCE_GROUP_NAME }}
       WEBAPP_URL: ${{ steps.get_output.outputs.WEBAPP_URL }}
       API_URL: ${{ steps.get_output.outputs.API_URL }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Setup Azure CLI
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
           az --version  # Verify installation
 
-      - name: Login to Azure
-        run: |
-          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+      - name: Login to Azure (OIDC)
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Run Quota Check
         id: quota-check
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_REGIONS: ${{ vars.AZURE_REGIONS }}
+          GPT_MIN_CAPACITY: ${{ env.GPT_MIN_CAPACITY }}
+          EMBEDDING_MIN_CAPACITY: ${{ env.EMBEDDING_MIN_CAPACITY }}
+          GPT_REALTIME_MIN_CAPACITY: ${{ env.GPT_REALTIME_MIN_CAPACITY }}
         run: |
-          # Clean and export environment variables for quota check
-          export AZURE_CLIENT_ID="$(echo "${{ secrets.AZURE_CLIENT_ID }}" | tr -d '\n\r' | xargs)"
-          export AZURE_TENANT_ID="$(echo "${{ secrets.AZURE_TENANT_ID }}" | tr -d '\n\r' | xargs)"
-          export AZURE_CLIENT_SECRET="$(echo "${{ secrets.AZURE_CLIENT_SECRET }}" | tr -d '\n\r' | xargs)"
-          export AZURE_SUBSCRIPTION_ID="$(echo "${{ secrets.AZURE_SUBSCRIPTION_ID }}" | tr -d '\n\r' | xargs)"
-          export AZURE_REGIONS="${{ vars.AZURE_REGIONS }}"
-          export GPT_MIN_CAPACITY="${{ env.GPT_MIN_CAPACITY }}"
-          export EMBEDDING_MIN_CAPACITY="${{ env.EMBEDDING_MIN_CAPACITY }}"
           chmod +x infra/scripts/checkquota.sh
           if ! infra/scripts/checkquota.sh; then
             # If quota check fails due to insufficient quota, set the flag
@@ -61,7 +73,7 @@ jobs:
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           EMAIL_BODY=$(cat <<EOF
           {
-            "body": "<p>Dear Team,</p><p>The quota check has failed for Customer Chatbot deployment, and the pipeline cannot proceed.</p><p><strong>Build URL:</strong> <a href=\"${RUN_URL}\">${RUN_URL}</a></p><p>Required models:<br>- gpt-4o-mini: ${{ env.GPT_MIN_CAPACITY }} capacity<br>- text-embedding-ada-002: ${{ env.EMBEDDING_MIN_CAPACITY }} capacity</p><p>Please take necessary action.</p><p>Best regards,<br>Your Automation Team</p>"
+            "body": "<p>Dear Team,</p><p>The quota check has failed for Customer Chatbot deployment, and the pipeline cannot proceed.</p><p><strong>Build URL:</strong> <a href=\"${RUN_URL}\">${RUN_URL}</a></p><p>Required models:<br>- gpt-4.1-mini: ${{ env.GPT_MIN_CAPACITY }} capacity<br>- text-embedding-3-small: ${{ env.EMBEDDING_MIN_CAPACITY }} capacity<br>- gpt-realtime-mini: ${{ env.GPT_REALTIME_MIN_CAPACITY }} capacity</p><p>Please take necessary action.</p><p>Best regards,<br>Your Automation Team</p>"
           }
           EOF
           )
@@ -77,7 +89,7 @@ jobs:
       - name: Set Deployment Region
         run: |
           echo "Selected Region: $VALID_REGION"
-          echo "AZURE_LOCATION=$VALID_REGION" >> $GITHUB_ENV
+          echo "AZURE_ENV_AI_SERVICE_LOCATION=$VALID_REGION" >> $GITHUB_ENV
 
       - name: Install Bicep CLI
         run: az bicep install
@@ -95,14 +107,18 @@ jobs:
       - name: Check and Create Resource Group
         id: check_create_rg
         run: |
-          set -e  
-          echo "Checking if resource group exists..."
+          set -e
+          OWNER_TAG_VALUE="${{ github.actor }}"
+          echo "🔍 Checking if resource group '${{ env.RESOURCE_GROUP_NAME }}' exists..."
           rg_exists=$(az group exists --name ${{ env.RESOURCE_GROUP_NAME }})
           if [ "$rg_exists" = "false" ]; then
-            echo "Resource group does not exist. Creating..."
-            az group create --name ${{ env.RESOURCE_GROUP_NAME }} --location ${{ env.AZURE_LOCATION }} || { echo "Error creating resource group"; exit 1; }
+            echo "📦 Resource group does not exist. Creating..."
+            echo "🏷️  Adding Owner tag: Owner=${OWNER_TAG_VALUE}"
+            az group create --name ${{ env.RESOURCE_GROUP_NAME }} --location ${{ vars.AZURE_LOCATION }} --tags "Owner=${OWNER_TAG_VALUE}" || { echo "❌ Error creating resource group"; exit 1; }
           else
-            echo "Resource group already exists."
+            echo "✅ Resource group already exists."
+            echo "🏷️  Adding Owner tag on existing resource group: Owner=${OWNER_TAG_VALUE}"
+            az group update --name "${{ env.RESOURCE_GROUP_NAME }}" --set tags.Owner="${OWNER_TAG_VALUE}" --output none || echo "⚠️  Warning: failed to update Owner tag on existing resource group '${{ env.RESOURCE_GROUP_NAME }}'."
           fi
           echo "RESOURCE_GROUP_NAME=${{ env.RESOURCE_GROUP_NAME }}" >> $GITHUB_OUTPUT
 
@@ -110,7 +126,7 @@ jobs:
         id: generate_solution_prefix
         run: |
           set -e
-          COMMON_PART="ccb"
+          COMMON_PART="byocc"
           TIMESTAMP=$(date +%s)  
           UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 4) 
           UNIQUE_SOLUTION_PREFIX="${COMMON_PART}${UPDATED_TIMESTAMP}"
@@ -123,13 +139,13 @@ jobs:
           set -e
           # set image tag based on branch
           if [[ "${{ env.BRANCH_NAME }}" == "main" ]]; then
-            IMAGE_TAG="latest"
+            IMAGE_TAG="latest_v3"
           elif [[ "${{ env.BRANCH_NAME }}" == "dev" ]]; then
             IMAGE_TAG="dev"
           elif [[ "${{ env.BRANCH_NAME }}" == "demo" ]]; then
             IMAGE_TAG="demo"
           else
-            IMAGE_TAG="latest"
+            IMAGE_TAG="latest_v3"
           fi
 
           # Generate current timestamp in desired format: YYYY-MM-DDTHH:MM:SS.SSSSSSSZ
@@ -140,13 +156,12 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
             --template-file infra/main.bicep \
             --parameters \
-                environmentName="${{ env.SOLUTION_PREFIX }}" \
-                aiDeploymentsLocation='${{ env.AZURE_LOCATION }}' \
+                solutionName="${{ env.SOLUTION_PREFIX }}" \
+                location='${{ vars.AZURE_LOCATION }}' \
+                azureAiServiceLocation='${{ env.AZURE_ENV_AI_SERVICE_LOCATION }}' \
                 imageTag="${IMAGE_TAG}" \
                 createdBy="Pipeline" \
                 tags="{'SecurityControl':'Ignore','Purpose':'Pipeline','CreatedDate':'$current_date','Solution':'Customer-Chatbot'}"
-
-
 
       - name: Get Deployment Output and extract Values
         id: get_output
@@ -167,12 +182,11 @@ jobs:
           az logout
           echo "Logged out from Azure."
 
-
-
   cleanup-deployment:
     if: always() && needs.deploy.outputs.RESOURCE_GROUP_NAME != ''
     needs: [deploy]
     runs-on: ubuntu-latest
+    environment: production
     env:
       RESOURCE_GROUP_NAME: ${{ needs.deploy.outputs.RESOURCE_GROUP_NAME }}
     steps:
@@ -181,11 +195,12 @@ jobs:
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
           az --version  # Verify installation
 
-      - name: Login to Azure
-        run: |
-            az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-            az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
+      - name: Login to Azure (OIDC)
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Get Azure Resources from Resource Group
         if: always()
@@ -204,7 +219,7 @@ jobs:
             echo "Log Analytics workspace name: ${log_analytics_workspace_name}" 
           fi
           
-          echo "Fetching AI Services (OpenAI) resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
+          echo "Fetching AI Services (Azure OpenAI) resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
           
           # Run the az resource list command to get the AI Services resource name
           ai_services_name=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --resource-type "Microsoft.CognitiveServices/accounts" --query "[0].name" -o tsv)
@@ -216,16 +231,16 @@ jobs:
             echo "AI Services resource name: ${ai_services_name}" 
           fi
 
-          echo "Fetching AI Search resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
+          echo "Fetching Azure AI Search resource from resource group ${{ env.RESOURCE_GROUP_NAME }}..."
           
-          # Run the az resource list command to get the AI Search resource name
+          # Run the az resource list command to get the Azure AI Search resource name
           ai_search_name=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --resource-type "Microsoft.Search/searchServices" --query "[0].name" -o tsv)
 
           if [ -z "$ai_search_name" ]; then
-            echo "No AI Search resource found in resource group ${{ env.RESOURCE_GROUP_NAME }}."
+            echo "No Azure AI Search resource found in resource group ${{ env.RESOURCE_GROUP_NAME }}."
           else
             echo "AI_SEARCH_NAME=${ai_search_name}" >> $GITHUB_ENV
-            echo "AI Search resource name: ${ai_search_name}" 
+            echo "Azure AI Search resource name: ${ai_search_name}" 
           fi
 
       - name: List KeyVaults and Store in Array
@@ -369,11 +384,11 @@ jobs:
         run: |
           set -e
 
-          # Purge AI Services Resource (includes OpenAI)
+          # Purge AI Services Resource (includes Azure OpenAI)
           if [ ! -z "${{ env.AI_SERVICES_NAME }}" ]; then
             echo "AI Services: ${{ env.AI_SERVICES_NAME }}"
             echo "Purging the AI Services Resource..."
-            if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/${{ env.AZURE_LOCATION }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/deletedAccounts/${{ env.AI_SERVICES_NAME }} --verbose; then
+            if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/${{ vars.AZURE_LOCATION }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/deletedAccounts/${{ env.AI_SERVICES_NAME }} --verbose; then
               echo "Failed to purge AI Services resource: ${{ env.AI_SERVICES_NAME }}"
             else
               echo "Purged the AI Services resource: ${{ env.AI_SERVICES_NAME }}"
