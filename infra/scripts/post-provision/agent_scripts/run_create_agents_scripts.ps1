@@ -326,7 +326,7 @@ $requirementFile = "infra/scripts/post-provision/agent_scripts/requirements.txt"
 
 # Download and install Python requirements
 Write-Host "Installing Python requirements..."
-python -m pip install --upgrade pip
+python -m pip install --upgrade pip --index-url https://packagefeedproxy.microsoft.io/pypi/simple/
 python -m pip install --quiet -r "$requirementFile"
 
 # For WAF deployments, temporarily enable public network access on Azure AI Foundry
